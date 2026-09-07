@@ -18,4 +18,6 @@ export const createMovieListSchema = z.object({
   name: z.string().trim().min(1).max(100),
 });
 
+export const updateMovieListSchema = createMovieListSchema;
+
 export const movieListItemSchema = z.object({ movieId: idSchema });

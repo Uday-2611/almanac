@@ -80,6 +80,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Add client components only when interactivity genuinely requires them.
 - Scope all user data access by `user_id` at the query layer.
 - A movie may belong to a user-created list only while it belongs to the same user and has `watched` status. Preserve the API validation and database triggers that enforce this; moving a movie back to `watchlist` must remove its custom-list memberships.
+- Preserve owner-scoped movie-list CRUD. Deleting a custom list must delete only its memberships, not the watched movies it contained; movie deletion remains a separate confirmed action.
+- Render reviews through the sanitized markdown component. Do not enable raw HTML in user-authored review content.
 - Keep the extension as a separate package when that milestone begins.
 
 ## Current UI Foundation
@@ -88,7 +90,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Reuse the movie ledger row, text-toggle, and horizontal poster-rail patterns when connecting real data or mirroring the experience for books.
 - Preserve the large quiet space above movie content; it is an intentional part of the approved layout, not missing content.
 - Preserve the movie and book list interaction signature: straight, silent borderless rows with GSAP hover isolation applied to the active row's date, title, and creator together.
-- Preserve the movies image-view signature: a single smoothly scrolling horizontal rail whose GSAP hover/focus motion enlarges posters evenly from the center and reveals title and director below.
+- Preserve the movies image-view signature: a single smoothly scrolling, closely spaced horizontal rail of 2:3 posters whose GSAP hover/focus motion enlarges them evenly from the center, reveals title and director below, and softly desaturates neighboring posters.
 - Preserve the books image-view signature: narrow, varied-height book spines at the bottom of the viewport in a smoothly scrolling horizontal shelf; GSAP hover/focus motion enlarges them evenly from the center and reveals title and author above.
 - Movie and book detail routes use the shared scrollable information-card layout, with a full-bleed poster occupying the entire left pane and right-side ledger metadata followed by cast or contributor credits.
 - Movie links use an intercepted parallel route so details open as a modal over the movies ledger; preserve direct `/movies/[movieId]` page rendering as the hard-navigation fallback.
@@ -98,3 +100,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `TMDB_API_READ_TOKEN` is configured as an encrypted Vercel variable for Production, Preview, and Development; never expose it to client code or logs.
 - Preserve the accessible animated open/close disclosure on each Movie My Lists section.
 - Preserve the authenticated navbar signature: the Almanac wordmark sits beside a three-line menu control that morphs into a close icon; the compact square-cornered menu uses subtle open/close motion, monochrome item hovers, and outside-click/Escape dismissal.
+- Preserve the 2:3 movie artwork ratio in both image view and the information modal. Separate the fixed desktop poster from the scrollable frosted-glass information pane with a narrow gap; use an icon close control and a subtly rounded review inset. Show the smooth GSAP ledger confirmation only after a Watchlist or Watched add request succeeds.
+- Use quiet ledger-style skeletons for route loading, provider search, and authenticated mutations; retain accessible live status text for assistive technology.

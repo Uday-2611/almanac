@@ -150,6 +150,25 @@ export async function createMovieListForUser(userId: string, name: string) {
   return existing;
 }
 
+export async function renameMovieListForUser(userId: string, listId: string, name: string) {
+  const [updated] = await getDatabase()
+    .update(movieLists)
+    .set({ name, updatedAt: new Date() })
+    .where(and(eq(movieLists.id, listId), eq(movieLists.userId, userId)))
+    .returning();
+
+  return updated ?? null;
+}
+
+export async function deleteMovieListForUser(userId: string, listId: string) {
+  const [deleted] = await getDatabase()
+    .delete(movieLists)
+    .where(and(eq(movieLists.id, listId), eq(movieLists.userId, userId)))
+    .returning({ id: movieLists.id });
+
+  return deleted ?? null;
+}
+
 export async function addMovieToListForUser(userId: string, listId: string, movieId: string) {
   const [eligible] = await getDatabase()
     .select({ listId: movieLists.id, movieId: movies.id })

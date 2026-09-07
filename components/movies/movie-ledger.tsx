@@ -81,13 +81,13 @@ function MovieToolbar({ status, view }: { status: MovieStatus; view: MovieView }
   );
 }
 
-function AddLink({ lists }: { lists?: boolean }) {
+function AddLink({ lists, view }: { lists?: boolean; view: MovieView }) {
   if (!lists) {
     return <SearchTrigger label="Add New +" scope="movie" className="inline-flex text-sm sm:text-base" />;
   }
 
   return (
-    <Link href="/movies?new=list" className="ledger-focus inline-flex items-center gap-1 text-sm sm:text-base">
+    <Link href={{ pathname: "/movies", query: { status: "lists", view, new: "list" } }} className="ledger-focus inline-flex items-center gap-1 text-sm sm:text-base">
       Create new list
       <span aria-hidden="true" className="text-lg leading-none">+</span>
     </Link>
@@ -127,7 +127,7 @@ function Poster({ movie }: { movie: Movie }) {
 function MovieImageView({ movies }: { movies: Movie[] }) {
   return (
     <MoviePosterRail>
-      <ul className="mt-[6px] flex w-max gap-2 px-3 pb-3">
+      <ul className="mt-[6px] flex w-max gap-1 px-3 pb-3">
         {movies.map((movie) => <Poster key={movie.id} movie={movie} />)}
       </ul>
     </MoviePosterRail>
@@ -140,12 +140,14 @@ function ListsView({ lists, view }: { lists: MovieList[]; view: MovieView }) {
       {lists.map((list) => (
         <MovieListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
           {view === "images" ? (
-            <MovieImageView movies={list.movies} />
+            list.movies.length ? <MovieImageView movies={list.movies} /> : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched movies in this list yet.</p>
           ) : (
-            <AnimatedLedgerList
-              items={toLedgerItems(list.movies.slice(0, 4))}
-              className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]"
-            />
+            list.movies.length ? (
+              <AnimatedLedgerList
+                items={toLedgerItems(list.movies)}
+                className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]"
+              />
+            ) : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched movies in this list yet.</p>
           )}
         </MovieListDisclosure>
       ))}
@@ -170,7 +172,7 @@ export function MovieLedger({
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Movies</h1>
       <MovieToolbar status={status} view={view} />
-      <AddLink lists={status === "lists"} />
+      <AddLink lists={status === "lists"} view={view} />
       {showCreateList ? <CreateMovieListForm /> : null}
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies you have watched." /></div>

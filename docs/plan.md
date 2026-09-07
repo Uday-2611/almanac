@@ -53,7 +53,7 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Phase 0 (complete): Initialize shadcn/ui, establish the App Router folder/file structure, reserve server API boundaries, and document the user flow.
 - Phase 1 (complete): Implement the landing page and Better Auth foundation, including session lookup, protected-route enforcement, post-login redirect to `/movies`, and Vercel-managed secrets for Production, Preview, and Development.
 - Phase 2 (complete): Provision Neon through Vercel, implement the Drizzle data layer and user-scoped schema for movies, books, tags, and preferences, and apply the initial committed migration.
-- Phase 3 (implemented): Build the movie flow with TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, and watched-only custom lists.
+- Phase 3 (complete): Build the movie flow with TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and movie deletion.
 - Phase 4: Mirror the same experience for books with Open Library-first search and provider fallback planning.
 - Phase 5: Add visible simple tags, tag filtering foundations, and schema-safe hooks for future knowledge-graph work.
 - Phase 6: Polish the ledger UI, validation states, accessibility, caching behavior, and editing flows.
@@ -65,6 +65,8 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Verify client code never calls TMDB or book providers directly.
 - Verify list pages remain mostly server-rendered and lightweight.
 - Verify markdown review rendering is safe and intentionally limited.
+- Verify create, rename, delete, and membership changes for movie lists remain owner-scoped and preserve the watched-only invariant.
+- Verify route transitions, search, and data mutations show quiet skeleton feedback without replacing semantic status text.
 - Verify tags are reusable entities, not just comma-separated strings.
 - Verify the schema still supports later graph relationships without a migration-heavy rewrite.
 
@@ -79,16 +81,20 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Movie navigation is query-driven with `status=watchlist|watched|lists` and `view=list|images`, keeping the page server-rendered and ready for database-backed data.
 - Movie pages now read authenticated, user-scoped records from Neon; the former movie seed catalog is no longer used for movie browsing or movie search.
 - Movie and book list browsing uses straight, borderless rows with GSAP hover isolation: the active row's date, title, and creator move outward and grow together while neighboring rows recede. The interaction is silent.
-- Movie image browsing uses a smooth horizontal rail of enlarged posters; GSAP scales each poster evenly from its center and reveals its title and director below on hover or focus.
+- Movie image browsing uses a smooth, closely spaced horizontal rail of 2:3 posters; GSAP scales each poster evenly from its center, reveals its title and director, and softly desaturates neighboring posters on hover or focus.
 - The books image view is a bottom-anchored, smoothly scrolling horizontal shelf of narrow book spines; GSAP scales a focused or hovered spine evenly from its center and reveals its title and author above.
 - Movie and book selections open a shared, scrollable information card: a full-bleed poster occupies the modal's complete left pane; title, creator, year, user rating, review, logged date, and tags sit on the right; cast or contributor credits continue below.
 - Movie detail navigation is intercepted into a modal over the existing movies ledger, with a blurred background, Escape/backdrop dismissal, and a direct-URL standalone page fallback.
 - A shared global media-search overlay is available from navigation and from Movies/Books `Add New +` controls. Navigation searches both types; entry controls pre-filter by type.
 - Movie search now queries TMDB through `/api/movies/search`, and each result can be saved explicitly to Watchlist or Watched. Book search remains on the typed local catalog until Phase 4.
 - Movie My Lists sections use an accessible open/close control with a subtle animated disclosure while preserving the ledger header.
+- Movie posters use a consistent 2:3 ratio in image view and the movie information modal. The poster is visually separated from a frosted-glass information pane; on desktop, the poster remains fixed while only the information scrolls. The modal uses an icon close control and a subtly rounded review inset. Successful Watchlist or Watched additions receive a brief GSAP-confirmed ledger notice after the server mutation succeeds.
 - The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
 - Better Auth email/password flows, database-backed sessions, protected product routes, and sign-out are implemented locally.
 - The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, reusable tags, join tables, and view preferences.
 - User-created movie lists are persisted through `movie_lists` and `movie_list_items`. Both the query layer and Postgres enforce that only the owner's Watched movies can be added; moving a movie back to Watchlist clears watched-only fields and automatically removes all custom-list memberships.
+- Movie list management is complete: users can create lists from My Lists or directly from a watched movie, add and remove watched movies, rename lists, delete lists without deleting their movies, and view every item in a list. Movie entries can also be permanently deleted through a two-step confirmation.
+- Reviews render a deliberately limited, sanitized markdown subset. Raw HTML is not rendered, external links open safely, and the stored source remains editable.
+- Route loading, TMDB search, and movie/list mutations use restrained ledger-style skeleton states with accessible status labels.
 - The server-only `TMDB_API_READ_TOKEN` is encrypted in Vercel for Production, Preview, and Development, is available locally through the ignored `.env.local`, and has passed an authenticated TMDB request.
 - The repository is linked to the Vercel project `almanac`. The `almanac-postgres` Neon database is connected to Production, Preview, and Development, `BETTER_AUTH_SECRET` is stored as a sensitive Vercel variable in each environment, and `drizzle/0000_tiresome_gargoyle.sql` has been applied successfully.

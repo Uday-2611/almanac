@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { createContext, useContext, useDeferredValue, useEffect, useRef, useState, useTransition, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useDeferredValue, useEffect, useRef, useState, useTransition, type ReactNode } from "react"
 
 import {
   Dialog,
@@ -15,9 +15,12 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { MovieAddConfirmation } from "@/components/movies/movie-add-confirmation"
+import { SearchResultSkeleton } from "@/components/states/interaction-skeleton"
 import { searchCatalog, type MediaSearchResult, type SearchScope } from "@/lib/search/catalog"
 
 type SearchContextValue = { openSearch: (scope?: SearchScope) => void }
+type MovieConfirmation = { created: boolean; status: "watchlist" | "watched"; title: string }
 const SearchContext = createContext<SearchContextValue | null>(null)
 
 export function useMediaSearch() {
@@ -35,6 +38,9 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   const [searchError, setSearchError] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [isAdding, startAdding] = useTransition()
+  const [pendingAdd, setPendingAdd] = useState<{ status: "watchlist" | "watched"; tmdbId: number } | null>(null)
+  const [movieConfirmation, setMovieConfirmation] = useState<MovieConfirmation | null>(null)
+  const dismissMovieConfirmation = useCallback(() => setMovieConfirmation(null), [])
   const deferredQuery = useDeferredValue(query)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -100,8 +106,9 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     handleOpenChange(false)
   }
 
-  function addMovie(tmdbId: number, status: "watchlist" | "watched") {
+  function addMovie(tmdbId: number, title: string, status: "watchlist" | "watched") {
     setSearchError("")
+    setPendingAdd({ status, tmdbId })
     startAdding(async () => {
       const response = await fetch("/api/movies", {
         method: "POST",
@@ -109,7 +116,12 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ tmdbId, status }),
       })
       const data = await response.json().catch(() => null)
-      if (!response.ok) return setSearchError(data?.error ?? "The movie could not be added.")
+      if (!response.ok) {
+        setPendingAdd(null)
+        return setSearchError(data?.error ?? "The movie could not be added.")
+      }
+      setPendingAdd(null)
+      setMovieConfirmation({ created: data.created === true, status, title })
       handleOpenChange(false)
       router.push(`/movies/${data.movie.id}`)
       router.refresh()
@@ -135,7 +147,9 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
 
               {normalizedQuery ? (
                 <div className="mt-3 max-h-[min(56vh,32rem)] overflow-y-auto border-y border-[#dedede] bg-white" aria-live="polite">
-                  {results.length ? (
+                  {isSearching && !results.length ? (
+                    <SearchResultSkeleton />
+                  ) : results.length ? (
                     <ul>
                       {results.map((result) => (
                         <li key={`${result.kind}-${result.id}`} className="border-b border-[#eeeeee] last:border-b-0">
@@ -150,8 +164,12 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                             <span className="justify-self-end font-mono text-sm text-[#686868]">{result.year}</span>
                             {result.kind === "movie" ? (
                               <span className="col-span-3 flex justify-end gap-3 text-xs sm:col-span-1">
-                                <button type="button" disabled={isAdding} onClick={() => addMovie(Number(result.id), "watchlist")} className="ledger-focus underline underline-offset-4 disabled:opacity-50">Watchlist</button>
-                                <button type="button" disabled={isAdding} onClick={() => addMovie(Number(result.id), "watched")} className="ledger-focus underline underline-offset-4 disabled:opacity-50">Watched</button>
+                                <button type="button" disabled={isAdding} onClick={() => addMovie(Number(result.id), result.title, "watchlist")} className="ledger-focus transition-opacity duration-200 underline underline-offset-4 disabled:opacity-50">
+                                  {isAdding && pendingAdd?.tmdbId === Number(result.id) && pendingAdd.status === "watchlist" ? <span role="status" aria-label="Adding to Watchlist" className="block h-2 w-12 animate-pulse bg-[#bdbdbd]" /> : "Watchlist"}
+                                </button>
+                                <button type="button" disabled={isAdding} onClick={() => addMovie(Number(result.id), result.title, "watched")} className="ledger-focus transition-opacity duration-200 underline underline-offset-4 disabled:opacity-50">
+                                  {isAdding && pendingAdd?.tmdbId === Number(result.id) && pendingAdd.status === "watched" ? <span role="status" aria-label="Adding to Watched" className="block h-2 w-10 animate-pulse bg-[#bdbdbd]" /> : "Watched"}
+                                </button>
                               </span>
                             ) : (
                               <button type="button" onClick={() => openBook(result.id)} className="ledger-focus col-span-3 justify-self-end text-xs underline underline-offset-4 sm:col-span-1">Open</button>
@@ -160,8 +178,6 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                         </li>
                       ))}
                     </ul>
-                  ) : isSearching ? (
-                    <p className="px-4 py-5 text-sm text-[#686868]">Searching TMDB...</p>
                   ) : (
                     <p className="px-4 py-5 text-sm text-[#686868]">No matching {scope === "all" ? "movies or books" : `${scope}s`}.</p>
                   )}
@@ -172,6 +188,14 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
           </DialogViewport>
         </DialogPortal>
       </Dialog>
+      {movieConfirmation ? (
+        <MovieAddConfirmation
+          created={movieConfirmation.created}
+          status={movieConfirmation.status}
+          title={movieConfirmation.title}
+          onDismiss={dismissMovieConfirmation}
+        />
+      ) : null}
     </SearchContext.Provider>
   )
 }

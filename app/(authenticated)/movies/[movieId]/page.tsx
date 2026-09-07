@@ -57,5 +57,5 @@ export default async function MovieDetailPage({ params }: PageProps<"/movies/[mo
   const { movieId } = await params;
   const { info, controls } = await getMovieInfo(movieId);
 
-  return <MediaInfoCard info={info} backHref="/movies" actions={<MovieEntryControls {...controls} />} />;
+  return <MediaInfoCard info={info} backHref="/movies" actions={<MovieEntryControls key={controls.selectedListIds.join(":")} {...controls} />} />;
 }

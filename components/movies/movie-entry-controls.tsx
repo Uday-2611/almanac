@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { CreateMovieListForm } from "@/components/movies/create-movie-list-form";
+import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
+
 type ListOption = { id: string; name: string };
 
 export function MovieEntryControls({
@@ -24,10 +27,15 @@ export function MovieEntryControls({
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [pendingLabel, setPendingLabel] = useState("");
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [activeListIds, setActiveListIds] = useState(selectedListIds);
   const [isPending, startTransition] = useTransition();
 
-  function mutate(payload: Record<string, unknown>) {
+  function mutate(payload: Record<string, unknown>, label: string) {
     setError("");
+    setPendingLabel(label);
     startTransition(async () => {
       const response = await fetch(`/api/movies/${movieId}`, {
         method: "PATCH",
@@ -46,11 +54,14 @@ export function MovieEntryControls({
       rating: ratingValue ? Number(ratingValue) : null,
       review: String(formData.get("review") ?? "").trim() || null,
       loggedDate: String(formData.get("loggedDate") ?? "") || null,
-    });
+    }, "Saving watched details");
   }
 
   function toggleList(listId: string, selected: boolean) {
     setError("");
+    setPendingLabel(selected ? "Adding movie to list" : "Removing movie from list");
+    const previousListIds = activeListIds;
+    setActiveListIds((current) => selected ? [...current, listId] : current.filter((id) => id !== listId));
     startTransition(async () => {
       const url = selected
         ? `/api/movie-lists/${listId}/movies`
@@ -61,7 +72,22 @@ export function MovieEntryControls({
         body: selected ? JSON.stringify({ movieId }) : undefined,
       });
       const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) return setError(data?.error ?? "The list could not be updated.");
+      if (!response.ok) {
+        setActiveListIds(previousListIds);
+        return setError(data?.error ?? "The list could not be updated.");
+      }
+      router.refresh();
+    });
+  }
+
+  function deleteMovie() {
+    setError("");
+    setPendingLabel("Deleting movie");
+    startTransition(async () => {
+      const response = await fetch(`/api/movies/${movieId}`, { method: "DELETE" });
+      const data = response.ok ? null : await response.json().catch(() => null);
+      if (!response.ok) return setError(data?.error ?? "The movie could not be deleted.");
+      router.replace(`/movies?status=${status}&view=list`);
       router.refresh();
     });
   }
@@ -71,11 +97,11 @@ export function MovieEntryControls({
       <div>
         <p className="mb-3 text-sm text-[#686868]">Collection</p>
         {status === "watchlist" ? (
-          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watched" })} className="ledger-focus underline underline-offset-4 disabled:opacity-50">
+          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watched" }, "Moving movie to Watched")} className="ledger-focus underline underline-offset-4 disabled:opacity-50">
             Mark as watched
           </button>
         ) : (
-          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watchlist" })} className="ledger-focus text-sm text-[#686868] underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">
+          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watchlist" }, "Moving movie to Watchlist")} className="ledger-focus text-sm text-[#686868] underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">
             Move to watchlist and clear watched details
           </button>
         )}
@@ -108,17 +134,37 @@ export function MovieEntryControls({
             <legend className="mb-2 text-sm text-[#686868]">My Lists</legend>
             {lists.length ? lists.map((list) => (
               <label key={list.id} className="flex items-center gap-2 py-1">
-                <input type="checkbox" defaultChecked={selectedListIds.includes(list.id)} onChange={(event) => toggleList(list.id, event.currentTarget.checked)} />
+                <input type="checkbox" checked={activeListIds.includes(list.id)} onChange={(event) => toggleList(list.id, event.currentTarget.checked)} />
                 <span>{list.name}</span>
               </label>
-            )) : <p className="text-sm text-[#686868]">Create a list from the My Lists view first.</p>}
+            )) : <p className="text-sm text-[#686868]">This movie is not in a custom list yet.</p>}
           </fieldset>
+
+          <div>
+            <button type="button" disabled={isPending} onClick={() => setIsCreatingList((current) => !current)} className="ledger-focus text-sm underline underline-offset-4 disabled:opacity-50">
+              {isCreatingList ? "Cancel new list" : "Create a new list +"}
+            </button>
+            {isCreatingList ? <CreateMovieListForm movieId={movieId} compact /> : null}
+          </div>
         </>
       ) : (
         <p className="text-sm text-[#686868]">Watchlist movies cannot be added to custom lists. Mark this movie as watched first.</p>
       )}
 
+      {isPending ? <InteractionSkeleton label={pendingLabel} /> : null}
       {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
+
+      <div className="border-t border-[#eaeaea] pt-5 text-sm">
+        {isConfirmingDelete ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[#686868]">Remove this movie and its saved review?</span>
+            <button type="button" disabled={isPending} onClick={deleteMovie} className="ledger-focus text-red-700 underline underline-offset-4 disabled:opacity-50">Delete permanently</button>
+            <button type="button" disabled={isPending} onClick={() => setIsConfirmingDelete(false)} className="ledger-focus text-[#686868] underline underline-offset-4">Cancel</button>
+          </div>
+        ) : (
+          <button type="button" disabled={isPending} onClick={() => setIsConfirmingDelete(true)} className="ledger-focus text-[#686868] underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">Delete movie</button>
+        )}
+      </div>
     </div>
   );
 }

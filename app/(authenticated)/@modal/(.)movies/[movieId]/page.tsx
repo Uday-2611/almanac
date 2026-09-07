@@ -9,7 +9,7 @@ export default async function InterceptedMovieDetail({ params }: PageProps<"/mov
 
   return (
     <MediaModal label={`${info.title} details`}>
-      <MediaInfoPanel info={info} actions={<MovieEntryControls {...controls} />} />
+      <MediaInfoPanel info={info} actions={<MovieEntryControls key={controls.selectedListIds.join(":")} {...controls} />} />
     </MediaModal>
   );
 }

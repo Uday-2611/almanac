@@ -2,9 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { X } from "lucide-react";
+
+gsap.registerPlugin(useGSAP);
 
 export function MediaModal({ children, label }: { children: ReactNode; label: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isClosingRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,7 +28,31 @@ export function MediaModal({ children, label }: { children: ReactNode; label: st
     };
   }, []);
 
-  const close = () => router.back();
+  useGSAP(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    gsap.fromTo(
+      panelRef.current,
+      { autoAlpha: 0, filter: reducedMotion ? "blur(0px)" : "blur(8px)", scale: reducedMotion ? 1 : 0.985 },
+      { autoAlpha: 1, duration: reducedMotion ? 0 : 0.38, ease: "power3.out", filter: "blur(0px)", scale: 1 },
+    );
+  }, { scope: panelRef });
+
+  const close = () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    gsap.to(panelRef.current, {
+      autoAlpha: 0,
+      duration: reducedMotion ? 0 : 0.24,
+      ease: "power2.in",
+      filter: reducedMotion ? "blur(0px)" : "blur(8px)",
+      onComplete: () => router.back(),
+      overwrite: true,
+      scale: reducedMotion ? 1 : 0.985,
+    });
+  };
 
   return (
     <dialog
@@ -39,13 +70,15 @@ export function MediaModal({ children, label }: { children: ReactNode; label: st
           if (event.target === event.currentTarget) close();
         }}
       >
-        <div className="relative max-h-full w-full max-w-[910px]">
+        <div ref={panelRef} className="relative max-h-full w-full max-w-[922px] will-change-[filter,opacity,transform]">
           <button
             type="button"
             onClick={close}
-            className="ledger-focus absolute right-4 top-4 z-20 text-sm text-[#686868] hover:text-[#111111] sm:right-6 sm:top-6"
+            aria-label="Close movie details"
+            className="absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-full text-[#686868] outline-none transition-[background-color,color,transform] duration-200 hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-4 active:scale-95 sm:right-4 sm:top-4"
           >
-            Close
+            <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
+            <span className="sr-only">Close</span>
           </button>
           {children}
         </div>

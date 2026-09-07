@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
-export function CreateMovieListForm() {
+import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
+
+export function CreateMovieListForm({ movieId, compact = false }: { movieId?: string; compact?: boolean }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -17,21 +20,37 @@ export function CreateMovieListForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data = response.ok ? null : await response.json().catch(() => null);
+      const data = await response.json().catch(() => null);
       if (!response.ok) return setError(data?.error ?? "The list could not be created.");
-      router.replace("/movies?status=lists&view=list");
+
+      if (movieId) {
+        const membershipResponse = await fetch(`/api/movie-lists/${data.list.id}/movies`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ movieId }),
+        });
+        const membershipData = membershipResponse.ok ? null : await membershipResponse.json().catch(() => null);
+        if (!membershipResponse.ok) return setError(membershipData?.error ?? "The movie could not be added to the new list.");
+      } else {
+        router.replace("/movies?status=lists&view=list");
+      }
+
+      formRef.current?.reset();
       router.refresh();
     });
   }
 
   return (
-    <form action={createList} className="mt-8 flex max-w-[32rem] items-end gap-3">
+    <form ref={formRef} action={createList} className={`${compact ? "mt-3" : "mt-8"} flex max-w-[32rem] flex-wrap items-end gap-3`}>
       <label className="min-w-0 flex-1 text-sm">
-        <span className="mb-1 block text-[#686868]">List name</span>
+        <span className="mb-1 block text-[#686868]">{movieId ? "New list name" : "List name"}</span>
         <input name="name" required maxLength={100} className="ledger-focus w-full border-b border-[#111111] bg-transparent py-2" />
       </label>
       <button type="submit" disabled={isPending} className="ledger-focus pb-2 underline underline-offset-4 disabled:opacity-50">{isPending ? "Creating..." : "Create"}</button>
-      {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
+      <div className="basis-full">
+        {isPending ? <InteractionSkeleton label={movieId ? "Creating list and adding movie" : "Creating list"} /> : null}
+        {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
+      </div>
     </form>
   );
 }

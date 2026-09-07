@@ -29,6 +29,10 @@ export function AnimatedMoviePoster({
   const animate = contextSafe((card: HTMLAnchorElement, isActive: boolean) => {
     const artwork = card.querySelector<HTMLElement>("[data-poster-artwork]");
     const metadata = card.querySelector<HTMLElement>("[data-poster-metadata]");
+    const rail = card.closest<HTMLElement>("[data-movie-poster-rail]");
+    const otherArtwork = rail
+      ? Array.from(rail.querySelectorAll<HTMLElement>("[data-poster-artwork]")).filter((item) => item !== artwork)
+      : [];
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const duration = reducedMotion ? 0 : 0.42;
 
@@ -40,6 +44,13 @@ export function AnimatedMoviePoster({
       scale: isActive ? 1.06 : 1,
       transformOrigin: "50% 50%",
     });
+    gsap.to(otherArtwork, {
+      duration: reducedMotion ? 0 : 0.34,
+      ease: "power2.out",
+      filter: isActive ? "grayscale(0.72)" : "grayscale(0)",
+      opacity: isActive ? 0.46 : 1,
+      overwrite: "auto",
+    });
     gsap.to(metadata, {
       autoAlpha: isActive ? 1 : 0,
       duration: reducedMotion ? 0 : 0.32,
@@ -50,7 +61,7 @@ export function AnimatedMoviePoster({
   });
 
   return (
-    <li className="w-[216px] flex-none px-2 py-5">
+    <li className="w-[208px] flex-none px-1 py-5">
       <Link
         ref={cardRef}
         href={href}
@@ -61,7 +72,7 @@ export function AnimatedMoviePoster({
         onPointerEnter={(event) => animate(event.currentTarget, true)}
         onPointerLeave={(event) => animate(event.currentTarget, false)}
       >
-        <span data-poster-artwork className="relative block h-[244px] w-[200px] overflow-hidden bg-[#252525] will-change-transform">
+        <span data-poster-artwork className="relative block aspect-[2/3] w-[200px] overflow-hidden bg-[#252525] will-change-[filter,opacity,transform]">
           {posterUrl ? <Image src={posterUrl} alt="" fill sizes="200px" className="object-cover" /> : null}
         </span>
         <span data-poster-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
