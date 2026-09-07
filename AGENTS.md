@@ -35,6 +35,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Treat each movie or book as a single editable entry in v1 rather than a repeated logging history model.
 - Make tags visible as simple labels in v1, but design them as reusable entities that can grow into a future knowledge-graph system.
 
+## User Flow
+
+- Treat `/` as the session-aware entry point.
+- Visitors without a valid session see the landing page, whose primary path leads to `/login`.
+- Successful authentication sends the user to `/movies`.
+- Visitors with a valid active session who open `/` go directly to `/movies`.
+- Protect `/movies`, `/books`, and `/settings`; unauthenticated access to those routes redirects to `/login` once authentication is implemented.
+- "Existing user" in this flow means a user with a valid active session. A signed-out returning user follows the public landing and login flow.
+
 ## Frontend Guardrails
 
 - The product is a ledger, not a dashboard.
@@ -48,7 +57,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - muted left metadata column
   - bold title
   - muted subline
-  - hairline divider
+  - hairline divider by default; the movie list is an explicit borderless exception
 - Text toggles such as `List view / Images view` and `Watchlist / Watched` must render as plain text controls with `/` separators.
 - `Add new +` should remain a text affordance, not a filled button.
 - Use monochrome, restrained UI chrome. The only loud color should come from saved color content on the Colors section.
@@ -64,7 +73,28 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Architecture Guardrails
 
 - Use the App Router structure in `app/`.
+- Use Better Auth with email/password for v1; Google OAuth is deferred until explicitly requested.
+- Use Neon Postgres through Drizzle ORM. Commit generated migrations under `drizzle/` and never expose `DATABASE_URL` or `BETTER_AUTH_SECRET` to client code.
+- The Vercel project `almanac` is connected to the `almanac-postgres` Neon database in Production, Preview, and Development; the initial migration is `drizzle/0000_tiresome_gargoyle.sql`.
 - Prefer Server Components for list pages and server-side data access by default.
 - Add client components only when interactivity genuinely requires them.
 - Scope all user data access by `user_id` at the query layer.
+- A movie may belong to a user-created list only while it belongs to the same user and has `watched` status. Preserve the API validation and database triggers that enforce this; moving a movie back to `watchlist` must remove its custom-list memberships.
 - Keep the extension as a separate package when that milestone begins.
+
+## Current UI Foundation
+
+- The movies page implements the four approved Figma states through query parameters: `status=watchlist|watched|lists` and `view=list|images`.
+- Reuse the movie ledger row, text-toggle, and horizontal poster-rail patterns when connecting real data or mirroring the experience for books.
+- Preserve the large quiet space above movie content; it is an intentional part of the approved layout, not missing content.
+- Preserve the movie and book list interaction signature: straight, silent borderless rows with GSAP hover isolation applied to the active row's date, title, and creator together.
+- Preserve the movies image-view signature: a single smoothly scrolling horizontal rail whose GSAP hover/focus motion enlarges posters evenly from the center and reveals title and director below.
+- Preserve the books image-view signature: narrow, varied-height book spines at the bottom of the viewport in a smoothly scrolling horizontal shelf; GSAP hover/focus motion enlarges them evenly from the center and reveals title and author above.
+- Movie and book detail routes use the shared scrollable information-card layout, with a full-bleed poster occupying the entire left pane and right-side ledger metadata followed by cast or contributor credits.
+- Movie links use an intercepted parallel route so details open as a modal over the movies ledger; preserve direct `/movies/[movieId]` page rendering as the hard-navigation fallback.
+- Reuse one global search overlay from the nav and the Movies/Books `Add New +` controls.
+- Preserve the search signature: centered borderless input, blurred page backdrop, and a detached result sheet with artwork, title, author/director, and year.
+- Movie search and persistence use the server-only TMDB client and Neon. Book search still uses the typed local catalog until the books provider milestone is implemented.
+- `TMDB_API_READ_TOKEN` is configured as an encrypted Vercel variable for Production, Preview, and Development; never expose it to client code or logs.
+- Preserve the accessible animated open/close disclosure on each Movie My Lists section.
+- Preserve the authenticated navbar signature: the Almanac wordmark sits beside a three-line menu control that morphs into a close icon; the compact square-cornered menu uses subtle open/close motion, monochrome item hovers, and outside-click/Escape dismissal.

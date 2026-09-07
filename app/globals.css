@@ -128,3 +128,24 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .ledger-focus {
+    @apply rounded-none outline-none focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-4;
+  }
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

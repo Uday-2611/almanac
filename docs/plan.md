@@ -8,12 +8,18 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 
 ## Product decisions
 - The first version includes movies and books only.
+- The root route is session-aware: visitors without an active session see the landing page, while visitors with an active session go directly to `/movies`.
+- The public flow is landing page to `/login`, then to `/movies` after successful authentication.
+- `/movies`, `/books`, and `/settings` are protected product routes.
+- A signed-out returning user follows the public landing and login flow; "existing user" routing applies when a valid session is present.
 - Reviews should support lightweight markdown from the start.
 - Each movie or book should be a single editable entry rather than a repeatable log history model.
 - Dates, review text, rating, status, and tags can be edited over time on the same entry.
 - Tags should be visible in the UI as simple labels in v1.
 - The longer-term direction for tags is a knowledge-graph style system, so the schema should preserve reusable tag identities and connections.
 - The stack direction for implementation is Next.js App Router + Postgres + server-side API routes.
+- Authentication uses Better Auth with email and password for v1. Google OAuth is deferred.
+- Neon is the managed Postgres provider and Drizzle ORM owns the application schema and migrations.
 
 ## Architecture decisions
 - Use the App Router in `app/` with Server Components as the default for list and detail pages.
@@ -38,20 +44,23 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 
 ## UI and interaction direction
 - Keep the product visually aligned with the ledger rules in `docs/.md/FRONTEND_GUIDELINES.md`: no cards, no shadows, no colored primary buttons, no dashboard chrome.
-- Reuse one row primitive across movies and books with muted left metadata, bold title, muted subline, and a hairline divider.
+- Reuse one row primitive across movies and books with muted left metadata, bold title, and muted subline. Keep the standard hairline divider available, with the movie list using the approved borderless interaction treatment.
 - Keep `List view / Images view` and status toggles as plain text controls with slash separators.
 - Keep `Add new +` as a text affordance rather than a styled button.
 - Show tags as simple textual labels in v1 without turning them into a noisy taxonomy surface.
 
 ## Delivery phases
-- Phase 1: Confirm stack choices already present in the repo, add the database/auth/ORM foundation, and document environment requirements.
-- Phase 2: Implement the data layer and user-scoped schema for movies, books, tags, and preferences.
-- Phase 3: Build the movie flow with TMDB-backed server-side search, add flow, detail page, editable markdown review, and watchlist/watched transitions.
+- Phase 0 (complete): Initialize shadcn/ui, establish the App Router folder/file structure, reserve server API boundaries, and document the user flow.
+- Phase 1 (complete): Implement the landing page and Better Auth foundation, including session lookup, protected-route enforcement, post-login redirect to `/movies`, and Vercel-managed secrets for Production, Preview, and Development.
+- Phase 2 (complete): Provision Neon through Vercel, implement the Drizzle data layer and user-scoped schema for movies, books, tags, and preferences, and apply the initial committed migration.
+- Phase 3 (implemented): Build the movie flow with TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, and watched-only custom lists.
 - Phase 4: Mirror the same experience for books with Open Library-first search and provider fallback planning.
 - Phase 5: Add visible simple tags, tag filtering foundations, and schema-safe hooks for future knowledge-graph work.
 - Phase 6: Polish the ledger UI, validation states, accessibility, caching behavior, and editing flows.
 
 ## Validation checklist
+- Verify visitors without a session see the landing page and authenticated visitors opening `/` are redirected to `/movies`.
+- Verify successful login redirects to `/movies` and protected routes redirect signed-out visitors to `/login`.
 - Verify every data query is scoped by `user_id`.
 - Verify client code never calls TMDB or book providers directly.
 - Verify list pages remain mostly server-rendered and lightweight.
@@ -60,6 +69,26 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Verify the schema still supports later graph relationships without a migration-heavy rewrite.
 
 ## Open questions to revisit later
+- Whether the landing page needs a separate sign-up path or one combined authentication entry point.
 - Whether v1 should support provider fallback automatically in the UI or only as an internal implementation path.
 - Whether tags should appear on list rows, detail pages, or both in the first shipped UI.
 - Whether editing the date field should preserve a separate audit timestamp, even though the entry itself stays singular.
+
+## Current implementation state
+- The `/movies` visual foundation now mirrors the four Figma states: watched/watchlist ledger views, single-row horizontally scrolling poster views, and My Lists in both display modes.
+- Movie navigation is query-driven with `status=watchlist|watched|lists` and `view=list|images`, keeping the page server-rendered and ready for database-backed data.
+- Movie pages now read authenticated, user-scoped records from Neon; the former movie seed catalog is no longer used for movie browsing or movie search.
+- Movie and book list browsing uses straight, borderless rows with GSAP hover isolation: the active row's date, title, and creator move outward and grow together while neighboring rows recede. The interaction is silent.
+- Movie image browsing uses a smooth horizontal rail of enlarged posters; GSAP scales each poster evenly from its center and reveals its title and director below on hover or focus.
+- The books image view is a bottom-anchored, smoothly scrolling horizontal shelf of narrow book spines; GSAP scales a focused or hovered spine evenly from its center and reveals its title and author above.
+- Movie and book selections open a shared, scrollable information card: a full-bleed poster occupies the modal's complete left pane; title, creator, year, user rating, review, logged date, and tags sit on the right; cast or contributor credits continue below.
+- Movie detail navigation is intercepted into a modal over the existing movies ledger, with a blurred background, Escape/backdrop dismissal, and a direct-URL standalone page fallback.
+- A shared global media-search overlay is available from navigation and from Movies/Books `Add New +` controls. Navigation searches both types; entry controls pre-filter by type.
+- Movie search now queries TMDB through `/api/movies/search`, and each result can be saved explicitly to Watchlist or Watched. Book search remains on the typed local catalog until Phase 4.
+- Movie My Lists sections use an accessible open/close control with a subtle animated disclosure while preserving the ledger header.
+- The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
+- Better Auth email/password flows, database-backed sessions, protected product routes, and sign-out are implemented locally.
+- The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, reusable tags, join tables, and view preferences.
+- User-created movie lists are persisted through `movie_lists` and `movie_list_items`. Both the query layer and Postgres enforce that only the owner's Watched movies can be added; moving a movie back to Watchlist clears watched-only fields and automatically removes all custom-list memberships.
+- The server-only `TMDB_API_READ_TOKEN` is encrypted in Vercel for Production, Preview, and Development, is available locally through the ignored `.env.local`, and has passed an authenticated TMDB request.
+- The repository is linked to the Vercel project `almanac`. The `almanac-postgres` Neon database is connected to Production, Preview, and Development, `BETTER_AUTH_SECRET` is stored as a sensitive Vercel variable in each environment, and `drizzle/0000_tiresome_gargoyle.sql` has been applied successfully.
