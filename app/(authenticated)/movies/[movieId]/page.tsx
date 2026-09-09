@@ -42,8 +42,13 @@ export async function getMovieInfo(movieId: string) {
   return {
     info,
     controls: {
+      cast: info.people,
+      director: info.creator,
       movieId: movie.id,
+      overview: info.overview,
       status: movie.status,
+      title: info.title,
+      year: info.year,
       rating: movie.rating,
       review: movie.review,
       loggedDate: movie.loggedDate,

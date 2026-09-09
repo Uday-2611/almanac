@@ -1,8 +1,11 @@
 import Link from "next/link";
 
+import { BookListDisclosure } from "@/components/books/book-list-disclosure";
 import { BookSpineShelf } from "@/components/books/book-spine-shelf";
-import { AnimatedLedgerList } from "@/components/ledger/animated-ledger-list";
+import { CreateBookListForm } from "@/components/books/create-book-list-form";
+import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
 import { SearchTrigger } from "@/components/search/search-trigger";
+import { EmptyState } from "@/components/states/empty-state";
 
 export type BookStatus = "want-to-read" | "read" | "lists";
 export type BookView = "images" | "list";
@@ -12,34 +15,21 @@ export type Book = {
   title: string;
   author: string;
   date: string;
+  coverUrl: string | null;
 };
 
-export const books: Book[] = [
-  { id: "the-left-hand-of-darkness", title: "The Left Hand of Darkness", author: "Ursula K. Le Guin", date: "August 21, 2026" },
-  { id: "stoner", title: "Stoner", author: "John Williams", date: "August 16, 2026" },
-  { id: "the-summer-book", title: "The Summer Book", author: "Tove Jansson", date: "August 10, 2026" },
-  { id: "beloved", title: "Beloved", author: "Toni Morrison", date: "August 2, 2026" },
-  { id: "the-books-of-jacob", title: "The Books of Jacob", author: "Olga Tokarczuk", date: "July 24, 2026" },
-  { id: "a-month-in-the-country", title: "A Month in the Country", author: "J. L. Carr", date: "July 17, 2026" },
-  { id: "the-dispossessed", title: "The Dispossessed", author: "Ursula K. Le Guin", date: "July 8, 2026" },
-  { id: "outline", title: "Outline", author: "Rachel Cusk", date: "June 29, 2026" },
-];
-
-const spineHeights = [220, 185, 214, 124];
-const shelfBooks = Array.from({ length: 40 }, (_, index) => ({
-  ...books[index % books.length],
-  height: spineHeights[index % spineHeights.length],
-}));
+export type BookList = {
+  id: string;
+  title: string;
+  date: string;
+  books: Book[];
+};
 
 function hrefFor(status: BookStatus, view: BookView) {
   return { pathname: "/books", query: { status, view } };
 }
 
-function Toggle({
-  label,
-  active,
-  options,
-}: {
+function TextToggle({ label, active, options }: {
   label: string;
   active: string;
   options: { label: string; value: string; href: ReturnType<typeof hrefFor> }[];
@@ -48,7 +38,7 @@ function Toggle({
     <nav aria-label={label} className="flex items-center whitespace-nowrap">
       {options.map((option, index) => (
         <span key={option.value} className="flex items-center">
-          {index ? <span aria-hidden="true" className="mx-1">/</span> : null}
+          {index > 0 ? <span aria-hidden="true" className="mx-1 text-[#111111]">/</span> : null}
           <Link
             href={option.href}
             aria-current={option.value === active ? "page" : undefined}
@@ -65,49 +55,87 @@ function Toggle({
 function BookToolbar({ status, view }: { status: BookStatus; view: BookView }) {
   return (
     <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
-      <Toggle
-        label="Book display"
-        active={view}
-        options={[
-          { label: "Image View", value: "images", href: hrefFor(status, "images") },
-          { label: "List View", value: "list", href: hrefFor(status, "list") },
-        ]}
-      />
-      <Toggle
-        label="Book collection"
-        active={status}
-        options={[
-          { label: "Want to Read", value: "want-to-read", href: hrefFor("want-to-read", view) },
-          { label: "Read", value: "read", href: hrefFor("read", view) },
-          { label: "My Lists", value: "lists", href: hrefFor("lists", view) },
-        ]}
-      />
+      <TextToggle label="Book display" active={view} options={[
+        { label: "Image View", value: "images", href: hrefFor(status, "images") },
+        { label: "List View", value: "list", href: hrefFor(status, "list") },
+      ]} />
+      <TextToggle label="Book collection" active={status} options={[
+        { label: "Want to Read", value: "want-to-read", href: hrefFor("want-to-read", view) },
+        { label: "Read", value: "read", href: hrefFor("read", view) },
+        { label: "My Lists", value: "lists", href: hrefFor("lists", view) },
+      ]} />
     </div>
   );
 }
 
-function BookList() {
+function AddLink({ lists, view }: { lists: boolean; view: BookView }) {
+  if (!lists) return <SearchTrigger label="Add New +" scope="book" className="inline-flex text-sm sm:text-base" />;
+
   return (
-    <AnimatedLedgerList
-      className="mt-[23px] w-full max-w-[44rem] pl-3"
-      items={books.map((book) => ({
-        id: book.id,
-        href: `/books/${book.id}`,
-        date: book.date,
-        title: book.title,
-        creator: book.author,
-      }))}
-    />
+    <Link href={{ pathname: "/books", query: { status: "lists", view, new: "list" } }} className="ledger-focus inline-flex items-center gap-1 text-sm sm:text-base">
+      Create new list <span aria-hidden="true" className="text-lg leading-none">+</span>
+    </Link>
   );
 }
 
-export function BookLedger({ status, view }: { status: BookStatus; view: BookView }) {
+function toLedgerItems(books: Book[]): AnimatedLedgerItem[] {
+  return books.map((book) => ({
+    id: book.id,
+    href: `/books/${book.id}`,
+    date: book.date,
+    title: book.title,
+    creator: book.author,
+  }));
+}
+
+function BookListView({ books }: { books: Book[] }) {
+  return <AnimatedLedgerList className="mt-[23px] w-full max-w-[44rem] pl-3" items={toLedgerItems(books)} />;
+}
+
+function BookImageView({ books }: { books: Book[] }) {
+  return <BookSpineShelf books={books} />;
+}
+
+function ListsView({ lists, view }: { lists: BookList[]; view: BookView }) {
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
+    <div className="mt-[29px] space-y-[55px] px-3 sm:space-y-[56px]">
+      {lists.map((list) => (
+        <BookListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
+          {list.books.length ? (
+            view === "images" ? (
+              <div className="relative mt-5 h-[300px] overflow-hidden"><BookImageView books={list.books} /></div>
+            ) : (
+              <AnimatedLedgerList items={toLedgerItems(list.books)} className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]" />
+            )
+          ) : (
+            <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No read books in this list yet.</p>
+          )}
+        </BookListDisclosure>
+      ))}
+    </div>
+  );
+}
+
+export function BookLedger({ status, view, books, lists, showCreateList }: {
+  status: BookStatus;
+  view: BookView;
+  books: Book[];
+  lists: BookList[];
+  showCreateList: boolean;
+}) {
+  return (
+    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Books</h1>
       <BookToolbar status={status} view={view} />
-      <SearchTrigger label="Add New +" scope="book" className="inline-flex text-sm sm:text-base" />
-      {view === "images" ? <BookSpineShelf books={shelfBooks} /> : <BookList />}
+      <AddLink lists={status === "lists"} view={view} />
+      {showCreateList ? <CreateBookListForm /> : null}
+      {status === "lists" ? (
+        lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
+      ) : books.length ? (
+        view === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
+      ) : (
+        <div className="mt-8 text-[#686868]"><EmptyState message={status === "want-to-read" ? "Your Want to Read list is empty." : "You have not marked any books as read yet."} /></div>
+      )}
     </main>
   );
 }

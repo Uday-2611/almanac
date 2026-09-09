@@ -8,13 +8,15 @@ gsap.registerPlugin(useGSAP);
 
 export function MovieAddConfirmation({
   created,
+  kind = "movie",
   onDismiss,
   status,
   title,
 }: {
   created: boolean;
+  kind?: "movie" | "book";
   onDismiss: () => void;
-  status: "watchlist" | "watched";
+  status: "watchlist" | "watched" | "want_to_read" | "read";
   title: string;
 }) {
   const confirmationRef = useRef<HTMLDivElement>(null);
@@ -42,7 +44,14 @@ export function MovieAddConfirmation({
         ease: "power2.in",
         y: -6,
       });
-  }, { dependencies: [created, onDismiss, status, title], revertOnUpdate: true, scope: confirmationRef });
+  }, { dependencies: [created, kind, onDismiss, status, title], revertOnUpdate: true, scope: confirmationRef });
+
+  const destination = {
+    read: "Read",
+    want_to_read: "Want to read",
+    watched: "Watched",
+    watchlist: "Watchlist",
+  }[status];
 
   return (
     <div
@@ -55,8 +64,8 @@ export function MovieAddConfirmation({
       <span data-confirmation-rule aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[#111111]" />
       <span className="block text-xs uppercase tracking-[0.08em] text-[#686868]">
         {created
-          ? `Added to ${status === "watchlist" ? "Watchlist" : "Watched"}`
-          : "Already in your collection"}
+          ? `Added to ${destination}`
+          : `Already in your ${kind === "book" ? "library" : "collection"}`}
       </span>
       <span className="mt-1 block max-w-64 truncate font-medium text-[#111111]">{title}</span>
     </div>

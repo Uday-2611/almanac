@@ -192,6 +192,33 @@ export const movieListItems = pgTable(
   ],
 );
 
+export const bookLists = pgTable(
+  "book_lists",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("book_lists_user_name_idx").on(table.userId, table.name),
+    index("book_lists_user_id_idx").on(table.userId),
+  ],
+);
+
+export const bookListItems = pgTable(
+  "book_list_items",
+  {
+    listId: uuid("list_id").notNull().references(() => bookLists.id, { onDelete: "cascade" }),
+    bookId: uuid("book_id").notNull().references(() => books.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.listId, table.bookId] }),
+    index("book_list_items_book_id_idx").on(table.bookId),
+  ],
+);
+
 export const bookTags = pgTable(
   "book_tags",
   {

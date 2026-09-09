@@ -1,41 +1,70 @@
-import { books } from "@/components/books/book-ledger";
-import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-card";
+import { notFound } from "next/navigation";
 
-const bookDetails: Record<string, Pick<MediaInfo, "year" | "rating" | "review" | "tags" | "people">> = {
-  "the-left-hand-of-darkness": {
-    year: "1969",
-    rating: 5,
-    review: "A political journey that gradually becomes an intimate study of trust. The long crossing over the ice gives every earlier argument room to change shape.",
-    tags: ["science fiction", "winter", "politics"],
-    people: ["Ursula K. Le Guin — author", "David Mitchell — introduction"],
-  },
-  stoner: {
-    year: "1965",
-    rating: 4.5,
-    review: "Quietly devastating because it never asks an ordinary life to become extraordinary before it is worthy of attention.",
-    tags: ["campus", "American", "quiet lives"],
-    people: ["John Williams — author", "John McGahern — introduction"],
-  },
-};
+import { BookEntryControls } from "@/components/books/book-entry-controls";
+import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-card";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getBookForUser, listBookListsForUser, listIdsForBook } from "@/lib/db/queries/books";
+import { idSchema } from "@/lib/validation";
+
+function formatLoggedDate(value: string | null) {
+  if (!value) return "Not logged";
+  return new Intl.DateTimeFormat("en", { month: "long", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+}
+
+export async function getBookInfo(bookId: string) {
+  if (!idSchema.safeParse(bookId).success) notFound();
+  const user = await getCurrentUser();
+  if (!user) notFound();
+
+  const [book, lists, selectedListIds] = await Promise.all([
+    getBookForUser(user.id, bookId),
+    listBookListsForUser(user.id),
+    listIdsForBook(user.id, bookId),
+  ]);
+  if (!book) notFound();
+
+  const author = book.authors.join(", ") || "Author unavailable";
+  const contributors = book.contributors.length ? book.contributors : book.authors;
+  const info: MediaInfo = {
+    kind: "Book",
+    title: book.title,
+    creator: author,
+    creatorLabel: "Author",
+    year: book.publishDate?.slice(0, 4) ?? "Unknown",
+    rating: book.rating,
+    review: book.review ?? "No review has been written yet.",
+    loggedAt: formatLoggedDate(book.loggedDate),
+    tags: [],
+    peopleLabel: "Contributors",
+    people: contributors.length ? contributors : ["Contributor information is unavailable."],
+    posterUrl: book.coverUrl,
+    overview: book.description,
+    details: [{ label: "Pages", value: book.pageCount ? String(book.pageCount) : "Unknown" }],
+  };
+
+  return {
+    info,
+    controls: {
+      author,
+      bookId: book.id,
+      contributors,
+      overview: book.description,
+      pageCount: book.pageCount,
+      status: book.status,
+      title: book.title,
+      year: book.publishDate?.slice(0, 4) ?? "Unknown",
+      rating: book.rating,
+      review: book.review,
+      loggedDate: book.loggedDate,
+      lists: lists.map((list) => ({ id: list.id, name: list.name })),
+      selectedListIds,
+    },
+  };
+}
 
 export default async function BookDetailPage({ params }: PageProps<"/books/[bookId]">) {
   const { bookId } = await params;
-  const book = books.find((entry) => entry.id === bookId);
-  const details = bookDetails[bookId];
+  const { info, controls } = await getBookInfo(bookId);
 
-  const info: MediaInfo = {
-    kind: "Book",
-    title: book?.title ?? bookId.replaceAll("-", " "),
-    creator: book?.author ?? "Author unavailable",
-    creatorLabel: "Author",
-    year: details?.year ?? "—",
-    rating: details?.rating ?? null,
-    review: details?.review ?? "No review has been written yet.",
-    loggedAt: book?.date ?? "Not logged",
-    tags: details?.tags ?? ["untagged"],
-    peopleLabel: "Contributors",
-    people: details?.people ?? [book?.author ? `${book.author} — author` : "Contributor information unavailable"],
-  };
-
-  return <MediaInfoCard info={info} backHref="/books" />;
+  return <MediaInfoCard info={info} backHref="/books" actions={<BookEntryControls key={controls.selectedListIds.join(":")} {...controls} />} />;
 }

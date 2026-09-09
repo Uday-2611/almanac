@@ -8,7 +8,7 @@ export default async function InterceptedMovieDetail({ params }: PageProps<"/mov
   const { info, controls } = await getMovieInfo(movieId);
 
   return (
-    <MediaModal label={`${info.title} details`}>
+    <MediaModal label={`${info.title} details`} tone="light">
       <MediaInfoPanel info={info} actions={<MovieEntryControls key={controls.selectedListIds.join(":")} {...controls} />} />
     </MediaModal>
   );

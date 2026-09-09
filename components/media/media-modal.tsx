@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 
 gsap.registerPlugin(useGSAP);
 
-export function MediaModal({ children, label }: { children: ReactNode; label: string }) {
+export function MediaModal({ children, label, tone = "dark" }: { children: ReactNode; label: string; tone?: "dark" | "light" }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const isClosingRef = useRef(false);
@@ -58,7 +58,7 @@ export function MediaModal({ children, label }: { children: ReactNode; label: st
     <dialog
       ref={dialogRef}
       aria-label={label}
-      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none bg-black/10 p-4 backdrop:bg-white/35 backdrop:backdrop-blur-md sm:p-6"
+      className={`fixed inset-0 m-0 h-full max-h-none w-full max-w-none p-4 backdrop:backdrop-blur-md sm:p-6 ${tone === "dark" ? "bg-black/45 backdrop:bg-black/70" : "bg-white/35 backdrop:bg-white/65"}`}
       onCancel={(event) => {
         event.preventDefault();
         close();
@@ -70,12 +70,12 @@ export function MediaModal({ children, label }: { children: ReactNode; label: st
           if (event.target === event.currentTarget) close();
         }}
       >
-        <div ref={panelRef} className="relative max-h-full w-full max-w-[922px] will-change-[filter,opacity,transform]">
+        <div ref={panelRef} className="relative max-h-full w-full max-w-[916px] will-change-[filter,opacity,transform]">
           <button
             type="button"
             onClick={close}
-            aria-label="Close movie details"
-            className="absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-full text-[#686868] outline-none transition-[background-color,color,transform] duration-200 hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-4 active:scale-95 sm:right-4 sm:top-4"
+            aria-label={`Close ${label}`}
+            className={`absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-1 focus-visible:ring-offset-2 active:scale-95 sm:right-4 sm:top-4 ${tone === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:ring-white focus-visible:ring-offset-black" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-[#111111] focus-visible:ring-offset-white"}`}
           >
             <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
             <span className="sr-only">Close</span>

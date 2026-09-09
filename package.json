@@ -11,7 +11,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test:movie-invariants": "node scripts/verify-movie-list-invariants.mjs"
+    "test:movie-invariants": "node scripts/verify-movie-list-invariants.mjs",
+    "test:book-invariants": "node scripts/verify-book-list-invariants.mjs",
+    "test:book-flow": "node scripts/verify-book-flow.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

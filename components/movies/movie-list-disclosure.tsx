@@ -65,8 +65,8 @@ export function MovieListDisclosure({
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#686868] lg:mt-0 lg:justify-end">
           {!isEditing && !isConfirmingDelete ? (
             <>
-              <button type="button" onClick={() => setIsEditing(true)} className="ledger-focus underline underline-offset-4 hover:text-[#111111]">Rename</button>
-              <button type="button" onClick={() => setIsConfirmingDelete(true)} className="ledger-focus underline underline-offset-4 hover:text-[#111111]">Delete</button>
+              <button type="button" onClick={() => setIsEditing(true)} className="ledger-focus transition-colors duration-150 hover:text-[#111111]">Rename</button>
+              <button type="button" onClick={() => setIsConfirmingDelete(true)} className="ledger-focus transition-colors duration-150 hover:text-red-700">Delete</button>
             </>
           ) : null}
           {isConfirmingDelete ? (
@@ -80,11 +80,11 @@ export function MovieListDisclosure({
             type="button"
             aria-controls={`${id}-contents`}
             aria-expanded={isOpen}
-            className="ledger-focus inline-flex items-center gap-2 whitespace-nowrap text-left transition-colors duration-200 hover:text-[#111111]"
+            aria-label={isOpen ? `Collapse ${title}` : `Expand ${title}`}
+            className="ledger-focus inline-flex size-7 items-center justify-center text-[1.45rem] leading-none transition-[color,transform] duration-200 hover:text-[#111111] active:scale-90"
             onClick={() => setIsOpen((current) => !current)}
           >
-            {isOpen ? "Hide list" : "View complete list"}
-            <span aria-hidden="true" className="inline-flex size-4 items-center justify-center text-lg leading-none">{isOpen ? "−" : "+"}</span>
+            <span aria-hidden="true">{isOpen ? "−" : "+"}</span>
           </button>
         </div>
       </div>

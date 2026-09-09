@@ -15,6 +15,13 @@
       "when": 1788784434964,
       "tag": "0001_deep_the_fallen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788853103105,
+      "tag": "0002_windy_grey_gargoyle",
+      "breakpoints": true
     }
   ]
 }

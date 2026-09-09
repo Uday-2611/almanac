@@ -21,25 +21,29 @@ export type MediaInfo = {
   people: string[];
   posterUrl?: string | null;
   overview?: string | null;
+  details?: { label: string; value: string }[];
 };
 
 export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: ReactNode }) {
   const isMovie = info.kind === "Movie";
+  const isJournal = Boolean(actions);
 
   return (
     <article
       aria-labelledby="media-info-title"
-      className={`relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto sm:max-h-[calc(100dvh-3rem)] ${isMovie ? "gap-3 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[545px] md:grid-cols-[384px_1fr]"}`}
+      className={`relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto sm:max-h-[calc(100dvh-3rem)] ${isJournal ? "gap-1.5 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[546px] md:grid-cols-[364px_1fr]"}`}
     >
         <div className="md:sticky md:top-0 md:h-full md:self-start">
-          <div className={`relative w-full bg-[#020202] md:h-full md:aspect-auto ${isMovie ? "aspect-[2/3]" : "aspect-[384/545]"}`}>
+          <div className={`relative aspect-[2/3] w-full md:h-full md:aspect-auto ${isJournal ? "bg-[#020202]" : "bg-[#efefec]"}`}>
             {info.posterUrl ? (
-              <Image src={info.posterUrl} alt={`${info.title} ${info.kind.toLowerCase()} poster`} fill sizes={`(min-width: 768px) ${isMovie ? "364px" : "384px"}, 100vw`} className="object-cover" priority />
+              <Image src={info.posterUrl} alt={`${info.title} ${isMovie ? "movie poster" : "book cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isMovie ? "object-cover" : "object-contain"} preload />
             ) : null}
           </div>
         </div>
 
-        <div className={`min-w-0 p-4 sm:p-6 md:px-[14px] md:py-8 ${isMovie ? "movie-info-glass rounded-2xl md:h-full md:overflow-y-auto" : ""}`}>
+        <div className={`min-w-0 p-4 sm:p-6 md:px-6 md:py-7 ${isJournal ? "movie-info-glass md:h-full md:overflow-y-auto" : ""}`}>
+          {actions ? actions : (
+            <>
           <header className="grid grid-cols-1 gap-3 border-b border-[#eaeaea] pb-7 pr-14 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-6">
             <div>
               <p className="mb-1 text-xs uppercase tracking-[0.08em] text-[#686868]">{info.kind}</p>
@@ -62,6 +66,12 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
             <dd>{info.loggedAt}</dd>
             <dt className="text-[#686868]">Tags</dt>
             <dd><TagList tags={info.tags} /></dd>
+            {info.details?.map((detail) => (
+              <div key={detail.label} className="contents">
+                <dt className="text-[#686868]">{detail.label}</dt>
+                <dd>{detail.value}</dd>
+              </div>
+            ))}
           </dl>
 
           <section aria-labelledby="review-heading" className="border-b border-[#eaeaea] py-6">
@@ -88,18 +98,22 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
               ))}
             </ul>
           </section>
+            </>
+          )}
         </div>
     </article>
   );
 }
 
 export function MediaInfoCard({ info, backHref, actions }: { info: MediaInfo; backHref: string; actions?: ReactNode }) {
+  const isJournal = Boolean(actions);
+
   return (
-    <main className="relative flex h-screen items-center justify-center overflow-hidden px-4 pb-4 pt-16 sm:px-6 sm:pb-6 sm:pt-20">
+    <main className={`relative flex h-screen items-center justify-center overflow-hidden px-4 pb-4 pt-16 sm:px-6 sm:pb-6 sm:pt-20 ${isJournal ? "bg-[#090909]" : ""}`}>
       <Link
         href={backHref}
         aria-label={`Close ${info.title}`}
-        className="absolute right-8 top-20 z-10 grid size-9 place-items-center rounded-full text-[#686868] outline-none transition-[background-color,color,transform] duration-200 hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-4 active:scale-95 sm:right-[max(2.5rem,calc((100vw-922px)/2+1.5rem))] sm:top-24"
+        className={`absolute right-8 top-20 z-10 grid size-9 place-items-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-1 focus-visible:ring-offset-2 active:scale-95 sm:right-[max(2.5rem,calc((100vw-916px)/2+1.5rem))] sm:top-24 ${isJournal ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:ring-white focus-visible:ring-offset-black" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-[#111111]"}`}
       >
         <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
         <span className="sr-only">Close</span>

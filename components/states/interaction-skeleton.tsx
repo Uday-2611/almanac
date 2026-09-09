@@ -8,17 +8,17 @@ export function InteractionSkeleton({ label = "Saving changes" }: { label?: stri
   );
 }
 
-export function SearchResultSkeleton() {
+export function SearchResultSkeleton({ label = "Searching" }: { label?: string }) {
   return (
-    <div role="status" aria-label="Searching movies" className="divide-y divide-[#eeeeee]">
+    <div role="status" aria-label={label} className="space-y-1">
       {[0, 1, 2, 3].map((item) => (
-        <div key={item} className="grid min-h-[78px] grid-cols-[42px_minmax(0,1fr)_4rem] items-center gap-3 px-3 py-2.5 sm:grid-cols-[46px_minmax(0,1fr)_4rem] sm:px-4">
-          <span className="h-[52px] w-[38px] animate-pulse bg-[#e7e7e7]" />
+        <div key={item} className="grid min-h-[84px] grid-cols-[45px_minmax(0,1fr)_6rem] items-center gap-2 rounded-[4px] bg-white px-1.5 py-1.5">
+          <span className="h-[70px] w-[45px] animate-pulse bg-[#242424]" />
           <span className="space-y-2">
             <span className="block h-3 w-2/3 animate-pulse bg-[#dedede]" />
             <span className="block h-2 w-1/3 animate-pulse bg-[#eeeeee] [animation-delay:120ms]" />
           </span>
-          <span className="h-2 w-10 animate-pulse justify-self-end bg-[#eeeeee] [animation-delay:240ms]" />
+          <span className="h-2 w-20 animate-pulse justify-self-end bg-[#eeeeee] [animation-delay:240ms]" />
         </div>
       ))}
     </div>
