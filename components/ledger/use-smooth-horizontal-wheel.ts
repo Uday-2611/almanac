@@ -22,7 +22,7 @@ export function useSmoothHorizontalWheel<T extends HTMLElement>() {
         return;
       }
 
-      element.scrollLeft += distance * 0.18;
+      element.scrollLeft += distance * 0.32;
       animationFrame = window.requestAnimationFrame(animate);
     };
 

@@ -28,8 +28,8 @@ Do not introduce a brand accent color (no terracotta, no acid green, no blue lin
 
 ### Type
 
-- **Display / wordmark:** a condensed or slightly geometric sans in all-caps, tight tracking — used only for the site wordmark ("ARCHIVE"-style lockup) and page-level section labels. Keep it small (14–16px); this is not a hero-headline product.
-- **Body / titles:** a plain grotesk (Inter, Söhne, or system sans) at regular weight for metadata and semibold for titles. Reuse IBM Plex Mono or a similar mono face for numeric/date fields (dates, star ratings, hex codes) if you want a data-forward texture consistent with your other projects — this is optional but fits the ledger feel.
+- **Wordmark only:** use the self-hosted Boska family exclusively for the visible `Almanac` website name. Do not use it for page labels, media titles, headings, search results, or editorial content.
+- **All content and interface text:** use Geist Sans at regular weight for metadata and controls and semibold for titles. Geist Mono may be used sparingly for genuinely numeric or machine-readable values such as dates and hex codes.
 - **Scale:** keep it tight. Titles ~15–16px, metadata/dates ~13–14px, wordmark ~14px. This product should never feel like it has a "hero" font size — nothing on the page should be dramatically larger than anything else. Restraint in scale is the point.
 
 ### Layout
@@ -51,7 +51,7 @@ Do not introduce a brand accent color (no terracotta, no acid green, no blue lin
 
 ### Radius / Elevation
 
-- **Radius:** 0 everywhere except small functional affordances (e.g. the color-swatch squares in Images view can have a 2–4px radius, nothing else needs one).
+- **Radius:** use one uniform 4px radius on controls, menus, inputs, artwork, overlays, inset surfaces, and other elements that would otherwise have sharp corners. Avoid pills, circles, square corners, and larger mixed radii unless the shape communicates essential meaning.
 - **Elevation:** none. No shadows, no card backgrounds, no borders around content blocks — only hairline row dividers.
 
 ---
@@ -74,7 +74,7 @@ Minimal, monochrome. Filled = `--ink`, empty = `--rule`/light gray outline. No c
 Opens on row click — recommend a slide-over panel or a dedicated route rather than a modal, since detail content (synopsis, cast, review) can be long. Same typographic rules apply: no card chrome, just a page with a clear back affordance (text link, e.g. "← Movies").
 
 ### `ColorSwatch`
-Used in Colors Images view — a solid rectangle filled with the actual stored hex, hex code printed below in mono type, 0–4px radius max.
+Used in Colors Images view — a solid rectangle filled with the actual stored hex, hex code printed below in mono type, with the shared 4px radius.
 
 ---
 
@@ -104,7 +104,7 @@ Used in Colors Images view — a solid rectangle filled with the actual stored h
 
 ## 7. Accessibility Floor
 
-- All text-toggle and add-new affordances must be real buttons/links (keyboard-operable, visible focus ring in `--ink`), not divs with click handlers.
+- All text-toggle and add-new affordances must be real buttons/links and keyboard-operable. Black text must not gain a black focus border, outline, or ring; show keyboard focus with a quiet tonal background or another clear non-border treatment.
 - Contrast: `--ink` on `--bg` easily passes; verify `--muted` on `--bg` meets at least 4.5:1 for body-sized metadata text — if the exact gray above fails, darken it slightly rather than compromise on contrast for the sake of the look.
 - Poster/cover images need real `alt` text (title + type), not decorative-empty alt.
 - Color swatches need their hex value present as real text nearby, never conveyed by color alone.

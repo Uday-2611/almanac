@@ -29,7 +29,7 @@ export function MovieAddConfirmation({
       .fromTo(
         confirmationRef.current,
         { autoAlpha: 0, y: 10 },
-        { autoAlpha: 1, duration: reducedMotion ? 0 : 0.38, ease: "power3.out", y: 0 },
+        { autoAlpha: 1, duration: reducedMotion ? 0 : 0.18, ease: "power3.out", y: 0 },
       )
       .fromTo(
         "[data-confirmation-rule]",
@@ -40,7 +40,7 @@ export function MovieAddConfirmation({
       .to(confirmationRef.current, {
         autoAlpha: 0,
         delay: reducedMotion ? 0.8 : 1.35,
-        duration: reducedMotion ? 0 : 0.3,
+        duration: reducedMotion ? 0 : 0.16,
         ease: "power2.in",
         y: -6,
       });
@@ -67,7 +67,7 @@ export function MovieAddConfirmation({
           ? `Added to ${destination}`
           : `Already in your ${kind === "book" ? "library" : "collection"}`}
       </span>
-      <span className="mt-1 block max-w-64 truncate font-medium text-[#111111]">{title}</span>
+      <span className="mt-1 block max-w-64 truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{title}</span>
     </div>
   );
 }

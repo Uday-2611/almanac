@@ -116,6 +116,11 @@ export async function listBookListsForUser(userId: string): Promise<BookListReco
   }));
 }
 
+export async function listBookListOptionsForUser(userId: string) {
+  return getDatabase().select({ id: bookLists.id, name: bookLists.name }).from(bookLists)
+    .where(eq(bookLists.userId, userId)).orderBy(desc(bookLists.createdAt));
+}
+
 export async function createBookListForUser(userId: string, name: string) {
   const [list] = await getDatabase().insert(bookLists).values({ userId, name })
     .onConflictDoNothing({ target: [bookLists.userId, bookLists.name] }).returning();

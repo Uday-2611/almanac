@@ -41,9 +41,6 @@ export async function getMovieByTmdbId(userId: string, tmdbId: number) {
 }
 
 export async function createMovieForUser(userId: string, movie: TmdbMovie, status: MovieStatus) {
-  const existing = await getMovieByTmdbId(userId, movie.tmdbId);
-  if (existing) return { movie: existing, created: false };
-
   const [created] = await getDatabase()
     .insert(movies)
     .values({
@@ -60,9 +57,14 @@ export async function createMovieForUser(userId: string, movie: TmdbMovie, statu
       status,
       loggedDate: status === "watched" ? new Date().toISOString().slice(0, 10) : null,
     })
+    .onConflictDoNothing({ target: [movies.userId, movies.tmdbId] })
     .returning();
 
-  return { movie: created, created: true };
+  if (created) return { movie: created, created: true };
+
+  const existing = await getMovieByTmdbId(userId, movie.tmdbId);
+  if (!existing) throw new Error("The movie could not be created or retrieved.");
+  return { movie: existing, created: false };
 }
 
 export async function updateMovieForUser(
@@ -130,6 +132,14 @@ export async function listMovieListsForUser(userId: string): Promise<MovieListRe
     ...list,
     movies: items.filter((item) => item.listId === list.id).map((item) => item.movie),
   }));
+}
+
+export async function listMovieListOptionsForUser(userId: string) {
+  return getDatabase()
+    .select({ id: movieLists.id, name: movieLists.name })
+    .from(movieLists)
+    .where(eq(movieLists.userId, userId))
+    .orderBy(desc(movieLists.createdAt));
 }
 
 export async function createMovieListForUser(userId: string, name: string) {

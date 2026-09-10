@@ -2,6 +2,8 @@ import "server-only";
 
 const TMDB_API_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p";
+const DETAIL_TIMEOUT_MS = 3_500;
+const SEARCH_TIMEOUT_MS = 2_500;
 
 type TmdbMovieResult = {
   id: number;
@@ -41,11 +43,22 @@ export type TmdbMovie = TmdbSearchMovie & {
 
 export class TmdbConfigurationError extends Error {}
 
+function transientNetworkCode(error: unknown) {
+  if (!(error instanceof Error) || !("cause" in error)) return null;
+  const cause = error.cause;
+  if (typeof cause !== "object" || cause === null || !("code" in cause)) return null;
+  return typeof cause.code === "string" ? cause.code : null;
+}
+
+function retryDelay(milliseconds: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
 function imageUrl(path: string | null, size: "w185" | "w500" | "original") {
   return path ? `${TMDB_IMAGE_URL}/${size}${path}` : null;
 }
 
-async function tmdbFetch<T>(path: string, params: Record<string, string>) {
+async function tmdbFetch<T>(path: string, params: Record<string, string>, timeoutMs = DETAIL_TIMEOUT_MS) {
   const readToken = process.env.TMDB_API_READ_TOKEN;
   const apiKey = process.env.TMDB_API_KEY;
 
@@ -57,10 +70,27 @@ async function tmdbFetch<T>(path: string, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   if (!readToken && apiKey) url.searchParams.set("api_key", apiKey);
 
-  const response = await fetch(url, {
-    headers: readToken ? { Authorization: `Bearer ${readToken}`, Accept: "application/json" } : { Accept: "application/json" },
-    next: { revalidate: 60 * 60 },
-  });
+  let response: Response | null = null;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      response = await fetch(url, {
+        headers: readToken ? { Authorization: `Bearer ${readToken}`, Accept: "application/json" } : { Accept: "application/json" },
+        next: { revalidate: 60 * 60 },
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+      const code = transientNetworkCode(error);
+      const canRetry = attempt < 2 && (code === "ENOTFOUND" || code === "EAI_AGAIN" || code === "ECONNRESET");
+      if (!canRetry) throw error;
+      await retryDelay(80 * (attempt + 1));
+    }
+  }
+
+  if (!response) throw lastError;
 
   if (!response.ok) {
     throw new Error(`TMDB request failed with status ${response.status}.`);
@@ -75,7 +105,7 @@ export async function searchTmdbMovies(query: string): Promise<TmdbSearchMovie[]
     include_adult: "false",
     language: "en-US",
     page: "1",
-  });
+  }, SEARCH_TIMEOUT_MS);
 
   return data.results.slice(0, 8).map((movie) => ({
     tmdbId: movie.id,

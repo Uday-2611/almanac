@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-card";
 import { MovieEntryControls } from "@/components/movies/movie-entry-controls";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getMovieForUser, listIdsForMovie, listMovieListsForUser } from "@/lib/db/queries/movies";
+import { getMovieForUser, listIdsForMovie, listMovieListOptionsForUser } from "@/lib/db/queries/movies";
 import { idSchema } from "@/lib/validation";
 
 function formatLoggedDate(value: string | null) {
@@ -18,7 +18,7 @@ export async function getMovieInfo(movieId: string) {
 
   const [movie, lists, selectedListIds] = await Promise.all([
     getMovieForUser(user.id, movieId),
-    listMovieListsForUser(user.id),
+    listMovieListOptionsForUser(user.id),
     listIdsForMovie(user.id, movieId),
   ]);
   if (!movie) notFound();

@@ -97,7 +97,7 @@ export function BookListDisclosure({ children, date, id, title }: {
       {isPending ? <div className="ml-0 mt-3 sm:ml-[10rem]"><InteractionSkeleton label={isConfirmingDelete ? "Deleting book list" : "Renaming book list"} /></div> : null}
       {error ? <p role="alert" className="ml-0 mt-3 text-sm text-red-700 sm:ml-[10rem]">{error}</p> : null}
 
-      <div id={`${id}-contents`} className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+      <div id={`${id}-contents`} className={`grid transition-[grid-template-rows,opacity] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
         <div className="min-h-0 overflow-hidden">{children}</div>
       </div>
     </section>

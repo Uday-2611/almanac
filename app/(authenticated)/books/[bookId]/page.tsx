@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { BookEntryControls } from "@/components/books/book-entry-controls";
 import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-card";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getBookForUser, listBookListsForUser, listIdsForBook } from "@/lib/db/queries/books";
+import { getBookForUser, listBookListOptionsForUser, listIdsForBook } from "@/lib/db/queries/books";
 import { idSchema } from "@/lib/validation";
 
 function formatLoggedDate(value: string | null) {
@@ -18,7 +18,7 @@ export async function getBookInfo(bookId: string) {
 
   const [book, lists, selectedListIds] = await Promise.all([
     getBookForUser(user.id, bookId),
-    listBookListsForUser(user.id),
+    listBookListOptionsForUser(user.id),
     listIdsForBook(user.id, bookId),
   ]);
   if (!book) notFound();

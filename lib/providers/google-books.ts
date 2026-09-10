@@ -1,7 +1,8 @@
 import "server-only";
 
 const GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/";
-const REQUEST_TIMEOUT_MS = 8_000;
+const DETAIL_TIMEOUT_MS = 3_500;
+const SEARCH_TIMEOUT_MS = 2_500;
 const SEARCH_LIMIT = 8;
 
 type GoogleVolumeInfo = {
@@ -124,7 +125,7 @@ function isTimeoutError(error: unknown): boolean {
     && (cause.code === "UND_ERR_CONNECT_TIMEOUT" || cause.code === "ETIMEDOUT");
 }
 
-async function googleBooksFetch<T>(path: string, params: Record<string, string> = {}, revalidate = 3_600): Promise<T> {
+async function googleBooksFetch<T>(path: string, params: Record<string, string> = {}, revalidate = 3_600, timeoutMs = DETAIL_TIMEOUT_MS): Promise<T> {
   const url = new URL(path, GOOGLE_BOOKS_URL);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY?.trim();
@@ -135,7 +136,7 @@ async function googleBooksFetch<T>(path: string, params: Record<string, string> 
     response = await fetch(url, {
       headers: { Accept: "application/json" },
       next: { revalidate },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     if (isTimeoutError(error)) throw new GoogleBooksError("Google Books took too long to respond.", null, "timeout");
@@ -182,7 +183,7 @@ export async function searchGoogleBooks(query: string): Promise<GoogleBooksSearc
     orderBy: "relevance",
     printType: "books",
     projection: "lite",
-  });
+  }, 3_600, SEARCH_TIMEOUT_MS);
 
   return (Array.isArray(data.items) ? data.items : [])
     .map(normalizeSearchVolume)

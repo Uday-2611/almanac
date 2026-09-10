@@ -45,10 +45,10 @@ export function SiteNavigation() {
   }, [isOpen]);
 
   return (
-    <div ref={navigationRef} className="relative ml-2">
+    <div ref={navigationRef} className="relative ml-1">
       <button
         type="button"
-        className="ledger-focus relative flex h-4 w-4 cursor-pointer items-center justify-center"
+        className="ledger-focus relative flex size-8 cursor-pointer items-center justify-center text-[#686868] hover:bg-black/[0.04] hover:text-[#111111] active:scale-95"
         aria-label={isOpen ? "Close navigation" : "Open navigation"}
         aria-expanded={isOpen}
         aria-controls={menuId}
@@ -79,7 +79,7 @@ export function SiteNavigation() {
         id={menuId}
         aria-label="Primary navigation"
         aria-hidden={!isOpen}
-        className={`absolute left-0 top-7 w-44 origin-top-left border border-[#d8d8d8] bg-white p-1 transition-[opacity,transform,visibility] duration-200 ease-out ${
+        className={`absolute left-0 top-10 w-44 origin-top-left rounded-[4px] border border-[#e1e1e1] bg-white/95 p-1 backdrop-blur-xl transition-[opacity,transform,visibility] duration-200 ease-out ${
           isOpen
             ? "visible translate-y-0 scale-100 opacity-100"
             : "invisible pointer-events-none -translate-y-1 scale-[0.98] opacity-0"

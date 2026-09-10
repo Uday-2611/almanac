@@ -41,7 +41,7 @@ export function AuthForm() {
 
   return (
     <section className="w-full max-w-sm" aria-labelledby="auth-title">
-      <p className="mb-14 text-sm uppercase tracking-[-0.035em]">Almanac</p>
+      <p className="almanac-wordmark mb-14 text-lg font-medium tracking-[-0.025em]">Almanac</p>
       <h1 id="auth-title" className="text-3xl font-medium tracking-[-0.04em]">
         {mode === "sign-in" ? "Welcome back" : "Create your ledger"}
       </h1>

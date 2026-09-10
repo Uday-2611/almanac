@@ -31,10 +31,10 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
   return (
     <article
       aria-labelledby="media-info-title"
-      className={`relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto sm:max-h-[calc(100dvh-3rem)] ${isJournal ? "gap-1.5 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[546px] md:grid-cols-[364px_1fr]"}`}
+      className={`relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto rounded-[4px] sm:max-h-[calc(100dvh-3rem)] ${isJournal ? "gap-1.5 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[546px] md:grid-cols-[364px_1fr]"}`}
     >
         <div className="md:sticky md:top-0 md:h-full md:self-start">
-          <div className={`relative aspect-[2/3] w-full md:h-full md:aspect-auto ${isJournal ? "bg-[#020202]" : "bg-[#efefec]"}`}>
+          <div className={`relative aspect-[2/3] w-full overflow-hidden rounded-[4px] md:h-full md:aspect-auto ${isJournal ? "bg-[#020202]" : "bg-[#efefec]"}`}>
             {info.posterUrl ? (
               <Image src={info.posterUrl} alt={`${info.title} ${isMovie ? "movie poster" : "book cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isMovie ? "object-cover" : "object-contain"} preload />
             ) : null}
@@ -47,7 +47,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
           <header className="grid grid-cols-1 gap-3 border-b border-[#eaeaea] pb-7 pr-14 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-6">
             <div>
               <p className="mb-1 text-xs uppercase tracking-[0.08em] text-[#686868]">{info.kind}</p>
-              <h1 id="media-info-title" className="text-3xl leading-none tracking-[-0.04em] sm:text-4xl">
+              <h1 id="media-info-title" className="text-4xl font-semibold leading-[0.96] tracking-[-0.05em] sm:text-5xl">
                 {info.title}
               </h1>
               <p className="mt-2 text-lg text-[#686868] sm:text-xl">{info.creator}</p>
@@ -75,7 +75,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
           </dl>
 
           <section aria-labelledby="review-heading" className="border-b border-[#eaeaea] py-6">
-            <div className={isMovie ? "rounded-xl bg-black/[0.035] p-4" : ""}>
+            <div className={isMovie ? "rounded-[4px] bg-black/[0.035] p-4" : ""}>
               <h2 id="review-heading" className="mb-3 text-sm text-[#686868]">Review</h2>
               <ReviewMarkdown source={info.review} />
             </div>
@@ -113,7 +113,7 @@ export function MediaInfoCard({ info, backHref, actions }: { info: MediaInfo; ba
       <Link
         href={backHref}
         aria-label={`Close ${info.title}`}
-        className={`absolute right-8 top-20 z-10 grid size-9 place-items-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-1 focus-visible:ring-offset-2 active:scale-95 sm:right-[max(2.5rem,calc((100vw-916px)/2+1.5rem))] sm:top-24 ${isJournal ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:ring-white focus-visible:ring-offset-black" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-[#111111]"}`}
+        className={`absolute right-8 top-20 z-10 grid size-9 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-[max(2.5rem,calc((100vw-916px)/2+1.5rem))] sm:top-24 ${isJournal ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
       >
         <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
         <span className="sr-only">Close</span>

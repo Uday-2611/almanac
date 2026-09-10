@@ -44,7 +44,9 @@ export function CreateBookListForm({
           if (!membershipResponse.ok) return setError(membershipData?.error ?? "The book could not be added to the new list.");
           onBookAdded?.(data.list.id);
         } else {
+          formRef.current?.reset();
           router.replace("/books?status=lists&view=list");
+          return;
         }
 
         formRef.current?.reset();

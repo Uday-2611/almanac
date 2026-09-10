@@ -10,7 +10,6 @@
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --font-heading: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-gothic: var(--font-unifraktur-cook), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -40,13 +39,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
 :root {
@@ -73,7 +72,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.25rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -128,11 +127,33 @@
   html {
     @apply font-sans;
   }
+
+  :where(button, input, textarea, select, img, [role="dialog"]) {
+    border-radius: var(--radius);
+  }
+
+  :where(button, a, input, textarea, select) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where(a, button):focus-visible {
+    outline: none;
+    background-color: color-mix(in srgb, currentColor 7%, transparent);
+  }
+
+  :where(input, textarea, select):focus-visible {
+    outline: none;
+    background-color: rgb(17 17 17 / 0.035);
+  }
 }
 
 @layer utilities {
+  .almanac-wordmark {
+    font-family: var(--font-boska-family), Georgia, "Times New Roman", serif;
+  }
+
   .ledger-focus {
-    @apply rounded-none outline-none focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-4;
+    @apply rounded-[4px] outline-none transition-[background-color,color,opacity,transform] duration-150 focus-visible:bg-black/[0.06];
   }
 
   .movie-info-glass {
@@ -143,12 +164,22 @@
   }
 
   .movie-info-focus {
-    @apply rounded-none outline-none focus-visible:ring-1 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+    @apply rounded-[4px] outline-none transition-[background-color,color,opacity,transform] duration-150 focus-visible:bg-black/[0.06];
   }
 }
 
 input[type="search"]::-webkit-search-cancel-button {
   appearance: none;
+}
+
+@keyframes search-added-pop {
+  0% { opacity: 0; transform: translateY(0.4rem) scale(0.96); }
+  16%, 72% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-0.3rem) scale(0.98); }
+}
+
+.search-added-confirmation {
+  animation: search-added-pop 1.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -159,6 +190,12 @@ input[type="search"]::-webkit-search-cancel-button {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  .search-added-confirmation {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
 

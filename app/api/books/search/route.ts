@@ -9,6 +9,9 @@ export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 2) return Response.json({ results: [] });
   const requestedProvider = new URL(request.url).searchParams.get("provider");
+  const googleBooksRequest = searchGoogleBooks(query)
+    .then((books) => ({ books, error: null as unknown }))
+    .catch((error: unknown) => ({ books: null, error }));
 
   if (requestedProvider !== "google_books") {
     try {
@@ -29,9 +32,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const books = await searchGoogleBooks(query);
+    const { books, error } = await googleBooksRequest;
+    if (error) throw error;
     return Response.json({
-      results: books.map((book) => ({
+      results: (books ?? []).map((book) => ({
         provider: "google_books" as const,
         providerId: book.googleBooksVolumeId,
         title: book.title,

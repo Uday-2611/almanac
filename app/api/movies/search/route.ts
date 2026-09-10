@@ -15,6 +15,6 @@ export async function GET(request: Request) {
       return Response.json({ error: "TMDB_API_READ_TOKEN is not configured." }, { status: 503 });
     }
     console.error("TMDB search failed", error);
-    return Response.json({ error: "Movie search is temporarily unavailable." }, { status: 502 });
+    return Response.json({ error: "TMDB could not be reached. Try the search again." }, { status: 502 });
   }
 }

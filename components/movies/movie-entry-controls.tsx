@@ -86,7 +86,6 @@ export function MovieEntryControls({
         setActiveListIds(previousListIds);
         return setError(data?.error ?? "The list could not be updated.");
       }
-      router.refresh();
     });
   }
 
@@ -105,7 +104,7 @@ export function MovieEntryControls({
   return (
     <div className="pb-2 pr-1 text-[#111111]">
       <header className="pb-7 pr-11">
-        <h1 id="media-info-title" className="font-heading text-[2.7rem] font-medium uppercase leading-[0.92] tracking-[-0.04em] text-[#111111] sm:text-[3.25rem]">
+        <h1 id="media-info-title" className="text-[3rem] font-semibold leading-[0.94] tracking-[-0.05em] text-[#111111] sm:text-[3.65rem]">
           {title}
         </h1>
         <p className="mt-3 text-sm font-medium tracking-[-0.01em] text-black/75">
@@ -152,7 +151,7 @@ export function MovieEntryControls({
               ) : null}
             </div>
             {isEditingReview ? (
-              <form id="movie-review-form" action={saveReview} className="rounded-md bg-black/[0.045] p-3">
+              <form id="movie-review-form" action={saveReview} className="rounded-[4px] bg-black/[0.045] p-3">
                 <textarea name="review" defaultValue={review ?? ""} rows={6} autoFocus className="movie-info-focus block w-full resize-y bg-transparent text-sm leading-6 text-[#111111] placeholder:text-black/35" placeholder="Write what stayed with you…" />
                 <div className="mt-3 flex items-center gap-4 text-xs">
                   <button type="submit" disabled={isPending} className="movie-info-focus font-medium underline underline-offset-4 disabled:opacity-50">Save review</button>
@@ -160,7 +159,7 @@ export function MovieEntryControls({
                 </div>
               </form>
             ) : (
-              <div className="rounded-md bg-black/[0.045] p-3 text-sm text-black/85">
+              <div className="rounded-[4px] bg-black/[0.045] p-3 text-sm text-black/85">
                 <ReviewMarkdown source={review || "No review has been written yet."} />
               </div>
             )}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, UnifrakturCook } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,10 +13,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const unifrakturCook = UnifrakturCook({
-  variable: "--font-unifraktur-cook",
-  subsets: ["latin"],
-  weight: "700",
+const boska = localFont({
+  variable: "--font-boska-family",
+  display: "swap",
+  src: [
+    { path: "../public/fonts/boska-regular.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/boska-medium.woff2", weight: "500", style: "normal" },
+    { path: "../public/fonts/boska-bold.woff2", weight: "700", style: "normal" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -30,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${unifrakturCook.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${boska.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

@@ -33,8 +33,8 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
 
     gsap.fromTo(
       panelRef.current,
-      { autoAlpha: 0, filter: reducedMotion ? "blur(0px)" : "blur(8px)", scale: reducedMotion ? 1 : 0.985 },
-      { autoAlpha: 1, duration: reducedMotion ? 0 : 0.38, ease: "power3.out", filter: "blur(0px)", scale: 1 },
+      { autoAlpha: 0, filter: reducedMotion ? "blur(0px)" : "blur(4px)", scale: reducedMotion ? 1 : 0.992 },
+      { autoAlpha: 1, duration: reducedMotion ? 0 : 0.2, ease: "power3.out", filter: "blur(0px)", scale: 1 },
     );
   }, { scope: panelRef });
 
@@ -45,12 +45,12 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
 
     gsap.to(panelRef.current, {
       autoAlpha: 0,
-      duration: reducedMotion ? 0 : 0.24,
+      duration: reducedMotion ? 0 : 0.15,
       ease: "power2.in",
-      filter: reducedMotion ? "blur(0px)" : "blur(8px)",
+      filter: reducedMotion ? "blur(0px)" : "blur(4px)",
       onComplete: () => router.back(),
       overwrite: true,
-      scale: reducedMotion ? 1 : 0.985,
+      scale: reducedMotion ? 1 : 0.992,
     });
   };
 
@@ -75,7 +75,7 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
             type="button"
             onClick={close}
             aria-label={`Close ${label}`}
-            className={`absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-1 focus-visible:ring-offset-2 active:scale-95 sm:right-4 sm:top-4 ${tone === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:ring-white focus-visible:ring-offset-black" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:ring-[#111111] focus-visible:ring-offset-white"}`}
+            className={`absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-4 sm:top-4 ${tone === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
           >
             <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
             <span className="sr-only">Close</span>

@@ -40,6 +40,11 @@ try {
   const result = search.data?.results?.[0];
   if (!result?.providerId) throw new Error("Open Library search returned no usable result.");
 
+  const preview = await jsonRequest(`/api/books/preview?provider=${encodeURIComponent(result.provider)}&providerId=${encodeURIComponent(result.providerId)}`, { headers });
+  if (!preview.data?.preview?.title || preview.data.preview.kind !== "book") {
+    throw new Error("Book preview returned no usable information.");
+  }
+
   if (result.coverUrl) {
     const imageUrl = `${baseUrl}/_next/image?url=${encodeURIComponent(result.coverUrl)}&w=128&q=75`;
     const imageResponse = await fetch(imageUrl);

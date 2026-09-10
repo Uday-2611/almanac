@@ -1,11 +1,12 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { cache } from "react";
 
 import { getAuth } from "@/lib/auth/server";
 import type { SessionUser } from "@/lib/types/auth";
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
+export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const session = await getAuth().api.getSession({ headers: await headers() });
 
   if (!session) return null;
@@ -15,4 +16,4 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: session.user.email,
     name: session.user.name || null,
   };
-}
+});

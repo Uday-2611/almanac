@@ -8,7 +8,7 @@ export default async function InterceptedBookDetail({ params }: PageProps<"/book
   const { info, controls } = await getBookInfo(bookId);
 
   return (
-    <MediaModal label={`${info.title} details`}>
+    <MediaModal label={`${info.title} details`} tone="light">
       <MediaInfoPanel info={info} actions={<BookEntryControls key={controls.selectedListIds.join(":")} {...controls} />} />
     </MediaModal>
   );

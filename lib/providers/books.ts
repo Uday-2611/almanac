@@ -2,7 +2,8 @@ import "server-only";
 
 const OPEN_LIBRARY_URL = "https://openlibrary.org";
 const OPEN_LIBRARY_COVERS_URL = "https://covers.openlibrary.org";
-const REQUEST_TIMEOUT_MS = 8_000;
+const DETAIL_TIMEOUT_MS = 3_500;
+const SEARCH_TIMEOUT_MS = 2_500;
 const SEARCH_LIMIT = 8;
 const MAX_AUTHORS = 12;
 const FALLBACK_CONTACT_EMAIL = "contact@almanac.invalid";
@@ -189,7 +190,7 @@ function isTimeoutError(error: unknown): boolean {
     && (cause.code === "UND_ERR_CONNECT_TIMEOUT" || cause.code === "ETIMEDOUT");
 }
 
-async function openLibraryFetch<T>(path: string, params: Record<string, string> = {}, revalidate = 3_600): Promise<T> {
+async function openLibraryFetch<T>(path: string, params: Record<string, string> = {}, revalidate = 3_600, timeoutMs = DETAIL_TIMEOUT_MS): Promise<T> {
   const url = new URL(path, OPEN_LIBRARY_URL);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
 
@@ -201,7 +202,7 @@ async function openLibraryFetch<T>(path: string, params: Record<string, string> 
         "User-Agent": `Almanac/1.0 (contact: ${contactEmail()})`,
       },
       next: { revalidate },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     if (isTimeoutError(error)) {
@@ -273,7 +274,7 @@ export async function searchOpenLibraryBooks(query: string): Promise<OpenLibrary
       "number_of_pages_median",
     ].join(","),
     limit: SEARCH_LIMIT.toString(),
-  });
+  }, 3_600, SEARCH_TIMEOUT_MS);
 
   return (Array.isArray(data.docs) ? data.docs : [])
     .map(normalizeSearchBook)
