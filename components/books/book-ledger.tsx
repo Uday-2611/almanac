@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { BookListDisclosure } from "@/components/books/book-list-disclosure";
-import { BookSpineShelf } from "@/components/books/book-spine-shelf";
+import { BookCoverRail } from "@/components/books/book-cover-rail";
 import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
 import { SearchTrigger } from "@/components/search/search-trigger";
@@ -93,7 +93,7 @@ function BookListView({ books }: { books: Book[] }) {
 }
 
 function BookImageView({ books }: { books: Book[] }) {
-  return <BookSpineShelf books={books} />;
+  return <BookCoverRail books={books} />;
 }
 
 function ListsView({ lists, view }: { lists: BookList[]; view: BookView }) {
@@ -103,7 +103,7 @@ function ListsView({ lists, view }: { lists: BookList[]; view: BookView }) {
         <BookListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
           {list.books.length ? (
             view === "images" ? (
-              <div className="relative mt-5 h-[300px] overflow-hidden"><BookImageView books={list.books} /></div>
+              <BookImageView books={list.books} />
             ) : (
               <AnimatedLedgerList items={toLedgerItems(list.books)} className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]" />
             )
