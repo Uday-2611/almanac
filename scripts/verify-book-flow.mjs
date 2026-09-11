@@ -40,7 +40,13 @@ try {
   const result = search.data?.results?.[0];
   if (!result?.providerId) throw new Error("Open Library search returned no usable result.");
 
-  const preview = await jsonRequest(`/api/books/preview?provider=${encodeURIComponent(result.provider)}&providerId=${encodeURIComponent(result.providerId)}`, { headers });
+  const previewParams = new URLSearchParams({
+    provider: result.provider,
+    providerId: result.providerId,
+    titleHint: result.title,
+  });
+  for (const author of result.authors ?? []) previewParams.append("authorHint", author);
+  const preview = await jsonRequest(`/api/books/preview?${previewParams.toString()}`, { headers });
   if (!preview.data?.preview?.title || preview.data.preview.kind !== "book") {
     throw new Error("Book preview returned no usable information.");
   }
@@ -54,7 +60,13 @@ try {
   const created = await jsonRequest("/api/books", {
     method: "POST",
     headers,
-    body: JSON.stringify({ provider: result.provider, providerId: result.providerId, status: "read" }),
+    body: JSON.stringify({
+      provider: result.provider,
+      providerId: result.providerId,
+      status: "read",
+      titleHint: result.title,
+      authorHints: result.authors,
+    }),
   });
   const bookId = created.data?.book?.id;
   if (!bookId) throw new Error("Book creation returned no ID.");

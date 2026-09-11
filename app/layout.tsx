@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     default: "Almanac",
     template: "%s | Almanac",
   },
-  description: "A private ledger for the movies you watch and books you read.",
+  description: "A private ledger for the movies and TV shows you watch and the books you read.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

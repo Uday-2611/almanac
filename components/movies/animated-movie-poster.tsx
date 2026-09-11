@@ -10,15 +10,17 @@ import gsap from "gsap";
 gsap.registerPlugin(useGSAP);
 
 export function AnimatedMoviePoster({
-  director,
+  creator,
   href,
   posterUrl,
   title,
+  mediaType,
 }: {
-  director: string;
+  creator: string;
   href: string;
   posterUrl: string | null;
   title: string;
+  mediaType: "movie" | "tv";
 }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const router = useRouter();
@@ -68,7 +70,7 @@ export function AnimatedMoviePoster({
         ref={cardRef}
         href={href}
         className="ledger-focus block"
-        aria-label={`${title}, directed by ${director}`}
+        aria-label={`${title}, ${mediaType === "tv" ? "created by" : "directed by"} ${creator}`}
         onBlur={(event) => animate(event.currentTarget, false)}
         onFocus={(event) => {
           router.prefetch(href);
@@ -85,7 +87,7 @@ export function AnimatedMoviePoster({
         </span>
         <span data-poster-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
           <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{title}</span>
-          <span className="mt-0.5 block truncate text-sm text-[#686868]">{director}</span>
+          <span className="mt-0.5 block truncate text-sm text-[#686868]">{creator}</span>
         </span>
       </Link>
     </li>

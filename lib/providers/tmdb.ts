@@ -1,45 +1,21 @@
 import "server-only";
 
+import {
+  normalizeTmdbSearchResults,
+  normalizeTmdbTitleDetails,
+  type TmdbMediaType,
+  type TmdbMovieDetails,
+  type TmdbSearchResult,
+  type TmdbSearchTitle,
+  type TmdbTitle,
+  type TmdbTvDetails,
+} from "@/lib/providers/tmdb-normalize";
+
+export type { TmdbMediaType, TmdbSearchTitle, TmdbTitle } from "@/lib/providers/tmdb-normalize";
+
 const TMDB_API_URL = "https://api.themoviedb.org/3";
-const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p";
 const DETAIL_TIMEOUT_MS = 3_500;
 const SEARCH_TIMEOUT_MS = 2_500;
-
-type TmdbMovieResult = {
-  id: number;
-  title: string;
-  original_title: string;
-  overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  release_date: string;
-};
-
-type TmdbCredits = {
-  cast: { name: string; order: number }[];
-  crew: { job: string; name: string }[];
-};
-
-type TmdbMovieDetails = TmdbMovieResult & {
-  runtime: number | null;
-  credits: TmdbCredits;
-};
-
-export type TmdbSearchMovie = {
-  tmdbId: number;
-  title: string;
-  year: string;
-  overview: string;
-  posterUrl: string | null;
-};
-
-export type TmdbMovie = TmdbSearchMovie & {
-  director: string | null;
-  backdropUrl: string | null;
-  releaseDate: string | null;
-  runtimeMinutes: number | null;
-  cast: string[];
-};
 
 export class TmdbConfigurationError extends Error {}
 
@@ -52,10 +28,6 @@ function transientNetworkCode(error: unknown) {
 
 function retryDelay(milliseconds: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
-}
-
-function imageUrl(path: string | null, size: "w185" | "w500" | "original") {
-  return path ? `${TMDB_IMAGE_URL}/${size}${path}` : null;
 }
 
 async function tmdbFetch<T>(path: string, params: Record<string, string>, timeoutMs = DETAIL_TIMEOUT_MS) {
@@ -99,40 +71,26 @@ async function tmdbFetch<T>(path: string, params: Record<string, string>, timeou
   return response.json() as Promise<T>;
 }
 
-export async function searchTmdbMovies(query: string): Promise<TmdbSearchMovie[]> {
-  const data = await tmdbFetch<{ results: TmdbMovieResult[] }>("/search/movie", {
+export async function searchTmdbTitles(query: string): Promise<TmdbSearchTitle[]> {
+  const data = await tmdbFetch<{ results: TmdbSearchResult[] }>("/search/multi", {
     query,
     include_adult: "false",
     language: "en-US",
     page: "1",
   }, SEARCH_TIMEOUT_MS);
 
-  return data.results.slice(0, 8).map((movie) => ({
-    tmdbId: movie.id,
-    title: movie.title || movie.original_title,
-    year: movie.release_date?.slice(0, 4) || "Unknown",
-    overview: movie.overview,
-    posterUrl: imageUrl(movie.poster_path, "w185"),
-  }));
+  return normalizeTmdbSearchResults(data.results);
 }
 
-export async function getTmdbMovie(tmdbId: number): Promise<TmdbMovie> {
-  const movie = await tmdbFetch<TmdbMovieDetails>(`/movie/${tmdbId}`, {
-    append_to_response: "credits",
-    language: "en-US",
-  });
-  const director = movie.credits.crew.find((person) => person.job === "Director")?.name ?? null;
-
-  return {
-    tmdbId: movie.id,
-    title: movie.title || movie.original_title,
-    year: movie.release_date?.slice(0, 4) || "Unknown",
-    overview: movie.overview,
-    posterUrl: imageUrl(movie.poster_path, "w500"),
-    backdropUrl: imageUrl(movie.backdrop_path, "original"),
-    releaseDate: movie.release_date || null,
-    runtimeMinutes: movie.runtime,
-    director,
-    cast: movie.credits.cast.sort((a, b) => a.order - b.order).slice(0, 12).map((person) => person.name),
-  };
+export async function getTmdbTitle(tmdbId: number, mediaType: TmdbMediaType): Promise<TmdbTitle> {
+  const title = mediaType === "movie"
+    ? await tmdbFetch<TmdbMovieDetails>(`/movie/${tmdbId}`, {
+        append_to_response: "credits",
+        language: "en-US",
+      })
+    : await tmdbFetch<TmdbTvDetails>(`/tv/${tmdbId}`, {
+        append_to_response: "credits",
+        language: "en-US",
+      });
+  return normalizeTmdbTitleDetails(title, mediaType);
 }

@@ -24,6 +24,7 @@ type SearchContextValue = { openSearch: (scope?: SearchScope) => void }
 type MovieStatus = "watchlist" | "watched"
 type BookStatus = "want_to_read" | "read"
 type MediaKind = "movie" | "book"
+type TmdbMediaType = "movie" | "tv"
 type SearchResult = {
   id: string
   kind: MediaKind
@@ -32,6 +33,8 @@ type SearchResult = {
   year: string
   artwork: string | null
   provider?: string
+  mediaType?: TmdbMediaType
+  authors?: string[]
 }
 type BookSearchResult = {
   provider: string
@@ -72,6 +75,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   const searchCacheRef = useRef(new Map<string, CachedSearch>())
   const previewCacheRef = useRef(new Map<string, SearchMediaPreviewData>())
   const previewPromiseCacheRef = useRef(new Map<string, Promise<SearchMediaPreviewData>>())
+  const previewIntentTimersRef = useRef(new Map<string, number>())
   const activePreviewIdentityRef = useRef<string | null>(null)
   const hasMutatedRef = useRef(false)
   const confirmationTimersRef = useRef(new Map<string, number>())
@@ -82,7 +86,13 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => {
     confirmationTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+    previewIntentTimersRef.current.forEach((timer) => window.clearTimeout(timer))
   }, [])
+
+  useEffect(() => {
+    previewIntentTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+    previewIntentTimersRef.current.clear()
+  }, [query, scope])
 
   useEffect(() => {
     const searchQuery = query.trim()
@@ -130,13 +140,14 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
             if (!response.ok) return { results: [], error: data?.error ?? "Movie search is unavailable." }
 
             return {
-              results: (data?.results ?? []).map((movie: { tmdbId: number; title: string; year: string; posterUrl: string | null }) => ({
+              results: (data?.results ?? []).map((movie: { tmdbId: number; mediaType: TmdbMediaType; title: string; year: string; posterUrl: string | null }) => ({
                 id: String(movie.tmdbId),
                 kind: "movie" as const,
                 title: movie.title,
-                credit: "TMDB",
+                credit: movie.mediaType === "tv" ? "TV · TMDB" : "Movie · TMDB",
                 year: movie.year,
                 artwork: movie.posterUrl,
+                mediaType: movie.mediaType,
               })).slice(0, scope === "all" ? 4 : 8),
             }
           } catch (error) {
@@ -162,6 +173,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                 year: book.year == null ? "" : String(book.year),
                 artwork: book.coverUrl,
                 provider: book.provider,
+                authors: Array.isArray(book.authors) ? book.authors : [book.authors].filter(Boolean),
               })).slice(0, scope === "all" ? 4 : 8),
             }
           } catch (error) {
@@ -197,6 +209,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen)
     if (!nextOpen) {
+      previewIntentTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+      previewIntentTimersRef.current.clear()
       setQuery("")
       setPreviewOpen(false)
       activePreviewIdentityRef.current = null
@@ -208,7 +222,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   }
 
   function resultIdentity(result: SearchResult) {
-    return `${result.kind}:${result.provider ?? "tmdb"}:${result.id}`
+    return `${result.kind}:${result.provider ?? "tmdb"}:${result.mediaType ?? ""}:${result.id}`
   }
 
   function addActionKey(identity: string, status: MovieStatus | BookStatus) {
@@ -240,9 +254,17 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   }
 
   function previewPath(result: SearchResult) {
-    return result.kind === "movie"
-      ? `/api/movies/preview?tmdbId=${encodeURIComponent(result.id)}`
-      : `/api/books/preview?provider=${encodeURIComponent(result.provider ?? "")}&providerId=${encodeURIComponent(result.id)}`
+    if (result.kind === "movie") {
+      return `/api/movies/preview?tmdbId=${encodeURIComponent(result.id)}&mediaType=${encodeURIComponent(result.mediaType ?? "movie")}`
+    }
+
+    const params = new URLSearchParams({
+      provider: result.provider ?? "",
+      providerId: result.id,
+      titleHint: result.title,
+    })
+    result.authors?.forEach((author) => params.append("authorHint", author))
+    return `/api/books/preview?${params.toString()}`
   }
 
   function loadPreview(result: SearchResult) {
@@ -268,11 +290,28 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     return request
   }
 
-  function prefetchPreview(result: SearchResult) {
-    void loadPreview(result).catch(() => undefined)
+  function cancelPreviewPrefetch(result: SearchResult) {
+    const identity = resultIdentity(result)
+    const timer = previewIntentTimersRef.current.get(identity)
+    if (timer === undefined) return
+    window.clearTimeout(timer)
+    previewIntentTimersRef.current.delete(identity)
+  }
+
+  function schedulePreviewPrefetch(result: SearchResult) {
+    const identity = resultIdentity(result)
+    if (previewCacheRef.current.has(identity) || previewPromiseCacheRef.current.has(identity)
+      || previewIntentTimersRef.current.has(identity)) return
+
+    const timer = window.setTimeout(() => {
+      previewIntentTimersRef.current.delete(identity)
+      void loadPreview(result).catch(() => undefined)
+    }, 220)
+    previewIntentTimersRef.current.set(identity, timer)
   }
 
   async function openPreview(result: SearchResult) {
+    cancelPreviewPrefetch(result)
     const identity = resultIdentity(result)
     activePreviewIdentityRef.current = identity
     setPreviewLabel(`${result.title} details`)
@@ -296,8 +335,9 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function addMovie(tmdbId: number, status: MovieStatus) {
-    const identity = `movie:tmdb:${tmdbId}`
+  function addMovie(tmdbId: number, mediaType: TmdbMediaType, status: MovieStatus) {
+    const entryNoun = mediaType === "tv" ? "show" : "movie"
+    const identity = `movie:tmdb:${mediaType}:${tmdbId}`
     const actionKey = addActionKey(identity, status)
     if (pendingAdds[actionKey]) return
     setSearchError("")
@@ -307,17 +347,17 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/movies", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tmdbId, status }),
+          body: JSON.stringify({ tmdbId, mediaType, status }),
         })
         const data = await response.json().catch(() => null)
-        if (!response.ok) return setSearchError(data?.error ?? "The movie could not be added.")
+        if (!response.ok) return setSearchError(data?.error ?? `The ${entryNoun} could not be added.`)
 
         hasMutatedRef.current = true
         const savedStatus = data.movie.status as MovieStatus
         setAddedStatuses((current) => ({ ...current, [identity]: savedStatus }))
         showAddedConfirmation(addActionKey(identity, savedStatus))
       } catch {
-        setSearchError("The movie could not be added.")
+        setSearchError(`The ${entryNoun} could not be added.`)
       } finally {
         setAddPending(actionKey, false)
       }
@@ -337,7 +377,13 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/books", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ provider: result.provider, providerId: result.id, status }),
+          body: JSON.stringify({
+            provider: result.provider,
+            providerId: result.id,
+            status,
+            titleHint: result.title,
+            authorHints: result.authors,
+          }),
         })
         const data = await response.json().catch(() => null)
         if (!response.ok) return setSearchError(data?.error ?? "The book could not be added.")
@@ -354,7 +400,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     })()
   }
 
-  const searchLabel = scope === "movie" ? "Search movies" : scope === "book" ? "Search books" : "Search movies and books"
+  const searchLabel = scope === "movie" ? "Search movies and TV shows" : scope === "book" ? "Search books" : "Search movies, TV shows, and books"
 
   return (
     <SearchContext.Provider value={{ openSearch }}>
@@ -365,9 +411,9 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
           <DialogViewport className="fixed inset-0 z-50 overflow-y-auto px-3 py-[10vh] sm:px-5 sm:py-[14vh]">
             <DialogPopup initialFocus={inputRef} className="relative mx-auto w-full max-w-[57rem] outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0">
               <DialogTitle className="sr-only">{searchLabel}</DialogTitle>
-              <DialogDescription className="sr-only">Search by title, then add a movie or book to your collection.</DialogDescription>
+              <DialogDescription className="sr-only">Search by title, then add a movie, TV show, or book to your collection.</DialogDescription>
               <div className="relative">
-                <Input ref={inputRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={scope === "movie" ? "Search for your favorite movies" : scope === "book" ? "Search for your favorite books" : searchLabel} aria-label={searchLabel} autoComplete="off" className="h-[58px] rounded-[4px] border-0 bg-white px-[18px] pr-14 text-base tracking-[-0.01em] shadow-none placeholder:text-[#8a8a8a] focus-visible:bg-white sm:text-[17px]" />
+                <Input ref={inputRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={scope === "movie" ? "Search movies and TV shows" : scope === "book" ? "Search for your favorite books" : searchLabel} aria-label={searchLabel} autoComplete="off" className="h-[58px] rounded-[4px] border-0 bg-white px-[18px] pr-14 text-base tracking-[-0.01em] shadow-none placeholder:text-[#8a8a8a] focus-visible:bg-white sm:text-[17px]" />
                 <DialogClose aria-label="Close search" className="ledger-focus absolute right-2 top-1/2 grid size-10 -translate-y-1/2 place-items-center text-[#111111] hover:bg-black/[0.05] active:scale-95">
                   <X aria-hidden="true" className="size-5" strokeWidth={2} />
                 </DialogClose>
@@ -389,13 +435,15 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                         const itemIsAdding = Boolean(pendingAdds[primaryKey] || pendingAdds[secondaryKey])
 
                         return (
-                          <li key={`${result.kind}-${result.id}`} className="overflow-visible rounded-[4px] bg-white">
+                          <li key={identity} className="overflow-visible rounded-[4px] bg-white">
                             <div className="grid min-h-[84px] w-full grid-cols-1 items-center rounded-[4px] px-1.5 py-1.5 transition-colors duration-150 hover:bg-[#f8f8f7] sm:grid-cols-[minmax(0,1fr)_auto]">
                               <button
                                 type="button"
                                 onClick={() => openPreview(result)}
-                                onFocus={() => prefetchPreview(result)}
-                                onPointerEnter={() => prefetchPreview(result)}
+                                onBlur={() => cancelPreviewPrefetch(result)}
+                                onFocus={() => schedulePreviewPrefetch(result)}
+                                onPointerEnter={() => schedulePreviewPrefetch(result)}
+                                onPointerLeave={() => cancelPreviewPrefetch(result)}
                                 className="ledger-focus grid min-w-0 grid-cols-[45px_minmax(0,1fr)] items-center gap-x-2 text-left"
                                 aria-label={`View ${result.title} information`}
                               >
@@ -409,8 +457,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                               </button>
                               {result.kind === "movie" ? (
                                 <span className="flex justify-end gap-4 px-1 pb-1 pt-4 text-sm sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
-                                  <SearchAddAction added={addedStatus === "watchlist"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Watchlist" onClick={() => addMovie(Number(result.id), "watchlist")}>Add to watchlist</SearchAddAction>
-                                  <SearchAddAction added={addedStatus === "watched"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Watched" muted onClick={() => addMovie(Number(result.id), "watched")}>Watched</SearchAddAction>
+                                  <SearchAddAction added={addedStatus === "watchlist"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Watchlist" onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watchlist")}>Add to watchlist</SearchAddAction>
+                                  <SearchAddAction added={addedStatus === "watched"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Watched" muted onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watched")}>Watched</SearchAddAction>
                                 </span>
                               ) : (
                                 <span className="flex justify-end gap-4 px-1 pb-1 pt-4 text-sm sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
@@ -429,7 +477,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                       <button type="button" onClick={retrySearch} className="ledger-focus shrink-0 font-medium text-[#111111] hover:bg-black/[0.05]">Retry</button>
                     </div>
                   ) : (
-                    <p className="rounded-[4px] bg-white px-4 py-5 text-sm text-[#686868]">No matching {scope === "all" ? "movies or books" : `${scope}s`}.</p>
+                    <p className="rounded-[4px] bg-white px-4 py-5 text-sm text-[#686868]">No matching {scope === "all" ? "movies, TV shows, or books" : scope === "movie" ? "movies or TV shows" : "books"}.</p>
                   )}
                   {searchError && results.length ? <p role="alert" className="mt-1 rounded-[4px] bg-white px-4 py-3 text-sm text-red-700">{searchError}</p> : null}
                 </div>

@@ -4,7 +4,7 @@ import { MovieLedger, type MovieStatus, type MovieView } from "@/components/movi
 import { getCurrentUser } from "@/lib/auth/session";
 import { listMovieListsForUser, listMoviesForUser, type MovieRecord } from "@/lib/db/queries/movies";
 
-export const metadata: Metadata = { title: "Movies" };
+export const metadata: Metadata = { title: "Movies & TV" };
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -20,7 +20,8 @@ function presentMovie(movie: MovieRecord) {
   return {
     id: movie.id,
     title: movie.title,
-    director: movie.director ?? "Director unavailable",
+    creator: movie.creator ?? (movie.mediaType === "tv" ? "Creator unavailable" : "Director unavailable"),
+    mediaType: movie.mediaType,
     date: formatDate(movie.loggedDate ?? movie.createdAt),
     posterUrl: movie.posterUrl,
   };

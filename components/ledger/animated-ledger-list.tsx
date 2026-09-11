@@ -36,13 +36,10 @@ export function AnimatedLedgerList({
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     gsap.to(rows, {
-      duration: reducedMotion ? 0 : 0.18,
-      ease: "power3.out",
-      opacity: (_, row) => (activeRow && row !== activeRow ? 0.3 : 1),
+      duration: reducedMotion ? 0 : 0.11,
+      ease: "power1.inOut",
+      opacity: (_, row) => (activeRow && row !== activeRow ? 0.36 : 1),
       overwrite: "auto",
-      scale: (_, row) => (row === activeRow ? 1.045 : 1),
-      transformOrigin: "left center",
-      x: (_, row) => (row === activeRow ? 10 : 0),
     });
   });
 
@@ -53,7 +50,7 @@ export function AnimatedLedgerList({
           <Link
             href={item.href}
             data-ledger-row
-            className="ledger-focus grid min-h-[52px] grid-cols-[minmax(8.5rem,10rem)_1fr] gap-8 py-2.5 will-change-[transform,opacity] sm:grid-cols-[10rem_1fr] sm:gap-0"
+            className="ledger-focus grid min-h-[52px] grid-cols-[minmax(8.5rem,10rem)_1fr] gap-8 py-2.5 will-change-[opacity] sm:grid-cols-[10rem_1fr] sm:gap-0"
             onBlur={(event) => animateRows(event.currentTarget, false)}
             onFocus={(event) => {
               router.prefetch(item.href);

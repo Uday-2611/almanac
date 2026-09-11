@@ -4,6 +4,7 @@ export const idSchema = z.uuid();
 
 export const createMovieSchema = z.object({
   tmdbId: z.number().int().positive(),
+  mediaType: z.enum(["movie", "tv"]).default("movie"),
   status: z.enum(["watchlist", "watched"]).default("watchlist"),
 });
 
@@ -26,6 +27,8 @@ export const createBookSchema = z.object({
   provider: z.enum(["open_library", "google_books"]).default("open_library"),
   providerId: z.string().trim().min(1).max(128),
   status: z.enum(["want_to_read", "read"]).default("want_to_read"),
+  titleHint: z.string().trim().min(1).max(300).optional(),
+  authorHints: z.array(z.string().trim().min(1).max(200)).max(12).optional(),
 }).superRefine((value, context) => {
   const valid = value.provider === "open_library"
     ? /^OL\d+W$/.test(value.providerId)

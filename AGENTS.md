@@ -27,7 +27,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Product Guardrails
 
 - Build a private, single-user-per-account logging tool.
-- Current MVP focus: movies and books only.
+- Current MVP focus: movies, TV shows, and books. TV shows live inside the Movies section rather than a separate product route.
 - Do not add any social features: no public profiles, sharing, comments, follows, likes, feeds, or collaboration.
 - Prefer fast entry flows and quiet browsing over decorative UI or engagement mechanics.
 - Keep external API calls server-side through Route Handlers. Do not call TMDB or books APIs directly from client components.
@@ -70,7 +70,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Use Apple's Human Interface Guidelines design principles as a decision framework for Almanac: Purpose, Agency, Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight. Reference: https://developer.apple.com/design/human-interface-guidelines/design-principles.
 - Apply the principles to the web and to Almanac's established ledger language; do not imitate Apple platform chrome, Liquid Glass, or decorative effects when they conflict with the product's no-card, no-shadow, monochrome rules.
-- Purpose: optimize every screen for quickly logging, finding, and reflecting on movies and books. Reject features or decoration that compete for attention without helping that job.
+- Purpose: optimize every screen for quickly logging, finding, and reflecting on movies, TV shows, and books. Reject features or decoration that compete for attention without helping that job.
 - Agency: keep people in control. Preserve context across overlays and navigation, provide clear exits, avoid trapping users in modes, and make reversible actions easy to undo. Reserve confirmation for destructive or difficult-to-recover actions.
 - Responsibility: keep the product private by default, collect only data needed for the feature, explain permissions or external-provider behavior at the moment it matters, and never use manipulative engagement patterns.
 - Familiarity: use semantic web controls and established browser conventions. Elements that look the same must behave the same; keep navigation, close actions, editing, feedback, and movie/book patterns consistent.
@@ -99,7 +99,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep `getCurrentUser()` wrapped in React `cache()` so layouts and pages deduplicate session lookup within one server render.
 - Do not pair `router.push()` or `router.replace()` with an immediate `router.refresh()`; navigation already requests fresh server output. Keep membership controls optimistic and refresh only when the current view genuinely needs server data reloaded.
 - Scope all user data access by `user_id` at the query layer.
-- A movie may belong to a user-created list only while it belongs to the same user and has `watched` status. Preserve the API validation and database triggers that enforce this; moving a movie back to `watchlist` must remove its custom-list memberships.
+- A movie or TV show may belong to a user-created movie list only while it belongs to the same user and has `watched` status. Preserve the API validation and database triggers that enforce this; moving either title back to `watchlist` must remove its custom-list memberships.
 - A book may belong to a user-created list only while it belongs to the same user and has `read` status. Preserve the equivalent API validation and database triggers; moving a book back to `want_to_read` must remove its custom-list memberships.
 - Preserve owner-scoped movie-list CRUD. Deleting a custom list must delete only its memberships, not the watched movies it contained; movie deletion remains a separate confirmed action.
 - Render reviews through the sanitized markdown component. Do not enable raw HTML in user-authored review content.
@@ -111,8 +111,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Reuse the movie ledger row, text-toggle, and horizontal poster-rail patterns when connecting real data or mirroring the experience for books.
 - Preserve the large quiet space above movie content; it is an intentional part of the approved layout, not missing content.
 - Preserve the movie and book list interaction signature: straight, silent borderless rows with GSAP hover isolation applied to the active row's date, title, and creator together.
-- Preserve the movies image-view signature: a single smoothly scrolling, closely spaced horizontal rail of 2:3 posters whose GSAP hover/focus motion enlarges them evenly from the center, reveals title and director below, and softly desaturates neighboring posters.
-- Keep Books image view visually and behaviorally identical to Movies image view: a smoothly scrolling horizontal rail of uniform 2:3 covers with the same spacing, centered GSAP hover/focus enlargement, neighboring-artwork desaturation, intent-based detail prefetch, and metadata reveal below. Adapt metadata only to title and author; use a quiet typographic cover when artwork is unavailable.
+- Preserve the movies image-view signature: a single closely spaced horizontal rail of 2:3 posters whose GSAP hover/focus motion enlarges them evenly from the center, reveals title and director below, and softly desaturates neighboring posters. Rail scrolling must track wheel or touchpad input directly and must not continue through app-controlled easing after input ends.
+- Keep Books image view visually and behaviorally identical to Movies image view: an input-tracked horizontal rail of uniform 2:3 covers with the same spacing, centered GSAP hover/focus enlargement, neighboring-artwork desaturation, intent-based detail prefetch, and metadata reveal below. Adapt metadata only to title and author; use a quiet typographic cover when artwork is unavailable.
 - Movie and book detail routes use the same light, scrollable journal-modal layout, with artwork occupying the entire left pane and the transparent dark-type information sequence adapted to director/cast or author/contributors.
 - Movie links use an intercepted parallel route so details open as a modal over the movies ledger; preserve direct `/movies/[movieId]` page rendering as the hard-navigation fallback.
 - Reuse one global search overlay from the nav and the Movies/Books `Add New +` controls.
@@ -123,6 +123,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Book detail artwork uses a 2:3 frame and preserves each source cover's natural aspect ratio with containment rather than cropping.
 - Preserve parity between the movie and book journal modals: dark scrim, transparent glass pane, title/creator/year, directly editable rating and logged date, overview, sanitized-markdown review, credits, and eligible custom lists.
 - `TMDB_API_READ_TOKEN` is configured as an encrypted Vercel variable for Production, Preview, and Development; never expose it to client code or logs.
+- Keep movies and TV shows together in `/movies`, including search, Watchlist/Watched, image and list views, details, Archive Notes, and custom lists. Persist TMDB identity as `(media_type, tmdb_id)` because movie and TV IDs can overlap.
 - Preserve the accessible animated open/close disclosure on Movie and Book My Lists sections. Use only a slightly enlarged plus/minus icon for the disclosure control; keep Rename and Delete free of underlines, with Delete turning red on hover.
 - Preserve the authenticated navbar signature: the Boska Almanac wordmark sits beside a three-line menu control that morphs into a close icon; the compact 4px-rounded menu uses subtle open/close motion, monochrome item hovers, and outside-click/Escape dismissal.
 - Preserve the 2:3 movie artwork ratio in both image view and the information modal. Separate the fixed desktop poster from the scrollable, colorless transparent information pane with a narrow gap; use an icon close control and a subtly rounded review inset. Show the smooth GSAP ledger confirmation only after a Watchlist or Watched add request succeeds.
@@ -130,7 +131,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Preserve intercepted detail-route `loading.tsx` fallbacks so dynamic movie and book modals can partially prefetch and respond immediately while Neon data loads.
 - Keep external metadata requests bounded by timeouts and retain the in-session recent-query cache in global media search.
 - Keep routine UI motion quick and interruptible: hover/focus feedback should settle in roughly 160–180ms, modal transitions in roughly 150–200ms, and ordinary interface transitions should not exceed 240ms without a deliberate spatial reason. Preserve reduced-motion behavior.
+- Ledger list hover/focus isolation is an intentionally faster exception: settle sibling-row opacity in about 110ms with a symmetric ease-in-out curve and without translating or scaling the active row, so rapid pointer movement remains smooth and unblocked.
+- Movies and Books `Add New +` controls share a quick, centered underline reveal on hover and keyboard focus using an ease-in-out curve. Keep the affordance as plain text without a filled background, border, or hover lift.
 - Begin global media search after no more than a 120ms input pause, publish movie and book results independently as each provider responds, and prefetch provider previews plus saved-entry detail routes on user intent (hover or focus). Do not make a fast provider wait for a slow one.
+- Treat provider-preview warming as demonstrated intent, not incidental pointer travel: wait about 220ms before starting a hover/focus preview request, cancel unsent work when intent leaves, and keep clicks immediate.
+- Resolve book preview and add metadata through the shared server-only loader. Preserve its bounded successful-result cache and in-flight request deduplication so a warmed preview can make a subsequent add immediate without trusting client metadata.
+- When an Open Library work-detail request fails, use validated search-result title and author hints to try Google Books, but retain the originally selected Open Library provider and work ID as the saved identity. Keep supplemental Open Library enrichment short and optional.
 - Never cache failed provider searches as empty result sets. Retry short-lived TMDB DNS failures within a bounded request, and distinguish provider failures from genuine zero-result searches with a visible retry action.
 - Detail modals must use lightweight list-option queries; never load every list membership item merely to render list names in an entry editor.
 - Preserve the movie modal's film-journal sequence: a large, tightly tracked Geist Sans title, director/year, directly editable stars, watched date, overview, editable sanitized-markdown review, Archive Note entry, compact cast, then custom lists. Keep the borderless pane completely free of background color, with dark type six pixels from the fixed 2:3 poster over a light white-blurred scrim.

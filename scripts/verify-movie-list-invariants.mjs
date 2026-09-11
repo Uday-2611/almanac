@@ -10,6 +10,7 @@ if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
 const sql = neon(process.env.DATABASE_URL);
 const userId = `invariant-${randomUUID()}`;
 const movieId = randomUUID();
+const tvId = randomUUID();
 const listId = randomUUID();
 const replacementListId = randomUUID();
 const tmdbId = Math.floor(Math.random() * 1_000_000_000);
@@ -17,6 +18,9 @@ const tmdbId = Math.floor(Math.random() * 1_000_000_000);
 try {
   await sql`insert into "user" (id, name, email) values (${userId}, 'Invariant Test', ${`${userId}@example.invalid`})`;
   await sql`insert into movies (id, user_id, tmdb_id, title, status) values (${movieId}, ${userId}, ${tmdbId}, 'Invariant Test Movie', 'watchlist')`;
+  await sql`insert into movies (id, user_id, tmdb_id, media_type, title, status) values (${tvId}, ${userId}, ${tmdbId}, 'tv', 'Invariant Test Show', 'watchlist')`;
+  const distinctTmdbTitles = await sql`select count(*)::int as count from movies where user_id = ${userId} and tmdb_id = ${tmdbId}`;
+  if (distinctTmdbTitles[0].count !== 2) throw new Error("Movie and TV entries with the same TMDB ID were not kept distinct.");
   await sql`insert into movie_lists (id, user_id, name) values (${listId}, ${userId}, 'Invariant Test List')`;
 
   let watchlistInsertWasRejected = false;

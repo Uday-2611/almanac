@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
-import { searchTmdbMovies, TmdbConfigurationError } from "@/lib/providers/tmdb";
+import { searchTmdbTitles, TmdbConfigurationError } from "@/lib/providers/tmdb";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   if (query.length < 2) return Response.json({ results: [] });
 
   try {
-    return Response.json({ results: await searchTmdbMovies(query) });
+    return Response.json({ results: await searchTmdbTitles(query) });
   } catch (error) {
     if (error instanceof TmdbConfigurationError) {
       return Response.json({ error: "TMDB_API_READ_TOKEN is not configured." }, { status: 503 });

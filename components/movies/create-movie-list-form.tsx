@@ -30,7 +30,7 @@ export function CreateMovieListForm({ movieId, compact = false, inverse = false 
           body: JSON.stringify({ movieId }),
         });
         const membershipData = membershipResponse.ok ? null : await membershipResponse.json().catch(() => null);
-        if (!membershipResponse.ok) return setError(membershipData?.error ?? "The movie could not be added to the new list.");
+        if (!membershipResponse.ok) return setError(membershipData?.error ?? "The title could not be added to the new list.");
       } else {
         formRef.current?.reset();
         router.replace("/movies?status=lists&view=list");

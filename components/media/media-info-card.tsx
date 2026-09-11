@@ -8,10 +8,10 @@ import { TagList } from "@/components/media/tag-list";
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 
 export type MediaInfo = {
-  kind: "Movie" | "Book";
+  kind: "Movie" | "TV Show" | "Book";
   title: string;
   creator: string;
-  creatorLabel: "Director" | "Author";
+  creatorLabel: "Director" | "Created by" | "Author";
   year: string;
   rating: number | null;
   review: string;
@@ -25,7 +25,7 @@ export type MediaInfo = {
 };
 
 export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: ReactNode }) {
-  const isMovie = info.kind === "Movie";
+  const isScreenTitle = info.kind === "Movie" || info.kind === "TV Show";
   const isJournal = Boolean(actions);
 
   return (
@@ -36,7 +36,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
         <div className="md:sticky md:top-0 md:h-full md:self-start">
           <div className={`relative aspect-[2/3] w-full overflow-hidden rounded-[4px] md:h-full md:aspect-auto ${isJournal ? "bg-[#020202]" : "bg-[#efefec]"}`}>
             {info.posterUrl ? (
-              <Image src={info.posterUrl} alt={`${info.title} ${isMovie ? "movie poster" : "book cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isMovie ? "object-cover" : "object-contain"} preload />
+              <Image src={info.posterUrl} alt={`${info.title} ${isScreenTitle ? "poster" : "book cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isScreenTitle ? "object-cover" : "object-contain"} preload />
             ) : null}
           </div>
         </div>
@@ -75,7 +75,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
           </dl>
 
           <section aria-labelledby="review-heading" className="border-b border-[#eaeaea] py-6">
-            <div className={isMovie ? "rounded-[4px] bg-black/[0.035] p-4" : ""}>
+            <div className={isScreenTitle ? "rounded-[4px] bg-black/[0.035] p-4" : ""}>
               <h2 id="review-heading" className="mb-3 text-sm text-[#686868]">Review</h2>
               <ReviewMarkdown source={info.review} />
             </div>

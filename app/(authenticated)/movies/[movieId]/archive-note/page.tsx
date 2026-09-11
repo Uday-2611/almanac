@@ -17,5 +17,6 @@ export default async function MovieArchiveNotePage({ params }: PageProps<"/movie
 
   const year = movie.releaseDate?.slice(0, 4) ?? "Year unknown";
 
-  return <ArchiveNotePage backHref={`/movies/${movie.id}`} backLabel="Movie" creator={movie.director ?? "Director unavailable"} kind="Movie" title={movie.title} year={year} />;
+  const isTv = movie.mediaType === "tv";
+  return <ArchiveNotePage backHref={`/movies/${movie.id}`} backLabel={isTv ? "TV Show" : "Movie"} creator={movie.creator ?? (isTv ? "Creator unavailable" : "Director unavailable")} kind={isTv ? "TV Show" : "Movie"} title={movie.title} year={year} />;
 }

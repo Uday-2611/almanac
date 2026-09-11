@@ -19,7 +19,7 @@ export type SearchMediaPreviewData = {
   artwork: string | null;
   creator: string;
   details: string[];
-  kind: "movie" | "book";
+  kind: "movie" | "tv" | "book";
   overview: string | null;
   people: string[];
   title: string;
@@ -60,12 +60,13 @@ export function SearchMediaPreview({ data, error, label, loading, onClose, open 
 }
 
 function PreviewPanel({ data }: { data: SearchMediaPreviewData }) {
-  const peopleLabel = data.kind === "movie" ? "Cast" : "Contributors";
+  const isScreenTitle = data.kind === "movie" || data.kind === "tv";
+  const peopleLabel = isScreenTitle ? "Cast" : "Contributors";
 
   return (
     <article className="relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible">
       <div className="relative aspect-[2/3] w-full bg-[#dededb] md:h-full md:aspect-auto">
-        {data.artwork ? <Image src={data.artwork} alt={`${data.title} ${data.kind === "movie" ? "poster" : "cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={data.kind === "movie" ? "object-cover" : "object-contain"} preload /> : null}
+        {data.artwork ? <Image src={data.artwork} alt={`${data.title} ${isScreenTitle ? "poster" : "cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isScreenTitle ? "object-cover" : "object-contain"} preload /> : null}
       </div>
       <div className="min-w-0 bg-white/55 p-5 text-[#111111] backdrop-blur-xl sm:p-6 md:h-full md:overflow-y-auto md:px-6 md:py-7">
         <header className="pb-7 pr-11">

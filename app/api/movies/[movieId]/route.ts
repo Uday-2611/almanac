@@ -9,9 +9,9 @@ export async function GET(_request: Request, { params }: RouteContext) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { movieId } = await params;
-  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Movie not found." }, { status: 404 });
+  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Title not found." }, { status: 404 });
   const movie = await getMovieForUser(user.id, movieId);
-  return movie ? Response.json({ movie }) : Response.json({ error: "Movie not found." }, { status: 404 });
+  return movie ? Response.json({ movie }) : Response.json({ error: "Title not found." }, { status: 404 });
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
@@ -19,12 +19,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = updateMovieSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid movie update." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: "Invalid title update." }, { status: 400 });
 
   const { movieId } = await params;
-  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Movie not found." }, { status: 404 });
+  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Title not found." }, { status: 404 });
   const movie = await updateMovieForUser(user.id, movieId, parsed.data);
-  return movie ? Response.json({ movie }) : Response.json({ error: "Movie not found." }, { status: 404 });
+  return movie ? Response.json({ movie }) : Response.json({ error: "Title not found." }, { status: 404 });
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
@@ -32,7 +32,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { movieId } = await params;
-  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Movie not found." }, { status: 404 });
+  if (!idSchema.safeParse(movieId).success) return Response.json({ error: "Title not found." }, { status: 404 });
   const deleted = await deleteMovieForUser(user.id, movieId);
-  return deleted ? new Response(null, { status: 204 }) : Response.json({ error: "Movie not found." }, { status: 404 });
+  return deleted ? new Response(null, { status: 204 }) : Response.json({ error: "Title not found." }, { status: 404 });
 }

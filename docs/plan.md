@@ -1,13 +1,13 @@
 # Plan
 
-Define the MVP architecture for Almanac as a private movies-and-books logging app that fits the existing Next.js codebase and the repo's ledger-style product rules. The first version should stay intentionally narrow, fetch metadata through server-side routes only, use Postgres-backed user data, and leave clean extension points for a later knowledge-graph system without forcing graph complexity into the MVP.
+Define the MVP architecture for Almanac as a private movies, TV shows, and books logging app that fits the existing Next.js codebase and the repo's ledger-style product rules. The first version should stay intentionally narrow, fetch metadata through server-side routes only, use Postgres-backed user data, and leave clean extension points for a later knowledge-graph system without forcing graph complexity into the MVP.
 
 ## Scope
-- In: MVP planning for movies and books only, Next.js App Router + Postgres + server-side API routes, metadata sourcing, image storage strategy, review and logging data model, visible simple tags, and a future-ready knowledge-graph foundation.
+- In: MVP planning for movies and TV shows in one shared section plus books, Next.js App Router + Postgres + server-side API routes, metadata sourcing, image storage strategy, review and logging data model, visible simple tags, and a future-ready knowledge-graph foundation.
 - Out: Colors, browser extension, social features, public profiles, recommendation systems, multi-log history per title, and full knowledge-graph UX in v1.
 
 ## Product decisions
-- The first version includes movies and books only.
+- The first version includes movies, TV shows, and books. TV shows share the Movies route, search, Watchlist/Watched collections, and custom lists.
 - The root route is session-aware: visitors without an active session see the landing page, while visitors with an active session go directly to `/movies`.
 - The public flow is landing page to `/login`, then to `/movies` after successful authentication.
 - `/movies`, `/books`, and `/settings` are protected product routes.
@@ -29,14 +29,14 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Store provider IDs and normalized metadata in the database so fetched records are stable even if provider responses change later.
 
 ## Data model direction
-- Model movies and books as separate user-scoped content records with a shared conceptual structure: title, creator, provider ID, provider name, status, rating, review, review format, logged date, and updated timestamps.
+- Model screen titles and books as separate user-scoped content records with a shared conceptual structure: title, creator, provider ID, provider name, status, rating, review, review format, logged date, and updated timestamps. Screen-title identity includes TMDB media type so movie and TV IDs cannot collide.
 - Treat each title as one editable record per user in v1 rather than a diary of repeated watches or rereads.
 - Support markdown-capable review content from the start, with a lightweight format choice documented in the schema and rendering pipeline.
 - Add visible reusable tags through tables shaped like `tags` and `entry_tags`, even if the first UI only shows them as plain labels.
 - Keep room for future graph expansion by avoiding hard-coded tag strings on entries and by preserving stable IDs for tags and source entities.
 
 ## Metadata and images
-- Use TMDB as the primary movie metadata source.
+- Use TMDB as the primary movie and TV metadata source, with both result types normalized into the Movies section.
 - Use Open Library as the primary books metadata source and automatically fall back to Google Books when Open Library fails or returns no matches. Keep `GOOGLE_BOOKS_API_KEY` server-only; public requests are supported by the client, but configuring a key is recommended because unauthenticated quota can be unavailable.
 - Fetch search and detail data through server-side Route Handlers that return trimmed response shapes tailored to the UI.
 - Store poster and cover URLs from the source providers in Postgres instead of copying assets into first-party storage in v1.
@@ -61,7 +61,7 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Phase 0 (complete): Initialize shadcn/ui, establish the App Router folder/file structure, reserve server API boundaries, and document the user flow.
 - Phase 1 (complete): Implement the landing page and Better Auth foundation, including session lookup, protected-route enforcement, post-login redirect to `/movies`, and Vercel-managed secrets for Production, Preview, and Development.
 - Phase 2 (complete): Provision Neon through Vercel, implement the Drizzle data layer and user-scoped schema for movies, books, tags, and preferences, and apply the initial committed migration.
-- Phase 3 (complete): Build the movie flow with TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and movie deletion.
+- Phase 3 (complete): Build the movie and TV flow with combined TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and title deletion.
 - Phase 4 (complete): Mirror the movie experience for books with Open Library search, automatic Google Books fallback, persisted Want to Read/Read entries, editable read details, deletion, and Read-only custom lists.
 - Phase 5: Add visible simple tags, tag filtering foundations, and schema-safe hooks for future knowledge-graph work.
 - Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance.
@@ -85,11 +85,12 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 
 ## Current implementation state
 - The `/movies` visual foundation now mirrors the four Figma states: watched/watchlist ledger views, single-row horizontally scrolling poster views, and My Lists in both display modes.
+- Movies and TV shows share `/movies` end to end. Combined TMDB search identifies each result as movie or TV, and persisted identity uses `(media_type, tmdb_id)` so overlapping provider IDs remain distinct.
 - Movie navigation is query-driven with `status=watchlist|watched|lists` and `view=list|images`, keeping the page server-rendered and ready for database-backed data.
 - Movie pages now read authenticated, user-scoped records from Neon; the former movie seed catalog is no longer used for movie browsing or movie search.
 - Movie and book list browsing uses straight, borderless rows with GSAP hover isolation: the active row's date, title, and creator move outward and grow together while neighboring rows recede. The interaction is silent.
-- Movie image browsing uses a smooth, closely spaced horizontal rail of 2:3 posters; GSAP scales each poster evenly from its center, reveals its title and director, and softly desaturates neighboring posters on hover or focus.
-- The books image view matches the movies image view: a smoothly scrolling horizontal rail of uniform 2:3 covers with identical spacing, centered hover/focus enlargement, neighboring-artwork desaturation, and title/author metadata revealed below. Missing artwork falls back to a restrained typographic cover.
+- Movie and book image rails track wheel and touchpad input directly with no app-controlled easing or autonomous settling after input ends. Their hover/focus artwork and metadata transitions remain separate from scrolling.
+- The books image view matches the movies image view: an input-tracked horizontal rail of uniform 2:3 covers with identical spacing, centered hover/focus enlargement, neighboring-artwork desaturation, and title/author metadata revealed below. Missing artwork falls back to a restrained typographic cover.
 - Movie and book selections open the same light, scrollable journal modal: artwork occupies the complete left pane while a transparent, dark-type information pane presents the title, creator/year, direct rating and date editing, overview, sanitized review, credits, and eligible custom lists.
 - Movie detail navigation is intercepted into a modal over the existing movies ledger, with a light white-blurred background, Escape/backdrop dismissal, and a direct-URL standalone page fallback.
 - A shared global media-search overlay is available from navigation and from Movies/Books `Add New +` controls. Frame 50 defines its signature: a light white-blurred overlay, a full-width white search field with four-pixel corners and an icon close control, followed by individually separated white result strips with artwork, two-line creator/year metadata, and right-aligned add actions. Navigation searches both types; entry controls pre-filter by type.
@@ -109,7 +110,11 @@ Define the MVP architecture for Almanac as a private movies-and-books logging ap
 - Route loading, TMDB search, and movie/list mutations use restrained ledger-style skeleton states with accessible status labels.
 - Performance pass foundations are implemented: server-render session lookup is request-deduplicated, movie creation avoids a redundant existence query while remaining race-safe, redirecting mutations avoid double refreshes, custom-list membership stays optimistic, and recent search results are cached for the browser session.
 - Interaction performance baseline: hover/focus feedback settles in roughly 160–180ms, modal transitions in 150–200ms, search begins after a 120ms input pause, movie and book result groups publish independently, and preview/detail data warms on hover or focus.
+- Ledger list hover/focus isolation uses a faster 110ms symmetric ease-in-out opacity response with no row translation or scale, keeping rapid movement between entries smooth and quiet. Movies and Books share the same centered ease-in-out underline reveal on `Add New +` hover/focus.
 - Provider failures are never cached as empty searches. TMDB retries brief DNS failures within a bounded request, while the search UI differentiates an unavailable provider from a genuine no-results response and offers an explicit retry.
+- Provider preview warming now waits for roughly 220ms of sustained pointer or keyboard intent and cancels before dispatch when that intent leaves. Direct clicks still load immediately, preventing fast result scanning from flooding the book providers.
+- Book previews and additions share one server-only metadata loader with in-flight deduplication and a bounded ten-minute success cache. Open Library supplemental enrichment is optional and limited to a shorter wait; validated title/author hints avoid redundant author lookups and enable a Google Books detail fallback when the selected Open Library work is temporarily unavailable.
+- Google fallback metadata never changes the selected result's provider-scoped identity: an Open Library result remains keyed and persisted by its original Open Library work ID, preserving duplicate prevention while allowing a resilient metadata response.
 - Detail editors query only list IDs and names for their selectors rather than hydrating every item in every custom list.
 - TMDB, Open Library, and Google Books requests now have bounded timeouts. Intercepted movie and book detail routes include dedicated loading fallbacks so clicks transition immediately while private Neon data is still loading.
 - Book pages now read user-scoped Neon records instead of the seed catalog. Open Library work IDs and Google Books volume IDs provide provider-scoped stable identities, while authors, cover URLs, descriptions, publication dates, contributors, and page counts are normalized and persisted when selected.

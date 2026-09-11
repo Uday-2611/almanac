@@ -23,11 +23,12 @@ export async function getMovieInfo(movieId: string) {
   ]);
   if (!movie) notFound();
 
+  const isTv = movie.mediaType === "tv";
   const info: MediaInfo = {
-    kind: "Movie",
+    kind: isTv ? "TV Show" : "Movie",
     title: movie.title,
-    creator: movie.director ?? "Director unavailable",
-    creatorLabel: "Director",
+    creator: movie.creator ?? (isTv ? "Creator unavailable" : "Director unavailable"),
+    creatorLabel: isTv ? "Created by" : "Director",
     year: movie.releaseDate?.slice(0, 4) ?? "Unknown",
     rating: movie.rating,
     review: movie.review ?? "No review has been written yet.",
@@ -43,7 +44,8 @@ export async function getMovieInfo(movieId: string) {
     info,
     controls: {
       cast: info.people,
-      director: info.creator,
+      creator: info.creator,
+      mediaType: movie.mediaType,
       movieId: movie.id,
       overview: info.overview,
       status: movie.status,

@@ -82,6 +82,7 @@ export const verification = pgTable(
 );
 
 export const movieStatus = pgEnum("movie_status", ["watchlist", "watched"]);
+export const tmdbMediaType = pgEnum("tmdb_media_type", ["movie", "tv"]);
 export const bookStatus = pgEnum("book_status", ["want_to_read", "read"]);
 export const bookProvider = pgEnum("book_provider", ["open_library", "google_books"]);
 export const mediaSection = pgEnum("media_section", ["movies", "books"]);
@@ -93,8 +94,9 @@ export const movies = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     tmdbId: integer("tmdb_id").notNull(),
+    mediaType: tmdbMediaType("media_type").default("movie").notNull(),
     title: text("title").notNull(),
-    director: text("director"),
+    creator: text("creator"),
     overview: text("overview"),
     posterUrl: text("poster_url"),
     backdropUrl: text("backdrop_url"),
@@ -109,7 +111,7 @@ export const movies = pgTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("movies_user_tmdb_idx").on(table.userId, table.tmdbId),
+    uniqueIndex("movies_user_media_tmdb_idx").on(table.userId, table.mediaType, table.tmdbId),
     index("movies_user_status_idx").on(table.userId, table.status),
     check("movies_rating_range", sql`${table.rating} is null or ${table.rating} between 1 and 5`),
   ],

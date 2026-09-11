@@ -4,7 +4,7 @@ type ArchiveNotePageProps = {
   backHref: string;
   backLabel: string;
   creator: string;
-  kind: "Book" | "Movie";
+  kind: "Book" | "Movie" | "TV Show";
   title: string;
   year: string;
 };

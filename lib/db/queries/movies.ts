@@ -4,7 +4,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 
 import { getDatabase } from "@/lib/db/client";
 import { movieListItems, movieLists, movies } from "@/lib/db/schema";
-import type { TmdbMovie } from "@/lib/providers/tmdb";
+import type { TmdbMediaType, TmdbTitle } from "@/lib/providers/tmdb";
 
 export type MovieStatus = "watchlist" | "watched";
 export type MovieRecord = typeof movies.$inferSelect;
@@ -30,24 +30,25 @@ export async function getMovieForUser(userId: string, movieId: string) {
   return movie ?? null;
 }
 
-export async function getMovieByTmdbId(userId: string, tmdbId: number) {
+export async function getMovieByTmdbId(userId: string, tmdbId: number, mediaType: TmdbMediaType) {
   const [movie] = await getDatabase()
     .select()
     .from(movies)
-    .where(and(eq(movies.tmdbId, tmdbId), eq(movies.userId, userId)))
+    .where(and(eq(movies.tmdbId, tmdbId), eq(movies.mediaType, mediaType), eq(movies.userId, userId)))
     .limit(1);
 
   return movie ?? null;
 }
 
-export async function createMovieForUser(userId: string, movie: TmdbMovie, status: MovieStatus) {
+export async function createMovieForUser(userId: string, movie: TmdbTitle, status: MovieStatus) {
   const [created] = await getDatabase()
     .insert(movies)
     .values({
       userId,
       tmdbId: movie.tmdbId,
+      mediaType: movie.mediaType,
       title: movie.title,
-      director: movie.director,
+      creator: movie.creator,
       overview: movie.overview || null,
       posterUrl: movie.posterUrl,
       backdropUrl: movie.backdropUrl,
@@ -57,13 +58,13 @@ export async function createMovieForUser(userId: string, movie: TmdbMovie, statu
       status,
       loggedDate: status === "watched" ? new Date().toISOString().slice(0, 10) : null,
     })
-    .onConflictDoNothing({ target: [movies.userId, movies.tmdbId] })
+    .onConflictDoNothing({ target: [movies.userId, movies.mediaType, movies.tmdbId] })
     .returning();
 
   if (created) return { movie: created, created: true };
 
-  const existing = await getMovieByTmdbId(userId, movie.tmdbId);
-  if (!existing) throw new Error("The movie could not be created or retrieved.");
+  const existing = await getMovieByTmdbId(userId, movie.tmdbId, movie.mediaType);
+  if (!existing) throw new Error("The movie or TV show could not be created or retrieved.");
   return { movie: existing, created: false };
 }
 
@@ -188,7 +189,7 @@ export async function addMovieToListForUser(userId: string, listId: string, movi
     .limit(1);
 
   if (!eligible) {
-    throw new MovieListEligibilityError("Only movies in your Watched collection can be added to your lists.");
+    throw new MovieListEligibilityError("Only movies and TV shows in your Watched collection can be added to your lists.");
   }
 
   await getDatabase().insert(movieListItems).values({ listId, movieId }).onConflictDoNothing();

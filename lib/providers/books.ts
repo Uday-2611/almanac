@@ -3,6 +3,7 @@ import "server-only";
 const OPEN_LIBRARY_URL = "https://openlibrary.org";
 const OPEN_LIBRARY_COVERS_URL = "https://covers.openlibrary.org";
 const DETAIL_TIMEOUT_MS = 3_500;
+const SUPPLEMENTAL_DETAIL_TIMEOUT_MS = 1_200;
 const SEARCH_TIMEOUT_MS = 2_500;
 const SEARCH_LIMIT = 8;
 const MAX_AUTHORS = 12;
@@ -282,7 +283,10 @@ export async function searchOpenLibraryBooks(query: string): Promise<OpenLibrary
     .slice(0, SEARCH_LIMIT);
 }
 
-export async function getOpenLibraryBook(workId: string): Promise<OpenLibraryBook> {
+export async function getOpenLibraryBook(
+  workId: string,
+  hints: { authorNames?: string[] } = {},
+): Promise<OpenLibraryBook> {
   const openLibraryWorkId = normalizeOpenLibraryWorkId(workId);
   const [workResult, searchResult] = await Promise.allSettled([
     openLibraryFetch<OpenLibraryWorkResponse>(`/works/${openLibraryWorkId}.json`, {}, 86_400),
@@ -301,7 +305,7 @@ export async function getOpenLibraryBook(workId: string): Promise<OpenLibraryBoo
         "number_of_pages_median",
       ].join(","),
       limit: "1",
-    }, 86_400),
+    }, 86_400, SUPPLEMENTAL_DETAIL_TIMEOUT_MS),
   ]);
 
   if (workResult.status === "rejected") throw workResult.reason;
@@ -315,6 +319,12 @@ export async function getOpenLibraryBook(workId: string): Promise<OpenLibraryBoo
     .filter((id): id is string => id !== null);
   let authors = normalizeAuthors(document);
 
+  if (!authors.length) {
+    authors = uniqueText(hints.authorNames, MAX_AUTHORS).map((name) => ({
+      openLibraryAuthorId: null,
+      name,
+    }));
+  }
   if (!authors.length && workAuthorIds.length) authors = await fetchAuthorNames(workAuthorIds);
 
   const firstPublishYear = work.first_publish_date?.match(/\d{4}/)?.[0];

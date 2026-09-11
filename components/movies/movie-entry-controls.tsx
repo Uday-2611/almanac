@@ -11,7 +11,8 @@ type ListOption = { id: string; name: string };
 
 export function MovieEntryControls({
   cast,
-  director,
+  creator,
+  mediaType,
   movieId,
   overview,
   status,
@@ -24,7 +25,8 @@ export function MovieEntryControls({
   selectedListIds,
 }: {
   cast: string[];
-  director: string;
+  creator: string;
+  mediaType: "movie" | "tv";
   movieId: string;
   overview: string | null | undefined;
   status: "watchlist" | "watched";
@@ -36,6 +38,7 @@ export function MovieEntryControls({
   lists: ListOption[];
   selectedListIds: string[];
 }) {
+  const entryNoun = mediaType === "tv" ? "show" : "movie";
   const router = useRouter();
   const [error, setError] = useState("");
   const [pendingLabel, setPendingLabel] = useState("");
@@ -55,7 +58,7 @@ export function MovieEntryControls({
         body: JSON.stringify(payload),
       });
       const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) return setError(data?.error ?? "The movie could not be updated.");
+      if (!response.ok) return setError(data?.error ?? `The ${entryNoun} could not be updated.`);
       onSuccess?.();
       router.refresh();
     });
@@ -95,7 +98,7 @@ export function MovieEntryControls({
     startTransition(async () => {
       const response = await fetch(`/api/movies/${movieId}`, { method: "DELETE" });
       const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) return setError(data?.error ?? "The movie could not be deleted.");
+      if (!response.ok) return setError(data?.error ?? `The ${entryNoun} could not be deleted.`);
       router.replace(`/movies?status=${status}&view=list`);
       router.refresh();
     });
@@ -108,7 +111,7 @@ export function MovieEntryControls({
           {title}
         </h1>
         <p className="mt-3 text-sm font-medium tracking-[-0.01em] text-black/75">
-          {director} <span aria-hidden="true" className="px-1 text-black/30">|</span> {year}
+          {creator} <span aria-hidden="true" className="px-1 text-black/30">|</span> {year}
         </p>
       </header>
 
@@ -187,7 +190,7 @@ export function MovieEntryControls({
                 <span>{list.name}</span>
                 <input className="size-3 accent-black" type="checkbox" checked={activeListIds.includes(list.id)} onChange={(event) => toggleList(list.id, event.currentTarget.checked)} />
               </label>
-            )) : <p className="text-sm text-black/50">This movie is not in a custom list yet.</p>}
+            )) : <p className="text-sm text-black/50">This {entryNoun} is not in a custom list yet.</p>}
           </fieldset>
 
           <div className="py-4">
@@ -201,10 +204,10 @@ export function MovieEntryControls({
         <div className="space-y-5 py-5">
           <p className="text-[11px] uppercase tracking-[0.12em] text-black/45">Watchlist</p>
           <p className="text-sm leading-6 text-black/80">{overview || "No overview is available."}</p>
-          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watched" }, "Moving movie to Watched")} className="movie-info-focus bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98] disabled:opacity-50">
+          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watched" }, `Moving ${entryNoun} to Watched`)} className="movie-info-focus bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98] disabled:opacity-50">
             Mark as watched
           </button>
-          <p className="text-xs leading-5 text-black/45">Watchlist movies can be added to custom lists after they are marked watched.</p>
+          <p className="text-xs leading-5 text-black/45">Watchlist titles can be added to custom lists after they are marked watched.</p>
         </div>
       )}
 
@@ -213,18 +216,18 @@ export function MovieEntryControls({
 
       <div className="pt-4 text-xs">
         {status === "watched" ? (
-          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watchlist" }, "Moving movie to Watchlist")} className="movie-info-focus mb-4 block text-black/50 underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">
+          <button type="button" disabled={isPending} onClick={() => mutate({ status: "watchlist" }, `Moving ${entryNoun} to Watchlist`)} className="movie-info-focus mb-4 block text-black/50 underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">
             Move to watchlist and clear watched details
           </button>
         ) : null}
         {isConfirmingDelete ? (
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-black/55">Remove this movie and its saved review?</span>
+            <span className="text-black/55">Remove this {entryNoun} and its saved review?</span>
             <button type="button" disabled={isPending} onClick={deleteMovie} className="movie-info-focus text-red-700 underline underline-offset-4 disabled:opacity-50">Delete permanently</button>
             <button type="button" disabled={isPending} onClick={() => setIsConfirmingDelete(false)} className="movie-info-focus text-black/55 underline underline-offset-4">Cancel</button>
           </div>
         ) : (
-          <button type="button" disabled={isPending} onClick={() => setIsConfirmingDelete(true)} className="movie-info-focus text-black/50 underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">Delete movie</button>
+          <button type="button" disabled={isPending} onClick={() => setIsConfirmingDelete(true)} className="movie-info-focus text-black/50 underline underline-offset-4 hover:text-[#111111] disabled:opacity-50">Delete {entryNoun}</button>
         )}
       </div>
     </div>

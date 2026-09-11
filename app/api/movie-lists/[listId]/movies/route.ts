@@ -7,7 +7,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ lis
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = movieListItemSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid movie." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: "Invalid movie or TV title." }, { status: 400 });
 
   try {
     const { listId } = await params;

@@ -14,7 +14,8 @@ export type MovieView = "images" | "list";
 export type Movie = {
   id: string;
   title: string;
-  director: string;
+  creator: string;
+  mediaType: "movie" | "tv";
   date: string;
   posterUrl: string | null;
 };
@@ -61,7 +62,7 @@ function MovieToolbar({ status, view }: { status: MovieStatus; view: MovieView }
   return (
     <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle
-        label="Movie display"
+        label="Movie and TV display"
         active={view}
         options={[
           { label: "Image View", value: "images", href: hrefFor(status, "images") },
@@ -69,7 +70,7 @@ function MovieToolbar({ status, view }: { status: MovieStatus; view: MovieView }
         ]}
       />
       <TextToggle
-        label="Movie collection"
+        label="Movie and TV collection"
         active={status}
         options={[
           { label: "Watchlist", value: "watchlist", href: hrefFor("watchlist", view) },
@@ -100,7 +101,7 @@ function toLedgerItems(movies: Movie[]): AnimatedLedgerItem[] {
     href: `/movies/${movie.id}`,
     date: movie.date,
     title: movie.title,
-    creator: movie.director,
+    creator: movie.creator,
   }));
 }
 
@@ -116,10 +117,11 @@ function MovieListView({ movies }: { movies: Movie[] }) {
 function Poster({ movie }: { movie: Movie }) {
   return (
     <AnimatedMoviePoster
-      director={movie.director}
+      creator={movie.creator}
       href={`/movies/${movie.id}`}
       posterUrl={movie.posterUrl}
       title={movie.title}
+      mediaType={movie.mediaType}
     />
   );
 }
@@ -140,14 +142,14 @@ function ListsView({ lists, view }: { lists: MovieList[]; view: MovieView }) {
       {lists.map((list) => (
         <MovieListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
           {view === "images" ? (
-            list.movies.length ? <MovieImageView movies={list.movies} /> : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched movies in this list yet.</p>
+            list.movies.length ? <MovieImageView movies={list.movies} /> : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched titles in this list yet.</p>
           ) : (
             list.movies.length ? (
               <AnimatedLedgerList
                 items={toLedgerItems(list.movies)}
                 className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]"
               />
-            ) : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched movies in this list yet.</p>
+            ) : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched titles in this list yet.</p>
           )}
         </MovieListDisclosure>
       ))}
@@ -170,16 +172,16 @@ export function MovieLedger({
 }) {
   return (
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
-      <h1 className="sr-only">Movies</h1>
+      <h1 className="sr-only">Movies and TV shows</h1>
       <MovieToolbar status={status} view={view} />
       <AddLink lists={status === "lists"} view={view} />
       {showCreateList ? <CreateMovieListForm /> : null}
       {status === "lists" ? (
-        lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies you have watched." /></div>
+        lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
       ) : movies.length ? (
         view === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
       ) : (
-        <div className="mt-8 text-[#686868]"><EmptyState message={status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies as watched yet."} /></div>
+        <div className="mt-8 text-[#686868]"><EmptyState message={status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies or TV shows as watched yet."} /></div>
       )}
     </main>
   );
