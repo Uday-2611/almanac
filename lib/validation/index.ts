@@ -49,3 +49,11 @@ export const createBookListSchema = z.object({
 
 export const updateBookListSchema = createBookListSchema;
 export const bookListItemSchema = z.object({ bookId: idSchema });
+
+export const archiveNoteSchema = z.object({
+  note: z.string().max(100_000).nullable(),
+});
+
+export const createTagSchema = z.object({
+  name: z.string().trim().min(1).max(64),
+});

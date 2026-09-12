@@ -63,7 +63,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Phase 2 (complete): Provision Neon through Vercel, implement the Drizzle data layer and user-scoped schema for movies, books, tags, and preferences, and apply the initial committed migration.
 - Phase 3 (complete): Build the movie and TV flow with combined TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and title deletion.
 - Phase 4 (complete): Mirror the movie experience for books with Open Library search, automatic Google Books fallback, persisted Want to Read/Read entries, editable read details, deletion, and Read-only custom lists.
-- Phase 5: Add visible simple tags, tag filtering foundations, and schema-safe hooks for future knowledge-graph work.
+- Phase 5 (complete): Persist Archive Notes, add reusable cross-media tags with owner-safe attachment and removal, show tags as quiet labels, and support URL-driven tag filtering in movie and book collections.
 - Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance.
 
 ## Validation checklist
@@ -80,7 +80,6 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 
 ## Open questions to revisit later
 - Whether the landing page needs a separate sign-up path or one combined authentication entry point.
-- Whether tags should appear on list rows, detail pages, or both in the first shipped UI.
 - Whether editing the date field should preserve a separate audit timestamp, even though the entry itself stays singular.
 
 ## Current implementation state
@@ -100,10 +99,12 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Movie posters use a consistent 2:3 ratio in image view and the movie information modal. The poster is visually separated from a colorless transparent information pane; on desktop, the poster remains fixed while only the information scrolls. The modal uses an icon close control and a subtly rounded review inset. Successful Watchlist or Watched additions receive a brief GSAP-confirmed ledger notice after the server mutation succeeds.
 - Boska is self-hosted solely for the Almanac wordmark. Geist Sans is the single content and interface family across movie and book rows, image browsing, search, detail views, reviews, controls, and Archive Notes.
 - Movie and book information panes share the same light journal sequence and monochrome treatment: a tightly tracked Geist Sans title, creator/year, editable star rating and logged date, overview, editable sanitized-markdown review, Archive Note entry, compact credits, and custom lists. Their borderless panes have no background color, use dark type, and sit six pixels from the fixed artwork over a light white-blurred modal scrim.
-- `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` share a clean white, borderless long-form writing surface for notes and tags. The prototype intentionally omits persistence until the Archive Notes data milestone.
+- `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` share a clean white, borderless long-form writing surface. Notes persist on the single editable media entry, protect unsaved browser exits and internal link navigation, and expose explicit save, success, and error states.
+- Archive Note tag editing creates or reuses account-scoped tag identities, suggests existing tags from both media types, attaches them to the current entry, and detaches them without deleting the reusable tag. Postgres ownership triggers prevent cross-account movie-tag and book-tag relationships.
+- Movie and book list and image views show attached tags as restrained text labels. Collection pages expose URL-driven `tag=<uuid>` filters scoped to the active status and account, with clear filtered empty states and filter state preserved across display-mode changes.
 - The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
 - Better Auth email/password flows, database-backed sessions, protected product routes, and sign-out are implemented locally.
-- The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, reusable tags, join tables, and view preferences.
+- The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, persistent Archive Notes, reusable tags, owner-guarded join tables, and view preferences.
 - User-created movie lists are persisted through `movie_lists` and `movie_list_items`. Both the query layer and Postgres enforce that only the owner's Watched movies can be added; moving a movie back to Watchlist clears watched-only fields and automatically removes all custom-list memberships.
 - Movie list management is complete: users can create lists from My Lists or directly from a watched movie, add and remove watched movies, rename lists, delete lists without deleting their movies, and view every item in a list. Movie entries can also be permanently deleted through a two-step confirmation.
 - Reviews render a deliberately limited, sanitized markdown subset. Raw HTML is not rendered, external links open safely, and the stored source remains editable.

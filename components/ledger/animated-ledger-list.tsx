@@ -14,6 +14,7 @@ export type AnimatedLedgerItem = {
   date: string;
   title: string;
   creator: string;
+  tags?: string[];
 };
 
 export function AnimatedLedgerList({
@@ -65,7 +66,10 @@ export function AnimatedLedgerList({
             <time className="text-[#686868]">{item.date}</time>
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[1.08em] font-semibold tracking-[-0.018em] text-[#111111]">{item.title}</span>
-              <span className="text-[#686868]">{item.creator}</span>
+              <span className="text-[#686868]">
+                {item.creator}
+                {item.tags?.length ? <span className="text-black/45"> <span aria-hidden="true">·</span> {item.tags.join(" / ")}</span> : null}
+              </span>
             </span>
           </Link>
         </li>

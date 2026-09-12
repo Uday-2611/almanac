@@ -1,9 +1,9 @@
 import "server-only";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, exists, inArray } from "drizzle-orm";
 
 import { getDatabase } from "@/lib/db/client";
-import { bookListItems, bookLists, books } from "@/lib/db/schema";
+import { bookListItems, bookLists, books, bookTags, tags } from "@/lib/db/schema";
 
 export type BookStatus = "want_to_read" | "read";
 export type BookProvider = "open_library" | "google_books";
@@ -23,9 +23,18 @@ export type BookProviderMetadata = {
 
 export class BookListEligibilityError extends Error {}
 
-export async function listBooksForUser(userId: string, status: BookStatus) {
-  return getDatabase().select().from(books)
-    .where(and(eq(books.userId, userId), eq(books.status, status)))
+export async function listBooksForUser(userId: string, status: BookStatus, tagId?: string) {
+  const database = getDatabase();
+  const tagFilter = tagId
+    ? exists(
+        database.select({ id: bookTags.bookId }).from(bookTags)
+          .innerJoin(tags, eq(bookTags.tagId, tags.id))
+          .where(and(eq(bookTags.bookId, books.id), eq(bookTags.tagId, tagId), eq(tags.userId, userId))),
+      )
+    : undefined;
+
+  return database.select().from(books)
+    .where(and(eq(books.userId, userId), eq(books.status, status), tagFilter))
     .orderBy(desc(books.loggedDate), desc(books.createdAt));
 }
 
@@ -91,6 +100,14 @@ export async function updateBookForUser(
 
   const [updated] = await getDatabase().update(books).set(values)
     .where(and(eq(books.id, bookId), eq(books.userId, userId))).returning();
+  return updated ?? null;
+}
+
+export async function updateBookArchiveNoteForUser(userId: string, bookId: string, archiveNote: string | null) {
+  const [updated] = await getDatabase().update(books)
+    .set({ archiveNote, updatedAt: new Date() })
+    .where(and(eq(books.id, bookId), eq(books.userId, userId)))
+    .returning({ id: books.id, archiveNote: books.archiveNote });
   return updated ?? null;
 }
 

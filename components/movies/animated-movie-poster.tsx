@@ -15,12 +15,14 @@ export function AnimatedMoviePoster({
   posterUrl,
   title,
   mediaType,
+  tags,
 }: {
   creator: string;
   href: string;
   posterUrl: string | null;
   title: string;
   mediaType: "movie" | "tv";
+  tags?: string[];
 }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const router = useRouter();
@@ -88,6 +90,7 @@ export function AnimatedMoviePoster({
         <span data-poster-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
           <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{creator}</span>
+          {tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{tags.join(" / ")}</span> : null}
         </span>
       </Link>
     </li>

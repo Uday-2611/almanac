@@ -7,6 +7,7 @@ import { MoviePosterRail } from "@/components/movies/movie-poster-rail";
 import { CreateMovieListForm } from "@/components/movies/create-movie-list-form";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { EmptyState } from "@/components/states/empty-state";
+import { TagFilter, type TagFilterOption } from "@/components/media/tag-filter";
 
 export type MovieStatus = "watchlist" | "watched" | "lists";
 export type MovieView = "images" | "list";
@@ -18,6 +19,7 @@ export type Movie = {
   mediaType: "movie" | "tv";
   date: string;
   posterUrl: string | null;
+  tags: string[];
 };
 
 export type MovieList = {
@@ -27,8 +29,8 @@ export type MovieList = {
   movies: Movie[];
 };
 
-function hrefFor(status: MovieStatus, view: MovieView) {
-  return { pathname: "/movies", query: { status, view } };
+function hrefFor(status: MovieStatus, view: MovieView, tag?: string) {
+  return { pathname: "/movies", query: { status, view, ...(tag ? { tag } : {}) } };
 }
 
 function TextToggle({
@@ -58,23 +60,23 @@ function TextToggle({
   );
 }
 
-function MovieToolbar({ status, view }: { status: MovieStatus; view: MovieView }) {
+function MovieToolbar({ status, view, tag }: { status: MovieStatus; view: MovieView; tag?: string }) {
   return (
     <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle
         label="Movie and TV display"
         active={view}
         options={[
-          { label: "Image View", value: "images", href: hrefFor(status, "images") },
-          { label: "List View", value: "list", href: hrefFor(status, "list") },
+          { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
+          { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
         ]}
       />
       <TextToggle
         label="Movie and TV collection"
         active={status}
         options={[
-          { label: "Watchlist", value: "watchlist", href: hrefFor("watchlist", view) },
-          { label: "Watched", value: "watched", href: hrefFor("watched", view) },
+          { label: "Watchlist", value: "watchlist", href: hrefFor("watchlist", view, tag) },
+          { label: "Watched", value: "watched", href: hrefFor("watched", view, tag) },
           { label: "My Lists", value: "lists", href: hrefFor("lists", view) },
         ]}
       />
@@ -102,6 +104,7 @@ function toLedgerItems(movies: Movie[]): AnimatedLedgerItem[] {
     date: movie.date,
     title: movie.title,
     creator: movie.creator,
+    tags: movie.tags,
   }));
 }
 
@@ -122,6 +125,7 @@ function Poster({ movie }: { movie: Movie }) {
       posterUrl={movie.posterUrl}
       title={movie.title}
       mediaType={movie.mediaType}
+      tags={movie.tags}
     />
   );
 }
@@ -163,25 +167,32 @@ export function MovieLedger({
   movies,
   lists,
   showCreateList,
+  activeTagId,
+  tagOptions,
 }: {
   status: MovieStatus;
   view: MovieView;
   movies: Movie[];
   lists: MovieList[];
   showCreateList: boolean;
+  activeTagId?: string;
+  tagOptions: TagFilterOption[];
 }) {
+  const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+
   return (
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Movies and TV shows</h1>
-      <MovieToolbar status={status} view={view} />
+      <MovieToolbar status={status} view={view} tag={activeTagId} />
       <AddLink lists={status === "lists"} view={view} />
+      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateMovieListForm /> : null}
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
       ) : movies.length ? (
         view === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
       ) : (
-        <div className="mt-8 text-[#686868]"><EmptyState message={status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies or TV shows as watched yet."} /></div>
+        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No ${status === "watchlist" ? "watchlist" : "watched"} titles use the tag “${activeTagName}”.` : status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies or TV shows as watched yet."} /></div>
       )}
     </main>
   );

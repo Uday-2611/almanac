@@ -4,6 +4,7 @@ import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-car
 import { MovieEntryControls } from "@/components/movies/movie-entry-controls";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getMovieForUser, listIdsForMovie, listMovieListOptionsForUser } from "@/lib/db/queries/movies";
+import { listTagsForMovieForUser } from "@/lib/db/queries/tags";
 import { idSchema } from "@/lib/validation";
 
 function formatLoggedDate(value: string | null) {
@@ -16,10 +17,11 @@ export async function getMovieInfo(movieId: string) {
   const user = await getCurrentUser();
   if (!user) notFound();
 
-  const [movie, lists, selectedListIds] = await Promise.all([
+  const [movie, lists, selectedListIds, tags] = await Promise.all([
     getMovieForUser(user.id, movieId),
     listMovieListOptionsForUser(user.id),
     listIdsForMovie(user.id, movieId),
+    listTagsForMovieForUser(user.id, movieId),
   ]);
   if (!movie) notFound();
 
@@ -33,7 +35,7 @@ export async function getMovieInfo(movieId: string) {
     rating: movie.rating,
     review: movie.review ?? "No review has been written yet.",
     loggedAt: formatLoggedDate(movie.loggedDate),
-    tags: [],
+    tags: tags.map((tag) => tag.name),
     peopleLabel: "Cast",
     people: movie.cast.length ? movie.cast : ["Cast information is unavailable."],
     posterUrl: movie.posterUrl,
@@ -56,6 +58,7 @@ export async function getMovieInfo(movieId: string) {
       loggedDate: movie.loggedDate,
       lists: lists.map((list) => ({ id: list.id, name: list.name })),
       selectedListIds,
+      tags: info.tags,
     },
   };
 }

@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 import { CreateMovieListForm } from "@/components/movies/create-movie-list-form";
 import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
+import { TagList } from "@/components/media/tag-list";
 
 type ListOption = { id: string; name: string };
 
@@ -23,6 +24,7 @@ export function MovieEntryControls({
   loggedDate,
   lists,
   selectedListIds,
+  tags,
 }: {
   cast: string[];
   creator: string;
@@ -37,6 +39,7 @@ export function MovieEntryControls({
   loggedDate: string | null;
   lists: ListOption[];
   selectedListIds: string[];
+  tags: string[];
 }) {
   const entryNoun = mediaType === "tv" ? "show" : "movie";
   const router = useRouter();
@@ -168,14 +171,6 @@ export function MovieEntryControls({
             )}
           </section>
 
-          <section className="py-5">
-            <a href={`/movies/${movieId}/archive-note`} className="group movie-info-focus inline-flex items-center bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98]">
-              Open archive note
-              <span aria-hidden="true" className="ml-8 transition-transform duration-200 group-hover:translate-x-1">→</span>
-            </a>
-            <p className="mt-2 max-w-sm text-xs leading-5 text-black/45">A full-page journal for detailed thoughts, references, and tags.</p>
-          </section>
-
           <section aria-labelledby="cast-heading" className="py-5">
             <h2 id="cast-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Cast</h2>
             <ul className="columns-2 gap-x-6 text-xs leading-6 text-black/70">
@@ -210,6 +205,16 @@ export function MovieEntryControls({
           <p className="text-xs leading-5 text-black/45">Watchlist titles can be added to custom lists after they are marked watched.</p>
         </div>
       )}
+
+      <section aria-labelledby="movie-tags-heading" className="py-5">
+        <h2 id="movie-tags-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Tags</h2>
+        <p className="mb-4 text-sm text-black/70"><TagList tags={tags} /></p>
+        <a href={`/movies/${movieId}/archive-note`} className="group movie-info-focus inline-flex items-center bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98]">
+          Open archive note
+          <span aria-hidden="true" className="ml-8 transition-transform duration-200 group-hover:translate-x-1">→</span>
+        </a>
+        <p className="mt-2 max-w-sm text-xs leading-5 text-black/45">Write a longer note and manage reusable tags.</p>
+      </section>
 
       {isPending ? <InteractionSkeleton label={pendingLabel} /> : null}
       {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}

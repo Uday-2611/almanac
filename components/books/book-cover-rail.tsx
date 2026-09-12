@@ -11,7 +11,7 @@ import { useSmoothHorizontalWheel } from "@/components/ledger/use-smooth-horizon
 
 gsap.registerPlugin(useGSAP);
 
-type BookCover = { id: string; title: string; author: string; coverUrl: string | null };
+type BookCover = { id: string; title: string; author: string; coverUrl: string | null; tags?: string[] };
 
 function AnimatedBookCover({ book }: { book: BookCover }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -86,6 +86,7 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
         <span data-book-cover-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
           <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{book.title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{book.author}</span>
+          {book.tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{book.tags.join(" / ")}</span> : null}
         </span>
       </Link>
     </li>

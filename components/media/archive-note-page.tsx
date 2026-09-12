@@ -1,15 +1,22 @@
 import Link from "next/link";
 
+import { ArchiveNoteEditor, type ArchiveTag } from "@/components/media/archive-note-editor";
+
 type ArchiveNotePageProps = {
   backHref: string;
   backLabel: string;
   creator: string;
   kind: "Book" | "Movie" | "TV Show";
+  entryId: string;
+  entryType: "book" | "movie";
+  note: string | null;
+  reusableTags: ArchiveTag[];
+  tags: ArchiveTag[];
   title: string;
   year: string;
 };
 
-export function ArchiveNotePage({ backHref, backLabel, creator, kind, title, year }: ArchiveNotePageProps) {
+export function ArchiveNotePage({ backHref, backLabel, creator, entryId, entryType, kind, note, reusableTags, tags, title, year }: ArchiveNotePageProps) {
   return (
     <main className="min-h-screen bg-white px-4 py-8 text-[#111111] sm:px-8 sm:py-12">
       <nav className="mx-auto mb-10 flex w-full max-w-[794px] items-center justify-between text-xs text-[#686868]">
@@ -24,25 +31,7 @@ export function ArchiveNotePage({ backHref, backLabel, creator, kind, title, yea
           <p className="mt-4 text-sm text-[#686868]">{creator} <span aria-hidden="true" className="px-1 text-black/25">|</span> {year}</p>
         </header>
 
-        <form>
-          <label className="block">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#686868]">Tags</span>
-            <input
-              type="text"
-              placeholder="Add tags"
-              className="mt-3 block w-full bg-transparent py-1 text-sm outline-none transition-colors placeholder:text-black/30 focus-visible:bg-black/[0.025]"
-            />
-          </label>
-
-          <label className="mt-12 block">
-            <span className="sr-only">Archive note</span>
-            <textarea
-              rows={26}
-              placeholder="Write your note…"
-              className="block min-h-[610px] w-full resize-y bg-transparent text-base leading-8 outline-none transition-colors placeholder:text-black/30 focus-visible:bg-black/[0.025]"
-            />
-          </label>
-        </form>
+        <ArchiveNoteEditor entryId={entryId} entryType={entryType} initialNote={note} initialTags={tags} reusableTags={reusableTags} />
       </article>
     </main>
   );

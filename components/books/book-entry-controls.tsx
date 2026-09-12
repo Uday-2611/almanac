@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
+import { TagList } from "@/components/media/tag-list";
 
 type ListOption = { id: string; name: string };
 
@@ -20,12 +21,13 @@ type BookEntryControlsProps = {
   rating: number | null;
   review: string | null;
   selectedListIds: string[];
+  tags: string[];
   status: "want_to_read" | "read";
   title: string;
   year: string;
 };
 
-export function BookEntryControls({ author, bookId, contributors, loggedDate, lists, overview, pageCount, rating, review, selectedListIds, status, title, year }: BookEntryControlsProps) {
+export function BookEntryControls({ author, bookId, contributors, loggedDate, lists, overview, pageCount, rating, review, selectedListIds, status, tags, title, year }: BookEntryControlsProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pendingLabel, setPendingLabel] = useState("");
@@ -140,14 +142,6 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
             ) : <div className="rounded-[4px] bg-black/[0.045] p-3 text-sm text-black/85"><ReviewMarkdown source={review || "No review has been written yet."} /></div>}
           </section>
 
-          <section className="py-5">
-            <a href={`/books/${bookId}/archive-note`} className="group movie-info-focus inline-flex items-center bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98]">
-              Open archive note
-              <span aria-hidden="true" className="ml-8 transition-transform duration-200 group-hover:translate-x-1">→</span>
-            </a>
-            <p className="mt-2 max-w-sm text-xs leading-5 text-black/45">A full-page journal for detailed thoughts, references, and tags.</p>
-          </section>
-
           <section aria-labelledby="contributors-heading" className="py-5">
             <h2 id="contributors-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Contributors</h2>
             <ul className="columns-2 gap-x-6 text-xs leading-6 text-black/70">
@@ -178,6 +172,16 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
           <p className="text-xs leading-5 text-black/45">Want to Read books can be added to custom lists after they are marked read.</p>
         </div>
       )}
+
+      <section aria-labelledby="book-tags-heading" className="py-5">
+        <h2 id="book-tags-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Tags</h2>
+        <p className="mb-4 text-sm text-black/70"><TagList tags={tags} /></p>
+        <a href={`/books/${bookId}/archive-note`} className="group movie-info-focus inline-flex items-center bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98]">
+          Open archive note
+          <span aria-hidden="true" className="ml-8 transition-transform duration-200 group-hover:translate-x-1">→</span>
+        </a>
+        <p className="mt-2 max-w-sm text-xs leading-5 text-black/45">Write a longer note and manage reusable tags.</p>
+      </section>
 
       {isPending ? <InteractionSkeleton label={pendingLabel} /> : null}
       {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}

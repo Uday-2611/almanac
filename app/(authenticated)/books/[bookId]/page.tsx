@@ -4,6 +4,7 @@ import { BookEntryControls } from "@/components/books/book-entry-controls";
 import { MediaInfoCard, type MediaInfo } from "@/components/media/media-info-card";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getBookForUser, listBookListOptionsForUser, listIdsForBook } from "@/lib/db/queries/books";
+import { listTagsForBookForUser } from "@/lib/db/queries/tags";
 import { idSchema } from "@/lib/validation";
 
 function formatLoggedDate(value: string | null) {
@@ -16,10 +17,11 @@ export async function getBookInfo(bookId: string) {
   const user = await getCurrentUser();
   if (!user) notFound();
 
-  const [book, lists, selectedListIds] = await Promise.all([
+  const [book, lists, selectedListIds, tags] = await Promise.all([
     getBookForUser(user.id, bookId),
     listBookListOptionsForUser(user.id),
     listIdsForBook(user.id, bookId),
+    listTagsForBookForUser(user.id, bookId),
   ]);
   if (!book) notFound();
 
@@ -34,7 +36,7 @@ export async function getBookInfo(bookId: string) {
     rating: book.rating,
     review: book.review ?? "No review has been written yet.",
     loggedAt: formatLoggedDate(book.loggedDate),
-    tags: [],
+    tags: tags.map((tag) => tag.name),
     peopleLabel: "Contributors",
     people: contributors.length ? contributors : ["Contributor information is unavailable."],
     posterUrl: book.coverUrl,
@@ -58,6 +60,7 @@ export async function getBookInfo(bookId: string) {
       loggedDate: book.loggedDate,
       lists: lists.map((list) => ({ id: list.id, name: list.name })),
       selectedListIds,
+      tags: info.tags,
     },
   };
 }

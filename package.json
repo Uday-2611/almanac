@@ -15,7 +15,8 @@
     "test:movie-flow": "node scripts/verify-movie-flow.mjs",
     "test:tmdb-normalization": "node --no-warnings --experimental-strip-types scripts/verify-tmdb-normalization.mjs",
     "test:book-invariants": "node scripts/verify-book-list-invariants.mjs",
-    "test:book-flow": "node scripts/verify-book-flow.mjs"
+    "test:book-flow": "node scripts/verify-book-flow.mjs",
+    "test:archive-tags": "node scripts/verify-archive-tags.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

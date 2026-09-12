@@ -6,6 +6,7 @@ import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { EmptyState } from "@/components/states/empty-state";
+import { TagFilter, type TagFilterOption } from "@/components/media/tag-filter";
 
 export type BookStatus = "want-to-read" | "read" | "lists";
 export type BookView = "images" | "list";
@@ -16,6 +17,7 @@ export type Book = {
   author: string;
   date: string;
   coverUrl: string | null;
+  tags: string[];
 };
 
 export type BookList = {
@@ -25,8 +27,8 @@ export type BookList = {
   books: Book[];
 };
 
-function hrefFor(status: BookStatus, view: BookView) {
-  return { pathname: "/books", query: { status, view } };
+function hrefFor(status: BookStatus, view: BookView, tag?: string) {
+  return { pathname: "/books", query: { status, view, ...(tag ? { tag } : {}) } };
 }
 
 function TextToggle({ label, active, options }: {
@@ -52,16 +54,16 @@ function TextToggle({ label, active, options }: {
   );
 }
 
-function BookToolbar({ status, view }: { status: BookStatus; view: BookView }) {
+function BookToolbar({ status, view, tag }: { status: BookStatus; view: BookView; tag?: string }) {
   return (
     <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle label="Book display" active={view} options={[
-        { label: "Image View", value: "images", href: hrefFor(status, "images") },
-        { label: "List View", value: "list", href: hrefFor(status, "list") },
+        { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
+        { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
       ]} />
       <TextToggle label="Book collection" active={status} options={[
-        { label: "Want to Read", value: "want-to-read", href: hrefFor("want-to-read", view) },
-        { label: "Read", value: "read", href: hrefFor("read", view) },
+        { label: "Want to Read", value: "want-to-read", href: hrefFor("want-to-read", view, tag) },
+        { label: "Read", value: "read", href: hrefFor("read", view, tag) },
         { label: "My Lists", value: "lists", href: hrefFor("lists", view) },
       ]} />
     </div>
@@ -85,6 +87,7 @@ function toLedgerItems(books: Book[]): AnimatedLedgerItem[] {
     date: book.date,
     title: book.title,
     creator: book.author,
+    tags: book.tags,
   }));
 }
 
@@ -116,25 +119,30 @@ function ListsView({ lists, view }: { lists: BookList[]; view: BookView }) {
   );
 }
 
-export function BookLedger({ status, view, books, lists, showCreateList }: {
+export function BookLedger({ status, view, books, lists, showCreateList, activeTagId, tagOptions }: {
   status: BookStatus;
   view: BookView;
   books: Book[];
   lists: BookList[];
   showCreateList: boolean;
+  activeTagId?: string;
+  tagOptions: TagFilterOption[];
 }) {
+  const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+
   return (
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Books</h1>
-      <BookToolbar status={status} view={view} />
+      <BookToolbar status={status} view={view} tag={activeTagId} />
       <AddLink lists={status === "lists"} view={view} />
+      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateBookListForm /> : null}
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
       ) : books.length ? (
         view === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
       ) : (
-        <div className="mt-8 text-[#686868]"><EmptyState message={status === "want-to-read" ? "Your Want to Read list is empty." : "You have not marked any books as read yet."} /></div>
+        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No books in ${status === "want-to-read" ? "Want to Read" : "Read"} use the tag “${activeTagName}”.` : status === "want-to-read" ? "Your Want to Read list is empty." : "You have not marked any books as read yet."} /></div>
       )}
     </main>
   );

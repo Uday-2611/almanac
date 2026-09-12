@@ -1,9 +1,9 @@
 import "server-only";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, exists, inArray } from "drizzle-orm";
 
 import { getDatabase } from "@/lib/db/client";
-import { movieListItems, movieLists, movies } from "@/lib/db/schema";
+import { movieListItems, movieLists, movies, movieTags, tags } from "@/lib/db/schema";
 import type { TmdbMediaType, TmdbTitle } from "@/lib/providers/tmdb";
 
 export type MovieStatus = "watchlist" | "watched";
@@ -12,11 +12,22 @@ export type MovieListRecord = typeof movieLists.$inferSelect & { movies: MovieRe
 
 export class MovieListEligibilityError extends Error {}
 
-export async function listMoviesForUser(userId: string, status: MovieStatus) {
-  return getDatabase()
+export async function listMoviesForUser(userId: string, status: MovieStatus, tagId?: string) {
+  const database = getDatabase();
+  const tagFilter = tagId
+    ? exists(
+        database
+          .select({ id: movieTags.movieId })
+          .from(movieTags)
+          .innerJoin(tags, eq(movieTags.tagId, tags.id))
+          .where(and(eq(movieTags.movieId, movies.id), eq(movieTags.tagId, tagId), eq(tags.userId, userId))),
+      )
+    : undefined;
+
+  return database
     .select()
     .from(movies)
-    .where(and(eq(movies.userId, userId), eq(movies.status, status)))
+    .where(and(eq(movies.userId, userId), eq(movies.status, status), tagFilter))
     .orderBy(desc(movies.loggedDate), desc(movies.createdAt));
 }
 
@@ -100,6 +111,16 @@ export async function updateMovieForUser(
     .set(values)
     .where(and(eq(movies.id, movieId), eq(movies.userId, userId)))
     .returning();
+
+  return updated ?? null;
+}
+
+export async function updateMovieArchiveNoteForUser(userId: string, movieId: string, archiveNote: string | null) {
+  const [updated] = await getDatabase()
+    .update(movies)
+    .set({ archiveNote, updatedAt: new Date() })
+    .where(and(eq(movies.id, movieId), eq(movies.userId, userId)))
+    .returning({ id: movies.id, archiveNote: movies.archiveNote });
 
   return updated ?? null;
 }

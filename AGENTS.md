@@ -103,6 +103,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - A book may belong to a user-created list only while it belongs to the same user and has `read` status. Preserve the equivalent API validation and database triggers; moving a book back to `want_to_read` must remove its custom-list memberships.
 - Preserve owner-scoped movie-list CRUD. Deleting a custom list must delete only its memberships, not the watched movies it contained; movie deletion remains a separate confirmed action.
 - Render reviews through the sanitized markdown component. Do not enable raw HTML in user-authored review content.
+- Persist one Archive Note directly on each singular movie or book entry. Keep Archive Note reads and writes owner-scoped, preserve explicit saving and unsaved-exit protection, and do not expose note content through public or provider routes.
+- Preserve reusable account-scoped tag identities and case-insensitive normalized-name uniqueness. Attaching or removing a tag must verify ownership of the entry and tag, and the database ownership triggers must continue to reject cross-account movie-tag or book-tag relationships. Detaching a tag must not delete the reusable tag identity.
 - Keep the extension as a separate package when that milestone begins.
 
 ## Current UI Foundation
@@ -142,4 +144,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Preserve the movie modal's film-journal sequence: a large, tightly tracked Geist Sans title, director/year, directly editable stars, watched date, overview, editable sanitized-markdown review, Archive Note entry, compact cast, then custom lists. Keep the borderless pane completely free of background color, with dark type six pixels from the fixed 2:3 poster over a light white-blurred scrim.
 - Keep Boska exclusive to the Almanac wordmark. Use Geist Sans for all visible movie and book titles across ledger rows, image browsing metadata, search results, information panes, and Archive Notes, with hierarchy created through size, weight, leading, and tracking.
 - Preserve the same light, transparent, dark-type journal treatment for movie and book information panes; adapt only domain language and metadata.
-- Treat `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` as clean, white, borderless editorial writing surfaces. They are design-only prototypes until persistence and reusable tag editing are explicitly implemented.
+- Treat `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` as clean, white, borderless editorial writing surfaces with persistent text and reusable tag editing.
+- Keep Archive Note tags visible as quiet slash-separated text rather than badges. Movie and book collections filter through the owner-scoped `tag=<uuid>` query parameter, preserve the filter when switching List/Images views, and only offer tags used by the active collection status.
