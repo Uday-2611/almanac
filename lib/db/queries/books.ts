@@ -141,11 +141,12 @@ export async function listBookListOptionsForUser(userId: string) {
 export async function createBookListForUser(userId: string, name: string) {
   const [list] = await getDatabase().insert(bookLists).values({ userId, name })
     .onConflictDoNothing({ target: [bookLists.userId, bookLists.name] }).returning();
-  if (list) return list;
+  if (list) return { list, created: true };
 
   const [existing] = await getDatabase().select().from(bookLists)
     .where(and(eq(bookLists.userId, userId), eq(bookLists.name, name))).limit(1);
-  return existing;
+  if (!existing) throw new Error("The book list could not be created or retrieved.");
+  return { list: existing, created: false };
 }
 
 export async function renameBookListForUser(userId: string, listId: string, name: string) {

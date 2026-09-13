@@ -16,6 +16,9 @@ function getAllowedHosts() {
 }
 
 function createAuth() {
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
   return betterAuth({
     appName: "Almanac",
     baseURL: {
@@ -29,7 +32,15 @@ function createAuth() {
     }),
     emailAndPassword: {
       enabled: true,
+      minPasswordLength: 8,
+      maxPasswordLength: 128,
     },
+    socialProviders: googleClientId && googleClientSecret ? {
+      google: {
+        clientId: googleClientId,
+        clientSecret: googleClientSecret,
+      },
+    } : {},
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,

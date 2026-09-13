@@ -18,7 +18,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Tags should be visible in the UI as simple labels in v1.
 - The longer-term direction for tags is a knowledge-graph style system, so the schema should preserve reusable tag identities and connections.
 - The stack direction for implementation is Next.js App Router + Postgres + server-side API routes.
-- Authentication uses Better Auth with email and password for v1. Google OAuth is deferred.
+- Authentication uses Better Auth with email/password and Google OAuth. Google credentials remain server-only and the Google option is shown only when both credentials are configured.
 - Neon is the managed Postgres provider and Drizzle ORM owns the application schema and migrations.
 
 ## Architecture decisions
@@ -64,7 +64,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Phase 3 (complete): Build the movie and TV flow with combined TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and title deletion.
 - Phase 4 (complete): Mirror the movie experience for books with Open Library search, automatic Google Books fallback, persisted Want to Read/Read entries, editable read details, deletion, and Read-only custom lists.
 - Phase 5 (complete): Persist Archive Notes, add reusable cross-media tags with owner-safe attachment and removal, show tags as quiet labels, and support URL-driven tag filtering in movie and book collections.
-- Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance.
+- Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance. Validation and error handling are complete; accessibility and measured production performance remain.
 
 ## Validation checklist
 - Verify visitors without a session see the landing page and authenticated visitors opening `/` are redirected to `/movies`.
@@ -103,7 +103,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Archive Note tag editing creates or reuses account-scoped tag identities, suggests existing tags from both media types, attaches them to the current entry, and detaches them without deleting the reusable tag. Postgres ownership triggers prevent cross-account movie-tag and book-tag relationships.
 - Movie and book list and image views show attached tags as restrained text labels. Collection pages expose URL-driven `tag=<uuid>` filters scoped to the active status and account, with clear filtered empty states and filter state preserved across display-mode changes.
 - The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
-- Better Auth email/password flows, database-backed sessions, protected product routes, and sign-out are implemented locally.
+- Better Auth email/password flows, optional Google OAuth, database-backed sessions, protected product routes, and resilient sign-out are implemented. Google sign-in returns to `/movies`, reports callback failures on `/login`, and is exposed only when both server-only Google credentials are configured.
+- Phase 6 validation hardening aligns browser and Zod limits for reviews, completion dates, list names, tags, and Archive Notes; rejects unknown mutation fields and future completion dates; reports duplicate list names consistently; restores optimistic state after failures; and recovers pending controls after network errors.
 - The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, persistent Archive Notes, reusable tags, owner-guarded join tables, and view preferences.
 - User-created movie lists are persisted through `movie_lists` and `movie_list_items`. Both the query layer and Postgres enforce that only the owner's Watched movies can be added; moving a movie back to Watchlist clears watched-only fields and automatically removes all custom-list memberships.
 - Movie list management is complete: users can create lists from My Lists or directly from a watched movie, add and remove watched movies, rename lists, delete lists without deleting their movies, and view every item in a list. Movie entries can also be permanently deleted through a two-step confirmation.

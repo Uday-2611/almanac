@@ -171,7 +171,7 @@ export async function createMovieListForUser(userId: string, name: string) {
     .onConflictDoNothing({ target: [movieLists.userId, movieLists.name] })
     .returning();
 
-  if (list) return list;
+  if (list) return { list, created: true };
 
   const [existing] = await getDatabase()
     .select()
@@ -179,7 +179,8 @@ export async function createMovieListForUser(userId: string, name: string) {
     .where(and(eq(movieLists.userId, userId), eq(movieLists.name, name)))
     .limit(1);
 
-  return existing;
+  if (!existing) throw new Error("The movie list could not be created or retrieved.");
+  return { list: existing, created: false };
 }
 
 export async function renameMovieListForUser(userId: string, listId: string, name: string) {

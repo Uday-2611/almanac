@@ -19,13 +19,15 @@ export function BookListDisclosure({ children, date, id, title }: {
   const [isPending, startTransition] = useTransition();
 
   function renameList(formData: FormData) {
+    const name = String(formData.get("name") ?? "").trim();
     setError("");
+    if (!name) return setError("Enter a list name.");
     startTransition(async () => {
       try {
         const response = await fetch(`/api/book-lists/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: String(formData.get("name") ?? "").trim() }),
+          body: JSON.stringify({ name }),
         });
         const data = response.ok ? null : await response.json().catch(() => null);
         if (!response.ok) return setError(data?.error ?? "The list could not be renamed.");
@@ -59,7 +61,7 @@ export function BookListDisclosure({ children, date, id, title }: {
           <form action={renameList} className="flex min-w-0 items-end gap-3">
             <label className="min-w-0 flex-1">
               <span className="sr-only">List name</span>
-              <input name="name" required maxLength={100} defaultValue={title} autoFocus className="ledger-focus w-full border-b border-[#111111] bg-transparent py-1 font-medium" />
+              <input name="name" required minLength={1} maxLength={100} defaultValue={title} disabled={isPending} autoFocus className="ledger-focus w-full border-b border-[#111111] bg-transparent py-1 font-medium disabled:opacity-50" />
             </label>
             <button type="submit" disabled={isPending} className="ledger-focus text-sm underline underline-offset-4 disabled:opacity-50">Save</button>
             <button type="button" disabled={isPending} onClick={() => setIsEditing(false)} className="ledger-focus text-sm text-[#686868] underline underline-offset-4 disabled:opacity-50">Cancel</button>

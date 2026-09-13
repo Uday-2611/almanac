@@ -7,6 +7,7 @@ import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
 import { TagList } from "@/components/media/tag-list";
+import { responseErrorMessage } from "@/lib/http/client-errors";
 
 type ListOption = { id: string; name: string };
 
@@ -36,6 +37,7 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [activeListIds, setActiveListIds] = useState(selectedListIds);
   const [isPending, startTransition] = useTransition();
+  const today = new Date().toISOString().slice(0, 10);
 
   function mutate(payload: Record<string, unknown>, label: string, onSuccess?: () => void) {
     setError("");
@@ -47,8 +49,7 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = response.ok ? null : await response.json().catch(() => null);
-        if (!response.ok) return setError(data?.error ?? "The book could not be updated.");
+        if (!response.ok) return setError(await responseErrorMessage(response, "The book could not be updated."));
         onSuccess?.();
         router.refresh();
       } catch {
@@ -74,10 +75,9 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
           headers: selected ? { "Content-Type": "application/json" } : undefined,
           body: selected ? JSON.stringify({ bookId }) : undefined,
         });
-        const data = response.ok ? null : await response.json().catch(() => null);
         if (!response.ok) {
           setActiveListIds(previousListIds);
-          return setError(data?.error ?? "The list could not be updated.");
+          return setError(await responseErrorMessage(response, "The list could not be updated."));
         }
       } catch {
         setActiveListIds(previousListIds);
@@ -92,8 +92,7 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
     startTransition(async () => {
       try {
         const response = await fetch(`/api/books/${bookId}`, { method: "DELETE" });
-        const data = response.ok ? null : await response.json().catch(() => null);
-        if (!response.ok) return setError(data?.error ?? "The book could not be deleted.");
+        if (!response.ok) return setError(await responseErrorMessage(response, "The book could not be deleted."));
         router.replace(`/books?status=${status === "read" ? "read" : "want-to-read"}&view=list`);
         router.refresh();
       } catch {
@@ -120,7 +119,7 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
             </div>
             <label className="mt-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-black/50">
               <span>Finished</span><span aria-hidden="true">/</span>
-              <input aria-label="Date finished" type="date" defaultValue={loggedDate ?? ""} disabled={isPending} onChange={(event) => mutate({ loggedDate: event.currentTarget.value || null }, "Saving finished date")} className="movie-info-focus min-w-0 bg-transparent font-mono text-[11px] tracking-normal text-black/70 [color-scheme:light] disabled:opacity-50" />
+              <input aria-label="Date finished" type="date" max={today} defaultValue={loggedDate ?? ""} disabled={isPending} onChange={(event) => mutate({ loggedDate: event.currentTarget.value || null }, "Saving finished date")} className="movie-info-focus min-w-0 bg-transparent font-mono text-[11px] tracking-normal text-black/70 [color-scheme:light] disabled:opacity-50" />
             </label>
           </section>
 
@@ -133,7 +132,7 @@ export function BookEntryControls({ author, bookId, contributors, loggedDate, li
             </div>
             {isEditingReview ? (
               <form action={saveReview} className="rounded-[4px] bg-black/[0.045] p-3">
-                <textarea name="review" defaultValue={review ?? ""} rows={6} autoFocus className="movie-info-focus block w-full resize-y bg-transparent text-sm leading-6 text-[#111111] placeholder:text-black/35" placeholder="Write what stayed with you…" />
+                <textarea name="review" defaultValue={review ?? ""} rows={6} maxLength={20_000} autoFocus className="movie-info-focus block w-full resize-y bg-transparent text-sm leading-6 text-[#111111] placeholder:text-black/35" placeholder="Write what stayed with you…" />
                 <div className="mt-3 flex items-center gap-4 text-xs">
                   <button type="submit" disabled={isPending} className="movie-info-focus font-medium underline underline-offset-4 disabled:opacity-50">Save review</button>
                   <button type="button" disabled={isPending} onClick={() => setIsEditingReview(false)} className="movie-info-focus text-black/55 underline underline-offset-4">Cancel</button>

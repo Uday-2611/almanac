@@ -7,6 +7,7 @@ import { ReviewMarkdown } from "@/components/media/review-markdown";
 import { CreateMovieListForm } from "@/components/movies/create-movie-list-form";
 import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
 import { TagList } from "@/components/media/tag-list";
+import { responseErrorMessage } from "@/lib/http/client-errors";
 
 type ListOption = { id: string; name: string };
 
@@ -50,20 +51,24 @@ export function MovieEntryControls({
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [activeListIds, setActiveListIds] = useState(selectedListIds);
   const [isPending, startTransition] = useTransition();
+  const today = new Date().toISOString().slice(0, 10);
 
   function mutate(payload: Record<string, unknown>, label: string, onSuccess?: () => void) {
     setError("");
     setPendingLabel(label);
     startTransition(async () => {
-      const response = await fetch(`/api/movies/${movieId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) return setError(data?.error ?? `The ${entryNoun} could not be updated.`);
-      onSuccess?.();
-      router.refresh();
+      try {
+        const response = await fetch(`/api/movies/${movieId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) return setError(await responseErrorMessage(response, `The ${entryNoun} could not be updated.`));
+        onSuccess?.();
+        router.refresh();
+      } catch {
+        setError(`The ${entryNoun} could not be updated. Check your connection and try again.`);
+      }
     });
   }
 
@@ -79,18 +84,21 @@ export function MovieEntryControls({
     const previousListIds = activeListIds;
     setActiveListIds((current) => selected ? [...current, listId] : current.filter((id) => id !== listId));
     startTransition(async () => {
-      const url = selected
-        ? `/api/movie-lists/${listId}/movies`
-        : `/api/movie-lists/${listId}/movies/${movieId}`;
-      const response = await fetch(url, {
-        method: selected ? "POST" : "DELETE",
-        headers: selected ? { "Content-Type": "application/json" } : undefined,
-        body: selected ? JSON.stringify({ movieId }) : undefined,
-      });
-      const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) {
+      try {
+        const url = selected
+          ? `/api/movie-lists/${listId}/movies`
+          : `/api/movie-lists/${listId}/movies/${movieId}`;
+        const response = await fetch(url, {
+          method: selected ? "POST" : "DELETE",
+          headers: selected ? { "Content-Type": "application/json" } : undefined,
+          body: selected ? JSON.stringify({ movieId }) : undefined,
+        });
+        if (response.ok) return;
         setActiveListIds(previousListIds);
-        return setError(data?.error ?? "The list could not be updated.");
+        setError(await responseErrorMessage(response, "The list could not be updated."));
+      } catch {
+        setActiveListIds(previousListIds);
+        setError("The list could not be updated. Check your connection and try again.");
       }
     });
   }
@@ -99,11 +107,13 @@ export function MovieEntryControls({
     setError("");
     setPendingLabel("Deleting movie");
     startTransition(async () => {
-      const response = await fetch(`/api/movies/${movieId}`, { method: "DELETE" });
-      const data = response.ok ? null : await response.json().catch(() => null);
-      if (!response.ok) return setError(data?.error ?? `The ${entryNoun} could not be deleted.`);
-      router.replace(`/movies?status=${status}&view=list`);
-      router.refresh();
+      try {
+        const response = await fetch(`/api/movies/${movieId}`, { method: "DELETE" });
+        if (!response.ok) return setError(await responseErrorMessage(response, `The ${entryNoun} could not be deleted.`));
+        router.replace(`/movies?status=${status}&view=list`);
+      } catch {
+        setError(`The ${entryNoun} could not be deleted. Check your connection and try again.`);
+      }
     });
   }
 
@@ -140,7 +150,7 @@ export function MovieEntryControls({
             <label className="mt-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-black/50">
               <span>Watched</span>
               <span aria-hidden="true">/</span>
-              <input aria-label="Date watched" type="date" defaultValue={loggedDate ?? ""} disabled={isPending} onChange={(event) => mutate({ loggedDate: event.currentTarget.value || null }, "Saving watched date")} className="movie-info-focus min-w-0 bg-transparent font-mono text-[11px] tracking-normal text-black/70 [color-scheme:light] disabled:opacity-50" />
+              <input aria-label="Date watched" type="date" max={today} defaultValue={loggedDate ?? ""} disabled={isPending} onChange={(event) => mutate({ loggedDate: event.currentTarget.value || null }, "Saving watched date")} className="movie-info-focus min-w-0 bg-transparent font-mono text-[11px] tracking-normal text-black/70 [color-scheme:light] disabled:opacity-50" />
             </label>
           </section>
 
@@ -158,7 +168,7 @@ export function MovieEntryControls({
             </div>
             {isEditingReview ? (
               <form id="movie-review-form" action={saveReview} className="rounded-[4px] bg-black/[0.045] p-3">
-                <textarea name="review" defaultValue={review ?? ""} rows={6} autoFocus className="movie-info-focus block w-full resize-y bg-transparent text-sm leading-6 text-[#111111] placeholder:text-black/35" placeholder="Write what stayed with you…" />
+                <textarea name="review" defaultValue={review ?? ""} rows={6} maxLength={20_000} autoFocus className="movie-info-focus block w-full resize-y bg-transparent text-sm leading-6 text-[#111111] placeholder:text-black/35" placeholder="Write what stayed with you…" />
                 <div className="mt-3 flex items-center gap-4 text-xs">
                   <button type="submit" disabled={isPending} className="movie-info-focus font-medium underline underline-offset-4 disabled:opacity-50">Save review</button>
                   <button type="button" disabled={isPending} onClick={() => setIsEditingReview(false)} className="movie-info-focus text-black/55 underline underline-offset-4">Cancel</button>

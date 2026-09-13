@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { deleteBookForUser, getBookForUser, updateBookForUser } from "@/lib/db/queries/books";
-import { idSchema, updateBookSchema } from "@/lib/validation";
+import { idSchema, updateBookSchema, validationErrorMessage } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ bookId: string }> };
 
@@ -19,7 +19,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = updateBookSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid book update." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: validationErrorMessage(parsed.error, "Invalid book update.") }, { status: 400 });
 
   const { bookId } = await params;
   if (!idSchema.safeParse(bookId).success) return Response.json({ error: "Book not found." }, { status: 404 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { responseErrorMessage } from "@/lib/http/client-errors";
 
 export type ArchiveTag = { id: string; name: string };
 
@@ -93,11 +94,11 @@ export function ArchiveNoteEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: noteValue }),
       });
-      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error ?? "The archive note could not be saved.");
+        setError(await responseErrorMessage(response, "The archive note could not be saved."));
         return;
       }
+      const data = await response.json().catch(() => null);
       const persistedNote = data?.archiveNote ?? "";
       setNote(persistedNote);
       setSavedNote(persistedNote);
@@ -124,11 +125,12 @@ export function ArchiveNoteEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.tag) {
-        setError(data?.error ?? "The tag could not be added.");
+      if (!response.ok) {
+        setError(await responseErrorMessage(response, "The tag could not be added."));
         return;
       }
+      const data = await response.json().catch(() => null);
+      if (!data?.tag) return setError("The tag could not be added because the server response was incomplete.");
 
       const tag: ArchiveTag = { id: data.tag.id, name: data.tag.name };
       setTags((current) => current.some((item) => item.id === tag.id) ? current : [...current, tag].sort(byName));
@@ -149,9 +151,8 @@ export function ArchiveNoteEditor({
     setRemovingTagId(tag.id);
     try {
       const response = await fetch(`${apiRoot}/tags/${tag.id}`, { method: "DELETE" });
-      const data = response.ok ? null : await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error ?? "The tag could not be removed.");
+        setError(await responseErrorMessage(response, "The tag could not be removed."));
         return;
       }
       setTags((current) => current.filter((item) => item.id !== tag.id));

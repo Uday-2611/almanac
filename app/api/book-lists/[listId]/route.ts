@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { deleteBookListForUser, renameBookListForUser } from "@/lib/db/queries/books";
-import { idSchema, updateBookListSchema } from "@/lib/validation";
+import { idSchema, updateBookListSchema, validationErrorMessage } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ listId: string }> };
 
@@ -9,7 +9,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = updateBookListSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "List names must be between 1 and 100 characters." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: validationErrorMessage(parsed.error, "Enter a valid list name.") }, { status: 400 });
 
   const { listId } = await params;
   if (!idSchema.safeParse(listId).success) return Response.json({ error: "List not found." }, { status: 404 });

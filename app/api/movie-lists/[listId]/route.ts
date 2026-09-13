@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { deleteMovieListForUser, renameMovieListForUser } from "@/lib/db/queries/movies";
-import { idSchema, updateMovieListSchema } from "@/lib/validation";
+import { idSchema, updateMovieListSchema, validationErrorMessage } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ listId: string }> };
 
@@ -10,7 +10,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const parsed = updateMovieListSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return Response.json({ error: "List names must be between 1 and 100 characters." }, { status: 400 });
+    return Response.json({ error: validationErrorMessage(parsed.error, "Enter a valid list name.") }, { status: 400 });
   }
 
   const { listId } = await params;

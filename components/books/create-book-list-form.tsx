@@ -24,6 +24,7 @@ export function CreateBookListForm({
   function createList(formData: FormData) {
     const name = String(formData.get("name") ?? "").trim();
     setError("");
+    if (!name) return setError("Enter a list name.");
     startTransition(async () => {
       try {
         const response = await fetch("/api/book-lists", {
@@ -61,7 +62,7 @@ export function CreateBookListForm({
     <form ref={formRef} action={createList} className={`${compact ? "mt-3" : "mt-8"} flex max-w-[32rem] flex-wrap items-end gap-3`}>
       <label className="min-w-0 flex-1 text-sm">
         <span className={`mb-1 block ${inverse ? "text-white/55" : "text-[#686868]"}`}>{bookId ? "New list name" : "List name"}</span>
-        <input name="name" required maxLength={100} className={`w-full bg-transparent py-2 ${inverse ? "movie-info-focus border-b border-white/30 text-white" : "ledger-focus border-b border-[#111111]"}`} />
+        <input name="name" required minLength={1} maxLength={100} disabled={isPending} className={`w-full bg-transparent py-2 disabled:opacity-50 ${inverse ? "movie-info-focus border-b border-white/30 text-white" : "ledger-focus border-b border-[#111111]"}`} />
       </label>
       <button type="submit" disabled={isPending} className={`${inverse ? "movie-info-focus text-white" : "ledger-focus"} pb-2 underline underline-offset-4 disabled:opacity-50`}>{isPending ? "Creating..." : "Create"}</button>
       <div className="basis-full">
