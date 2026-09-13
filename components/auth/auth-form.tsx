@@ -20,7 +20,15 @@ function authErrorMessage(code: string | undefined, fallback?: string) {
   return (code && authErrorMessages[code]) || fallback || "Authentication failed. Please try again.";
 }
 
-export function AuthForm({ googleEnabled, oauthError }: { googleEnabled: boolean; oauthError: string | null }) {
+export function AuthForm({
+  googleEnabled,
+  oauthError,
+  afterEmailSignIn = "/movies",
+}: {
+  googleEnabled: boolean;
+  oauthError: string | null;
+  afterEmailSignIn?: string;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [error, setError] = useState<string | null>(oauthError);
@@ -53,7 +61,7 @@ export function AuthForm({ googleEnabled, oauthError }: { googleEnabled: boolean
         return;
       }
 
-      startTransition(() => router.replace("/movies"));
+      startTransition(() => router.replace(afterEmailSignIn));
     } catch {
       setError("Almanac could not reach the sign-in service. Check your connection and try again.");
       setPendingMethod(null);
