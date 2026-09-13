@@ -91,7 +91,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Architecture Guardrails
 
 - Use the App Router structure in `app/`.
-- Use Better Auth with email/password and Google OAuth. Keep OAuth credentials server-only, hide the Google option unless both credentials are configured, and return users to `/movies` after successful authentication.
+- Use Better Auth with email/password and Google OAuth. Keep OAuth credentials server-only, hide the Google option unless both credentials are configured, allow verified Google identities to link to existing same-email accounts, and return users to `/movies` after successful authentication.
 - Keep browser constraints and Zod mutation schemas aligned. Reject future watched/read dates, whitespace-only or duplicate list names, oversized reviews/notes/tags, and unknown mutation fields with concise user-facing errors; every client mutation must recover from network failures without leaving controls pending or optimistic state stale.
 - Use Neon Postgres through Drizzle ORM. Commit generated migrations under `drizzle/` and never expose `DATABASE_URL` or `BETTER_AUTH_SECRET` to client code.
 - The Vercel project `almanac` is connected to the `almanac-postgres` Neon database in Production, Preview, and Development; the initial migration is `drizzle/0000_tiresome_gargoyle.sql`.

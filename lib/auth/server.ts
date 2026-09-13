@@ -35,6 +35,12 @@ function createAuth() {
       minPasswordLength: 8,
       maxPasswordLength: 128,
     },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ["google"],
+      },
+    },
     socialProviders: googleClientId && googleClientSecret ? {
       google: {
         clientId: googleClientId,
