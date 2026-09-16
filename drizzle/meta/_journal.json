@@ -36,6 +36,13 @@
       "when": 1789133699481,
       "tag": "0004_bumpy_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789308753364,
+      "tag": "0005_gifted_carlie_cooper",
+      "breakpoints": true
     }
   ]
 }

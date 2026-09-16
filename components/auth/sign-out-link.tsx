@@ -13,7 +13,7 @@ export function SignOutLink({ onSignedOut, tabIndex }: { onSignedOut?: () => voi
   return (
     <div>
       <button
-        className="ledger-focus group flex min-h-8 w-full items-center px-2.5 text-left text-sm text-[#686868] transition-colors duration-150 hover:bg-[#f3f3f3] hover:text-[#111111] disabled:cursor-wait"
+        className="ledger-focus group flex min-h-11 w-full items-center px-2.5 text-left text-sm text-[#686868] transition-colors duration-150 hover:bg-[#f3f3f3] hover:text-[#111111] disabled:cursor-wait sm:min-h-8"
         type="button"
         disabled={pending}
         tabIndex={tabIndex}

@@ -43,7 +43,7 @@ function TextToggle({
   active: string;
 }) {
   return (
-    <nav aria-label={label} className="flex items-center whitespace-nowrap">
+    <nav aria-label={label} className="flex min-h-10 items-center whitespace-nowrap sm:min-h-0">
       {options.map((option, index) => (
         <span key={option.value} className="flex items-center">
           {index > 0 ? <span aria-hidden="true" className="mx-1 text-[#111111]">/</span> : null}
@@ -62,7 +62,7 @@ function TextToggle({
 
 function MovieToolbar({ status, view, tag }: { status: MovieStatus; view: MovieView; tag?: string }) {
   return (
-    <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
+    <div className="absolute left-4 right-4 top-16 z-10 flex flex-col items-start gap-1 text-[13px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:flex-row sm:items-stretch sm:justify-end sm:gap-2 sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle
         label="Movie and TV display"
         active={view}
@@ -181,7 +181,7 @@ export function MovieLedger({
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
+    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Movies and TV shows</h1>
       <MovieToolbar status={status} view={view} tag={activeTagId} />
       <AddLink lists={status === "lists"} view={view} />

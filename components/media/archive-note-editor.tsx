@@ -189,7 +189,7 @@ export function ArchiveNoteEditor({
           </ul>
         ) : <p className="mt-3 text-sm text-[#686868]">No tags attached yet.</p>}
 
-        <form onSubmit={addTag} className="mt-5 flex max-w-md items-end gap-4">
+        <form onSubmit={addTag} className="mt-5 flex max-w-md flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-4">
           <label className="min-w-0 flex-1">
             <span className="sr-only">Create or reuse a tag</span>
             <input
@@ -205,7 +205,7 @@ export function ArchiveNoteEditor({
               {availableTags.map((tag) => <option key={tag.id} value={tag.name} />)}
             </datalist>
           </label>
-          <button type="submit" disabled={isAddingTag || !tagName.trim()} className="ledger-focus py-2 text-sm font-medium underline decoration-black/25 underline-offset-4 hover:decoration-black disabled:opacity-35">
+          <button type="submit" disabled={isAddingTag || !tagName.trim()} className="ledger-focus min-h-11 py-2 text-left text-sm font-medium underline decoration-black/25 underline-offset-4 hover:decoration-black disabled:opacity-35 sm:min-h-0">
             {isAddingTag ? "Adding…" : "Add tag"}
           </button>
         </form>
@@ -221,10 +221,10 @@ export function ArchiveNoteEditor({
             value={note}
             onChange={(event) => setNote(event.currentTarget.value)}
             placeholder="Write your note…"
-            className="block min-h-[610px] w-full resize-y bg-transparent text-base leading-8 outline-none transition-colors placeholder:text-black/30 focus-visible:bg-black/[0.025]"
+            className="block min-h-[50dvh] w-full resize-y bg-transparent text-base leading-8 outline-none transition-colors placeholder:text-black/30 focus-visible:bg-black/[0.025] sm:min-h-[610px]"
           />
         </label>
-        <div className="mt-5 flex items-center gap-4 text-sm">
+        <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
           <button type="submit" disabled={isSavingNote || !isDirty} className="ledger-focus font-medium underline decoration-black/25 underline-offset-4 hover:decoration-black disabled:opacity-35">
             {isSavingNote ? "Saving…" : "Save note"}
           </button>

@@ -146,7 +146,7 @@ export function AuthForm({
         {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
 
         <button
-          className="ledger-focus text-sm font-medium disabled:cursor-wait disabled:text-[#8a8a8a]"
+          className="ledger-focus min-h-11 text-sm font-medium disabled:cursor-wait disabled:text-[#8a8a8a] sm:min-h-0"
           type="submit"
           disabled={pending}
         >
@@ -173,7 +173,7 @@ export function AuthForm({
       ) : null}
 
       <button
-        className="ledger-focus mt-10 text-sm text-[#686868] hover:text-[#111111]"
+        className="ledger-focus mt-10 min-h-11 text-left text-sm text-[#686868] hover:text-[#111111] sm:min-h-0"
         type="button"
         disabled={pending}
         onClick={() => {

@@ -19,7 +19,8 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
   const href = `/books/${book.id}`;
 
   const { contextSafe } = useGSAP(() => {
-    gsap.set("[data-book-cover-metadata]", { autoAlpha: 0, y: 5 });
+    const hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    gsap.set("[data-book-cover-metadata]", { autoAlpha: hasHover ? 0 : 1, y: hasHover ? 5 : 0 });
     gsap.set("[data-book-cover-artwork]", { scale: 1, transformOrigin: "50% 50%" });
   }, { scope: cardRef });
 
@@ -31,6 +32,8 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
       ? Array.from(rail.querySelectorAll<HTMLElement>("[data-book-cover-artwork]")).filter((item) => item !== artwork)
       : [];
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!hasHover) return;
 
     gsap.to(artwork, {
       backgroundColor: isActive ? "#333333" : "#252525",
@@ -57,7 +60,7 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
   });
 
   return (
-    <li className="w-[208px] flex-none px-1 py-5">
+    <li className="w-[160px] flex-none px-1 py-5 sm:w-[208px]">
       <Link
         ref={cardRef}
         href={href}
@@ -74,16 +77,16 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
         }}
         onPointerLeave={(event) => animate(event.currentTarget, false)}
       >
-        <span data-book-cover-artwork className="relative block aspect-[2/3] w-[200px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform]">
+        <span data-book-cover-artwork className="relative block aspect-[2/3] w-[152px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform] sm:w-[200px]">
           {book.coverUrl ? (
-            <Image src={book.coverUrl} alt={`${book.title} book cover`} fill sizes="200px" className="object-cover" />
+            <Image src={book.coverUrl} alt={`${book.title} book cover`} fill sizes="(min-width: 640px) 200px, 152px" className="object-cover" />
           ) : (
             <span className="absolute inset-0 flex items-center justify-center px-5 text-center text-sm font-medium leading-5 text-white/80">
               {book.title}
             </span>
           )}
         </span>
-        <span data-book-cover-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
+        <span data-book-cover-metadata className="mt-3 block will-change-[transform,opacity]">
           <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{book.title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{book.author}</span>
           {book.tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{book.tags.join(" / ")}</span> : null}

@@ -408,7 +408,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogPortal>
           <DialogBackdrop className="fixed inset-0 z-40 bg-white/65 backdrop-blur-[12px] transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-          <DialogViewport className="fixed inset-0 z-50 overflow-y-auto px-3 py-[10vh] sm:px-5 sm:py-[14vh]">
+          <DialogViewport className="fixed inset-0 z-50 overflow-y-auto px-2 py-3 sm:px-5 sm:py-[14vh]">
             <DialogPopup initialFocus={inputRef} className="relative mx-auto w-full max-w-[57rem] outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0">
               <DialogTitle className="sr-only">{searchLabel}</DialogTitle>
               <DialogDescription className="sr-only">Search by title, then add a movie, TV show, or book to your collection.</DialogDescription>
@@ -420,7 +420,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
               </div>
 
               {normalizedQuery.length >= 2 ? (
-                <div className="mt-5 max-h-[min(68vh,36rem)] overflow-y-auto bg-transparent" aria-live="polite">
+                <div className="mt-3 max-h-[calc(100dvh-5.75rem)] overflow-y-auto bg-transparent sm:mt-5 sm:max-h-[min(68vh,36rem)]" aria-live="polite">
                   {(isSearching || resultKey !== activeSearchKey) && !results.length ? (
                     <SearchResultSkeleton label={scope === "movie" ? "Searching movies" : scope === "book" ? "Searching books" : "Searching movies and books"} />
                   ) : results.length ? (
@@ -456,12 +456,12 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                                 </span>
                               </button>
                               {result.kind === "movie" ? (
-                                <span className="flex justify-end gap-4 px-1 pb-1 pt-4 text-sm sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
+                                <span className="flex flex-wrap justify-end gap-x-4 gap-y-2 px-1 pb-1 pt-3 text-sm sm:flex-nowrap sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
                                   <SearchAddAction added={addedStatus === "watchlist"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Watchlist" onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watchlist")}>Add to watchlist</SearchAddAction>
                                   <SearchAddAction added={addedStatus === "watched"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Watched" muted onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watched")}>Watched</SearchAddAction>
                                 </span>
                               ) : (
-                                <span className="flex justify-end gap-4 px-1 pb-1 pt-4 text-sm sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
+                                <span className="flex flex-wrap justify-end gap-x-4 gap-y-2 px-1 pb-1 pt-3 text-sm sm:flex-nowrap sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
                                   <SearchAddAction added={addedStatus === "want_to_read"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Want to read" onClick={() => addBook(result, "want_to_read")}>Add to reading list</SearchAddAction>
                                   <SearchAddAction added={addedStatus === "read"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Read" muted onClick={() => addBook(result, "read")}>Read</SearchAddAction>
                                 </span>
@@ -514,7 +514,7 @@ function SearchAddAction({ added, children, confirming, disabled, loading, loadi
   return (
     <span className="relative flex min-w-max flex-col items-center">
       {confirming ? <span role="status" className="search-added-confirmation pointer-events-none absolute bottom-[calc(100%+0.35rem)] rounded-[4px] bg-[#111111] px-2 py-1 text-[10px] uppercase leading-none tracking-[0.1em] text-white">Added</span> : null}
-      <button type="button" disabled={disabled} onClick={onClick} className={`ledger-focus whitespace-nowrap transition-colors duration-150 disabled:cursor-default ${added ? "text-[#b5b5b5]" : muted ? "text-[#686868] hover:text-[#111111]" : "hover:text-[#686868]"}`}>
+      <button type="button" disabled={disabled} onClick={onClick} className={`ledger-focus min-h-10 whitespace-nowrap px-1 transition-colors duration-150 disabled:cursor-default sm:min-h-0 sm:px-0 ${added ? "text-[#b5b5b5]" : muted ? "text-[#686868] hover:text-[#111111]" : "hover:text-[#686868]"}`}>
         {loading ? <span role="status" aria-label={loadingLabel} className="block h-2 w-20 animate-pulse bg-[#bdbdbd]" /> : children}
       </button>
     </span>

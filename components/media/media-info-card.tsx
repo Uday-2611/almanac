@@ -31,7 +31,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
   return (
     <article
       aria-labelledby="media-info-title"
-      className={`relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto rounded-[4px] sm:max-h-[calc(100dvh-3rem)] ${isJournal ? "gap-1.5 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[546px] md:grid-cols-[364px_1fr]"}`}
+      className={`relative grid max-h-[100dvh] w-full grid-cols-1 overflow-y-auto rounded-[4px] sm:max-h-[calc(100dvh-3rem)] ${isJournal ? "gap-1.5 bg-transparent md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible" : "border border-[#eaeaea] bg-white md:h-[546px] md:grid-cols-[364px_1fr]"}`}
     >
         <div className="md:sticky md:top-0 md:h-full md:self-start">
           <div className={`relative aspect-[2/3] w-full overflow-hidden rounded-[4px] md:h-full md:aspect-auto ${isJournal ? "bg-[#020202]" : "bg-[#efefec]"}`}>
@@ -47,7 +47,7 @@ export function MediaInfoPanel({ info, actions }: { info: MediaInfo; actions?: R
           <header className="grid grid-cols-1 gap-3 border-b border-[#eaeaea] pb-7 pr-14 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-6">
             <div>
               <p className="mb-1 text-xs uppercase tracking-[0.08em] text-[#686868]">{info.kind}</p>
-              <h1 id="media-info-title" className="text-4xl font-semibold leading-[0.96] tracking-[-0.05em] sm:text-5xl">
+              <h1 id="media-info-title" className="break-words text-[clamp(2rem,11vw,2.25rem)] font-semibold leading-[0.96] tracking-[-0.05em] sm:text-5xl">
                 {info.title}
               </h1>
               <p className="mt-2 text-lg text-[#686868] sm:text-xl">{info.creator}</p>
@@ -109,11 +109,11 @@ export function MediaInfoCard({ info, backHref, actions }: { info: MediaInfo; ba
   const isJournal = Boolean(actions);
 
   return (
-    <main className={`relative flex h-screen items-center justify-center overflow-hidden px-4 pb-4 pt-16 sm:px-6 sm:pb-6 sm:pt-20 ${isJournal ? "bg-[#090909]" : ""}`}>
+    <main className={`relative flex min-h-dvh items-start justify-center overflow-y-auto px-0 pb-0 pt-14 sm:h-screen sm:items-center sm:overflow-hidden sm:px-6 sm:pb-6 sm:pt-20 ${isJournal ? "bg-[#090909]" : ""}`}>
       <Link
         href={backHref}
         aria-label={`Close ${info.title}`}
-        className={`absolute right-8 top-20 z-10 grid size-9 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-[max(2.5rem,calc((100vw-916px)/2+1.5rem))] sm:top-24 ${isJournal ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
+        className={`absolute right-2 top-2 z-10 grid size-11 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-[max(2.5rem,calc((100vw-916px)/2+1.5rem))] sm:top-24 sm:size-9 ${isJournal ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
       >
         <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
         <span className="sr-only">Close</span>

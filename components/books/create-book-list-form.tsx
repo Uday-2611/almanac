@@ -64,7 +64,7 @@ export function CreateBookListForm({
         <span className={`mb-1 block ${inverse ? "text-white/55" : "text-[#686868]"}`}>{bookId ? "New list name" : "List name"}</span>
         <input name="name" required minLength={1} maxLength={100} disabled={isPending} className={`w-full bg-transparent py-2 disabled:opacity-50 ${inverse ? "movie-info-focus border-b border-white/30 text-white" : "ledger-focus border-b border-[#111111]"}`} />
       </label>
-      <button type="submit" disabled={isPending} className={`${inverse ? "movie-info-focus text-white" : "ledger-focus"} pb-2 underline underline-offset-4 disabled:opacity-50`}>{isPending ? "Creating..." : "Create"}</button>
+      <button type="submit" disabled={isPending} className={`${inverse ? "movie-info-focus text-white" : "ledger-focus"} min-h-11 pb-2 underline underline-offset-4 disabled:opacity-50 sm:min-h-0`}>{isPending ? "Creating..." : "Create"}</button>
       <div className="basis-full">
         {isPending ? <InteractionSkeleton label={bookId ? "Creating list and adding book" : "Creating list"} /> : null}
         {error ? <p role="alert" className={`text-sm ${inverse ? "text-red-300" : "text-red-700"}`}>{error}</p> : null}

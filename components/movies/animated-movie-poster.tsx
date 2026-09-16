@@ -28,7 +28,8 @@ export function AnimatedMoviePoster({
   const router = useRouter();
 
   const { contextSafe } = useGSAP(() => {
-    gsap.set("[data-poster-metadata]", { autoAlpha: 0, y: 5 });
+    const hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    gsap.set("[data-poster-metadata]", { autoAlpha: hasHover ? 0 : 1, y: hasHover ? 5 : 0 });
     gsap.set("[data-poster-artwork]", { scale: 1, transformOrigin: "50% 50%" });
   }, { scope: cardRef });
 
@@ -40,6 +41,8 @@ export function AnimatedMoviePoster({
       ? Array.from(rail.querySelectorAll<HTMLElement>("[data-poster-artwork]")).filter((item) => item !== artwork)
       : [];
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!hasHover) return;
     const duration = reducedMotion ? 0 : 0.18;
 
     gsap.to(artwork, {
@@ -67,7 +70,7 @@ export function AnimatedMoviePoster({
   });
 
   return (
-    <li className="w-[208px] flex-none px-1 py-5">
+    <li className="w-[160px] flex-none px-1 py-5 sm:w-[208px]">
       <Link
         ref={cardRef}
         href={href}
@@ -84,10 +87,10 @@ export function AnimatedMoviePoster({
         }}
         onPointerLeave={(event) => animate(event.currentTarget, false)}
       >
-        <span data-poster-artwork className="relative block aspect-[2/3] w-[200px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform]">
-          {posterUrl ? <Image src={posterUrl} alt="" fill sizes="200px" className="object-cover" /> : null}
+        <span data-poster-artwork className="relative block aspect-[2/3] w-[152px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform] sm:w-[200px]">
+          {posterUrl ? <Image src={posterUrl} alt="" fill sizes="(min-width: 640px) 200px, 152px" className="object-cover" /> : null}
         </span>
-        <span data-poster-metadata className="invisible mt-3 block opacity-0 will-change-[transform,opacity]">
+        <span data-poster-metadata className="mt-3 block will-change-[transform,opacity]">
           <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{creator}</span>
           {tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{tags.join(" / ")}</span> : null}

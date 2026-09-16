@@ -51,7 +51,7 @@ export function AnimatedLedgerList({
           <Link
             href={item.href}
             data-ledger-row
-            className="ledger-focus grid min-h-[52px] grid-cols-[minmax(8.5rem,10rem)_1fr] gap-8 py-2.5 will-change-[opacity] sm:grid-cols-[10rem_1fr] sm:gap-0"
+            className="ledger-focus grid min-h-[64px] grid-cols-[6.25rem_minmax(0,1fr)] gap-3 py-2.5 will-change-[opacity] sm:min-h-[52px] sm:grid-cols-[10rem_1fr] sm:gap-0"
             onBlur={(event) => animateRows(event.currentTarget, false)}
             onFocus={(event) => {
               router.prefetch(item.href);
@@ -63,7 +63,7 @@ export function AnimatedLedgerList({
             }}
             onPointerLeave={(event) => animateRows(event.currentTarget, false)}
           >
-            <time className="text-[#686868]">{item.date}</time>
+            <time className="pr-1 text-xs leading-5 text-[#686868] sm:pr-0 sm:text-base sm:leading-normal">{item.date}</time>
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[1.08em] font-semibold tracking-[-0.018em] text-[#111111]">{item.title}</span>
               <span className="text-[#686868]">

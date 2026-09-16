@@ -84,7 +84,7 @@ export const verification = pgTable(
 export const movieStatus = pgEnum("movie_status", ["watchlist", "watched"]);
 export const tmdbMediaType = pgEnum("tmdb_media_type", ["movie", "tv"]);
 export const bookStatus = pgEnum("book_status", ["want_to_read", "read"]);
-export const bookProvider = pgEnum("book_provider", ["open_library", "google_books"]);
+export const bookProvider = pgEnum("book_provider", ["open_library", "google_books", "goodreads"]);
 export const mediaSection = pgEnum("media_section", ["movies", "books"]);
 export const viewMode = pgEnum("view_mode", ["list", "images"]);
 

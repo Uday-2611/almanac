@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
-import { createBookForUser, getBookByProviderId, listBooksForUser } from "@/lib/db/queries/books";
+import { createBookForUser, getBookByProviderId, getBookByTitleAndAuthor, listBooksForUser } from "@/lib/db/queries/books";
 import { BookMetadataError, getBookProviderMetadata } from "@/lib/providers/book-metadata";
 import { createBookSchema } from "@/lib/validation";
 
@@ -24,6 +24,8 @@ export async function POST(request: Request) {
     if (existing) return Response.json({ book: existing, created: false });
 
     const metadata = await getBookProviderMetadata(parsed.data);
+    const sameBook = await getBookByTitleAndAuthor(user.id, metadata.title, metadata.authors[0] ?? "");
+    if (sameBook) return Response.json({ book: sameBook, created: false });
     const result = await createBookForUser(user.id, metadata, parsed.data.status);
     return Response.json(result, { status: result.created ? 201 : 200 });
   } catch (error) {

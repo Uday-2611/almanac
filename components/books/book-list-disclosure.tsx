@@ -55,10 +55,10 @@ export function BookListDisclosure({ children, date, id, title }: {
 
   return (
     <section aria-label={title}>
-      <div className="grid grid-cols-[minmax(8.5rem,10rem)_1fr] items-start gap-8 sm:gap-0 lg:grid-cols-[10rem_1fr_auto]">
-        <time className="text-[#686868]">{date}</time>
+      <div className="grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[minmax(8.5rem,10rem)_1fr] sm:gap-0 lg:grid-cols-[10rem_1fr_auto]">
+        <time className="pr-1 text-xs leading-5 text-[#686868] sm:pr-0 sm:text-base sm:leading-normal">{date}</time>
         {isEditing ? (
-          <form action={renameList} className="flex min-w-0 items-end gap-3">
+          <form action={renameList} className="flex min-w-0 flex-wrap items-end gap-3">
             <label className="min-w-0 flex-1">
               <span className="sr-only">List name</span>
               <input name="name" required minLength={1} maxLength={100} defaultValue={title} disabled={isPending} autoFocus className="ledger-focus w-full border-b border-[#111111] bg-transparent py-1 font-medium disabled:opacity-50" />
@@ -68,7 +68,7 @@ export function BookListDisclosure({ children, date, id, title }: {
           </form>
         ) : <h2 id={`${id}-title`} className="font-medium">{title}</h2>}
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#686868] lg:mt-0 lg:justify-end">
+        <div className="col-span-2 mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#686868] sm:col-start-2 sm:col-end-auto lg:col-span-1 lg:col-start-auto lg:mt-0 lg:justify-end">
           {!isEditing && !isConfirmingDelete ? (
             <>
               <button type="button" disabled={isPending} onClick={() => setIsEditing(true)} className="ledger-focus transition-colors duration-150 hover:text-[#111111] disabled:opacity-50">Rename</button>
@@ -88,7 +88,7 @@ export function BookListDisclosure({ children, date, id, title }: {
             aria-expanded={isOpen}
             aria-label={isOpen ? `Collapse ${title}` : `Expand ${title}`}
             disabled={isPending}
-            className="ledger-focus inline-flex size-7 items-center justify-center text-[1.45rem] leading-none transition-[color,transform] duration-200 hover:text-[#111111] active:scale-90 disabled:opacity-50"
+            className="ledger-focus inline-flex size-11 items-center justify-center text-[1.45rem] leading-none transition-[color,transform] duration-200 hover:text-[#111111] active:scale-90 disabled:opacity-50 sm:size-7"
             onClick={() => setIsOpen((current) => !current)}
           >
             <span aria-hidden="true">{isOpen ? "−" : "+"}</span>

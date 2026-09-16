@@ -58,7 +58,7 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
     <dialog
       ref={dialogRef}
       aria-label={label}
-      className={`fixed inset-0 m-0 h-full max-h-none w-full max-w-none p-4 backdrop:backdrop-blur-md sm:p-6 ${tone === "dark" ? "bg-black/45 backdrop:bg-black/70" : "bg-white/35 backdrop:bg-white/65"}`}
+      className={`fixed inset-0 m-0 h-full max-h-none w-full max-w-none p-0 backdrop:backdrop-blur-md sm:p-6 ${tone === "dark" ? "bg-black/45 backdrop:bg-black/70" : "bg-white/35 backdrop:bg-white/65"}`}
       onCancel={(event) => {
         event.preventDefault();
         close();
@@ -75,7 +75,7 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
             type="button"
             onClick={close}
             aria-label={`Close ${label}`}
-            className={`absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-4 sm:top-4 ${tone === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
+            className={`absolute right-2 top-2 z-20 grid size-11 place-items-center rounded-[4px] outline-none transition-[background-color,color,transform] duration-200 active:scale-95 sm:right-4 sm:top-4 sm:size-9 ${tone === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white focus-visible:bg-white/10" : "text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] focus-visible:bg-black/[0.06]"}`}
           >
             <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
             <span className="sr-only">Close</span>

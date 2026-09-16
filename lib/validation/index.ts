@@ -60,6 +60,37 @@ export const createBookListSchema = z.object({
 export const updateBookListSchema = createBookListSchema;
 export const bookListItemSchema = z.object({ bookId: idSchema }).strict();
 
+const importClientIdSchema = z.string().min(1).max(700);
+const importTitleSchema = z.string().trim().min(1).max(300);
+
+export const mediaImportBatchSchema = z.discriminatedUnion("source", [
+  z.object({
+    source: z.literal("letterboxd"),
+    items: z.array(z.object({
+      clientId: importClientIdSchema,
+      source: z.literal("letterboxd"),
+      status: z.enum(["watchlist", "watched"]),
+      title: importTitleSchema,
+      year: z.string().regex(/^\d{4}$/).nullable(),
+    }).strict()).min(1).max(20),
+  }).strict(),
+  z.object({
+    source: z.literal("goodreads"),
+    items: z.array(z.object({
+      authors: z.array(z.string().trim().min(1).max(200)).min(1).max(12),
+      clientId: importClientIdSchema,
+      goodreadsBookId: z.string().trim().min(1).max(300),
+      isbn: z.string().regex(/^\d{9}[\dX]$/).nullable(),
+      isbn13: z.string().regex(/^\d{13}$/).nullable(),
+      pageCount: z.number().int().positive().max(100_000).nullable(),
+      publishYear: z.number().int().min(1000).max(9999).nullable(),
+      source: z.literal("goodreads"),
+      status: z.enum(["want_to_read", "read"]),
+      title: importTitleSchema,
+    }).strict()).min(1).max(20),
+  }).strict(),
+]);
+
 export const archiveNoteSchema = z.object({
   note: z.string().max(MAX_ARCHIVE_NOTE_LENGTH, "Archive Notes cannot exceed 100,000 characters.").nullable(),
 }).strict();

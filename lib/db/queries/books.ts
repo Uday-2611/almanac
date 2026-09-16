@@ -1,12 +1,12 @@
 import "server-only";
 
-import { and, desc, eq, exists, inArray } from "drizzle-orm";
+import { and, desc, eq, exists, inArray, sql } from "drizzle-orm";
 
 import { getDatabase } from "@/lib/db/client";
 import { bookListItems, bookLists, books, bookTags, tags } from "@/lib/db/schema";
 
 export type BookStatus = "want_to_read" | "read";
-export type BookProvider = "open_library" | "google_books";
+export type BookProvider = "open_library" | "google_books" | "goodreads";
 export type BookRecord = typeof books.$inferSelect;
 export type BookListRecord = typeof bookLists.$inferSelect & { books: BookRecord[] };
 export type BookProviderMetadata = {
@@ -50,6 +50,15 @@ export async function getBookByProviderId(userId: string, provider: BookProvider
   return book ?? null;
 }
 
+export async function getBookByTitleAndAuthor(userId: string, title: string, primaryAuthor: string) {
+  const [book] = await getDatabase().select().from(books).where(and(
+    eq(books.userId, userId),
+    sql`lower(${books.title}) = ${title.toLocaleLowerCase("en")}`,
+    sql`lower(coalesce(${books.authors}->>0, '')) = ${primaryAuthor.toLocaleLowerCase("en")}`,
+  )).limit(1);
+  return book ?? null;
+}
+
 export async function createBookForUser(userId: string, metadata: BookProviderMetadata, status: BookStatus) {
   const [created] = await getDatabase().insert(books).values({
     userId,
@@ -71,6 +80,57 @@ export async function createBookForUser(userId: string, metadata: BookProviderMe
   const existing = await getBookByProviderId(userId, metadata.provider, metadata.providerId);
   if (!existing) throw new Error("The book could not be created or retrieved.");
   return { book: existing, created: false };
+}
+
+export async function importGoodreadsBookForUser(
+  userId: string,
+  input: {
+    authors: string[];
+    goodreadsBookId: string;
+    pageCount: number | null;
+    publishYear: number | null;
+    status: BookStatus;
+    title: string;
+  },
+  metadata: BookProviderMetadata,
+) {
+  const existing = await getBookByProviderId(userId, "goodreads", input.goodreadsBookId)
+    ?? await getBookByTitleAndAuthor(userId, input.title, input.authors[0] ?? "");
+
+  if (existing) {
+    const promoted = input.status === "read" && existing.status === "want_to_read";
+    const values: Partial<typeof books.$inferInsert> = {};
+    if (promoted) values.status = "read";
+    if (!existing.coverUrl && metadata.coverUrl) values.coverUrl = metadata.coverUrl;
+    if (!existing.description && metadata.description) values.description = metadata.description;
+    if (!existing.publishDate && metadata.publishDate) values.publishDate = metadata.publishDate;
+    if (!existing.pageCount && metadata.pageCount) values.pageCount = metadata.pageCount;
+    if (!existing.contributors.length && metadata.contributors.length) values.contributors = metadata.contributors;
+
+    if (Object.keys(values).length) {
+      values.updatedAt = new Date();
+      await getDatabase().update(books).set(values)
+        .where(and(eq(books.id, existing.id), eq(books.userId, userId)));
+    }
+    return promoted ? "promoted" as const : "unchanged" as const;
+  }
+
+  const [created] = await getDatabase().insert(books).values({
+    userId,
+    provider: "goodreads",
+    providerId: input.goodreadsBookId,
+    title: metadata.title,
+    authors: metadata.authors,
+    contributors: metadata.contributors,
+    description: metadata.description,
+    coverUrl: metadata.coverUrl,
+    publishDate: metadata.publishDate,
+    pageCount: metadata.pageCount,
+    status: input.status,
+    loggedDate: null,
+  }).onConflictDoNothing({ target: [books.userId, books.provider, books.providerId] }).returning({ id: books.id });
+
+  return created ? "created" as const : "unchanged" as const;
 }
 
 export async function updateBookForUser(

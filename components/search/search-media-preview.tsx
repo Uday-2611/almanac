@@ -38,11 +38,11 @@ export function SearchMediaPreview({ data, error, label, loading, onClose, open 
     <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
       <DialogPortal>
         <DialogBackdrop className="fixed inset-0 z-[60] bg-white/72 backdrop-blur-[14px] transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <DialogViewport className="fixed inset-0 z-[70] overflow-y-auto p-4 sm:p-6">
+        <DialogViewport className="fixed inset-0 z-[70] overflow-y-auto p-0 sm:p-6">
           <DialogPopup className="relative mx-auto flex min-h-full w-full max-w-[916px] items-center outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0">
             <DialogTitle className="sr-only">{label}</DialogTitle>
             <DialogDescription className="sr-only">Provider information preview. Close to return to the unchanged search results.</DialogDescription>
-            <DialogClose aria-label={`Close ${label}`} className="ledger-focus absolute right-3 top-[calc(50%-257px)] z-20 grid size-9 place-items-center text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] active:scale-95 sm:right-4">
+            <DialogClose aria-label={`Close ${label}`} className="ledger-focus absolute right-2 top-2 z-20 grid size-11 place-items-center text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] active:scale-95 sm:right-4 sm:size-9 md:top-[calc(50%-257px)]">
               <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
             </DialogClose>
 
@@ -64,13 +64,13 @@ function PreviewPanel({ data }: { data: SearchMediaPreviewData }) {
   const peopleLabel = isScreenTitle ? "Cast" : "Contributors";
 
   return (
-    <article className="relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-y-auto gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible">
+    <article className="relative grid max-h-[100dvh] w-full grid-cols-1 overflow-y-auto gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible">
       <div className="relative aspect-[2/3] w-full bg-[#dededb] md:h-full md:aspect-auto">
         {data.artwork ? <Image src={data.artwork} alt={`${data.title} ${isScreenTitle ? "poster" : "cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isScreenTitle ? "object-cover" : "object-contain"} preload /> : null}
       </div>
       <div className="min-w-0 bg-white/55 p-5 text-[#111111] backdrop-blur-xl sm:p-6 md:h-full md:overflow-y-auto md:px-6 md:py-7">
         <header className="pb-7 pr-11">
-          <h2 className="text-[2.7rem] font-semibold leading-[0.94] tracking-[-0.05em] sm:text-[3.25rem]">{data.title}</h2>
+          <h2 className="break-words text-[clamp(2rem,11vw,2.7rem)] font-semibold leading-[0.94] tracking-[-0.05em] sm:text-[3.25rem]">{data.title}</h2>
           <p className="mt-3 text-sm text-[#686868]">{data.creator} <span aria-hidden="true" className="px-1 text-[#aaa]">|</span> {data.year}</p>
         </header>
         <section className="py-5">
@@ -80,7 +80,7 @@ function PreviewPanel({ data }: { data: SearchMediaPreviewData }) {
         </section>
         <section className="py-5">
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.12em] text-[#686868]">{peopleLabel}</h3>
-          <ul className="columns-2 gap-x-6 text-xs leading-6 text-[#686868]">
+          <ul className="columns-1 gap-x-6 text-xs leading-6 text-[#686868] sm:columns-2">
             {(data.people.length ? data.people : [`${peopleLabel} unavailable.`]).map((person) => <li key={person} className="break-inside-avoid truncate">{person}</li>)}
           </ul>
         </section>

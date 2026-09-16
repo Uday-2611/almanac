@@ -37,7 +37,7 @@ function TextToggle({ label, active, options }: {
   options: { label: string; value: string; href: ReturnType<typeof hrefFor> }[];
 }) {
   return (
-    <nav aria-label={label} className="flex items-center whitespace-nowrap">
+    <nav aria-label={label} className="flex min-h-10 items-center whitespace-nowrap sm:min-h-0">
       {options.map((option, index) => (
         <span key={option.value} className="flex items-center">
           {index > 0 ? <span aria-hidden="true" className="mx-1 text-[#111111]">/</span> : null}
@@ -56,7 +56,7 @@ function TextToggle({ label, active, options }: {
 
 function BookToolbar({ status, view, tag }: { status: BookStatus; view: BookView; tag?: string }) {
   return (
-    <div className="absolute left-4 right-4 top-14 z-10 flex justify-between gap-2 text-[11px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:justify-end sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
+    <div className="absolute left-4 right-4 top-16 z-10 flex flex-col items-start gap-1 text-[13px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:flex-row sm:items-stretch sm:justify-end sm:gap-2 sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle label="Book display" active={view} options={[
         { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
         { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
@@ -131,7 +131,7 @@ export function BookLedger({ status, view, books, lists, showCreateList, activeT
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[192px] sm:px-5 sm:pt-[195px]">
+    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Books</h1>
       <BookToolbar status={status} view={view} tag={activeTagId} />
       <AddLink lists={status === "lists"} view={view} />

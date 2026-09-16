@@ -16,9 +16,11 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Each movie or book should be a single editable entry rather than a repeatable log history model.
 - Dates, review text, rating, status, and tags can be edited over time on the same entry.
 - Tags should be visible in the UI as simple labels in v1.
+- Users can migrate their existing collections through a manual, on-demand Letterboxd or Goodreads export import. This is a one-way migration aid, not a recurring synchronization feature.
+- The initial importer brings over Letterboxd Watched/Watchlist and Goodreads Read/Want to Read membership, then enriches saved titles with provider metadata where they can be matched safely. It does not import social data, custom lists or shelves, ratings, reviews, or repeat-log history.
 - The longer-term direction for tags is a knowledge-graph style system, so the schema should preserve reusable tag identities and connections.
 - The stack direction for implementation is Next.js App Router + Postgres + server-side API routes.
-- Authentication uses Better Auth with email/password and Google OAuth. Google credentials remain server-only, the Google option is shown only when both credentials are configured, and a verified Google identity may link to an existing Almanac account with the same email.
+- Authentication uses Better Auth with email/password and Google OAuth. Google credentials remain server-only, the Google option is shown only when both credentials are configured, and existing password accounts connect Google explicitly from authenticated Settings before using Google sign-in.
 - Neon is the managed Postgres provider and Drizzle ORM owns the application schema and migrations.
 
 ## Architecture decisions
@@ -26,6 +28,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Add Client Components only where interactivity truly requires them, such as search flows, text toggles, and editable review inputs.
 - Use Postgres as the primary data store, with all reads and writes scoped by `user_id` at the query layer.
 - Keep metadata provider calls on the server through Route Handlers so client components never call TMDB or books providers directly.
+- Parse migration archives in the browser so raw export files remain on the user's device, then send only strict, size-bounded normalized batches to an authenticated Route Handler.
+- Make imports idempotent: never duplicate an existing title, let Watched/Read take priority over unfinished statuses, and preserve existing Almanac ratings, reviews, dates, Archive Notes, tags, and custom lists.
 - Store provider IDs and normalized metadata in the database so fetched records are stable even if provider responses change later.
 
 ## Data model direction
@@ -64,7 +68,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Phase 3 (complete): Build the movie and TV flow with combined TMDB-backed server-side search, add flow, database-backed list and detail pages, editable review/rating/date, watchlist/watched transitions, watched-only custom lists, list lifecycle management, and title deletion.
 - Phase 4 (complete): Mirror the movie experience for books with Open Library search, automatic Google Books fallback, persisted Want to Read/Read entries, editable read details, deletion, and Read-only custom lists.
 - Phase 5 (complete): Persist Archive Notes, add reusable cross-media tags with owner-safe attachment and removal, show tags as quiet labels, and support URL-driven tag filtering in movie and book collections.
-- Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance. Validation and error handling are complete; accessibility and measured production performance remain.
+- Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance. Validation, error handling, and the responsive mobile pass are complete; measured production performance remains.
+- Phase 7 (complete): Add one-time Letterboxd and Goodreads collection migration in Settings with local export parsing, preview counts, authenticated batch writes, conservative TMDB matching, Goodreads source identities, duplicate-safe status promotion, and unmatched-title reporting.
 
 ## Validation checklist
 - Verify visitors without a session see the landing page and authenticated visitors opening `/` are redirected to `/movies`.
@@ -76,6 +81,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Verify create, rename, delete, and membership changes for movie lists remain owner-scoped and preserve the watched-only invariant.
 - Verify route transitions, search, and data mutations show quiet skeleton feedback without replacing semantic status text.
 - Verify tags are reusable entities, not just comma-separated strings.
+- Verify Letterboxd ZIP/CSV and Goodreads CSV imports accept only supported primary collections, remain safe to rerun, and do not overwrite existing personal fields.
 - Verify the schema still supports later graph relationships without a migration-heavy rewrite.
 
 ## Open questions to revisit later
@@ -83,6 +89,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Whether editing the date field should preserve a separate audit timestamp, even though the entry itself stays singular.
 
 ## Current implementation state
+- Almanac now has a mobile-responsive pass across the landing and authentication pages, authenticated navigation, movie and book ledgers, image rails, global search, provider previews, journal details, Archive Notes, custom lists, settings, and import controls. Existing desktop geometry is preserved at the established breakpoints; phones use compact ledger columns, full-viewport scrollable overlays, wrapped controls, larger touch targets, and always-visible artwork metadata on touch-only devices.
 - The `/movies` visual foundation now mirrors the four Figma states: watched/watchlist ledger views, single-row horizontally scrolling poster views, and My Lists in both display modes.
 - Movies and TV shows share `/movies` end to end. Combined TMDB search identifies each result as movie or TV, and persisted identity uses `(media_type, tmdb_id)` so overlapping provider IDs remain distinct.
 - Movie navigation is query-driven with `status=watchlist|watched|lists` and `view=list|images`, keeping the page server-rendered and ready for database-backed data.
@@ -103,7 +110,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Archive Note tag editing creates or reuses account-scoped tag identities, suggests existing tags from both media types, attaches them to the current entry, and detaches them without deleting the reusable tag. Postgres ownership triggers prevent cross-account movie-tag and book-tag relationships.
 - Movie and book list and image views show attached tags as restrained text labels. Collection pages expose URL-driven `tag=<uuid>` filters scoped to the active status and account, with clear filtered empty states and filter state preserved across display-mode changes.
 - The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
-- Better Auth email/password flows, optional Google OAuth, database-backed sessions, protected product routes, and resilient sign-out are implemented. Google sign-in returns to `/movies`, reports callback failures on `/login`, is exposed only when both server-only Google credentials are configured, and links verified same-email Google identities to existing password accounts.
+- Better Auth email/password flows, optional Google OAuth, database-backed sessions, protected product routes, and resilient sign-out are implemented. Google sign-in returns to `/movies`, reports callback failures on `/login`, and is exposed only when both server-only Google credentials are configured. Existing password users can explicitly connect Google from authenticated Settings without weakening Better Auth's local-email verification requirement.
 - Phase 6 validation hardening aligns browser and Zod limits for reviews, completion dates, list names, tags, and Archive Notes; rejects unknown mutation fields and future completion dates; reports duplicate list names consistently; restores optimistic state after failures; and recovers pending controls after network errors.
 - The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, persistent Archive Notes, reusable tags, owner-guarded join tables, and view preferences.
 - User-created movie lists are persisted through `movie_lists` and `movie_list_items`. Both the query layer and Postgres enforce that only the owner's Watched movies can be added; moving a movie back to Watchlist clears watched-only fields and automatically removes all custom-list memberships.
@@ -118,6 +125,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Book previews and additions share one server-only metadata loader with in-flight deduplication and a bounded ten-minute success cache. Open Library supplemental enrichment is optional and limited to a shorter wait; validated title/author hints avoid redundant author lookups and enable a Google Books detail fallback when the selected Open Library work is temporarily unavailable.
 - Google fallback metadata never changes the selected result's provider-scoped identity: an Open Library result remains keyed and persisted by its original Open Library work ID, preserving duplicate prevention while allowing a resilient metadata response.
 - Detail editors query only list IDs and names for their selectors rather than hydrating every item in every custom list.
+- Settings now provides one-time library migration from Letterboxd exports (`watched.csv` and `watchlist.csv`) and Goodreads library CSV files (`read` and `to-read`). Files are parsed locally, normalized rows are imported in authenticated batches, ambiguous matches are not guessed, and imported Goodreads books retain stable Goodreads identities while ISBN-first Open Library/Google Books enrichment supplies covers, descriptions, and fuller metadata when available.
+- Import requests survive brief database or provider interruptions with bounded transient retries. Provider-enriched imports use five-title batches, and a failed run can continue after the last server-confirmed batch without starting the file over.
 - TMDB, Open Library, and Google Books requests now have bounded timeouts. Intercepted movie and book detail routes include dedicated loading fallbacks so clicks transition immediately while private Neon data is still loading.
 - Book pages now read user-scoped Neon records instead of the seed catalog. Open Library work IDs and Google Books volume IDs provide provider-scoped stable identities, while authors, cover URLs, descriptions, publication dates, contributors, and page counts are normalized and persisted when selected.
 - Book list management mirrors movie lists through `book_lists` and `book_list_items`: only the owner's Read books are eligible, moving a book to Want to Read removes memberships, and deleting a list never deletes its books.

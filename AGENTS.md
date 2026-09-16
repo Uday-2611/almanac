@@ -33,6 +33,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep external API calls server-side through Route Handlers. Do not call TMDB or books APIs directly from client components.
 - Support lightweight markdown in reviews from the start.
 - Treat each movie or book as a single editable entry in v1 rather than a repeated logging history model.
+- Preserve the manual migration importer in Settings: accept Letterboxd Watched/Watchlist exports and Goodreads Read/Want to Read exports without adding recurring provider synchronization.
 - Make tags visible as simple labels in v1, but design them as reusable entities that can grow into a future knowledge-graph system.
 
 ## User Flow
@@ -100,6 +101,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep `getCurrentUser()` wrapped in React `cache()` so layouts and pages deduplicate session lookup within one server render.
 - Do not pair `router.push()` or `router.replace()` with an immediate `router.refresh()`; navigation already requests fresh server output. Keep membership controls optimistic and refresh only when the current view genuinely needs server data reloaded.
 - Scope all user data access by `user_id` at the query layer.
+- Keep migration imports idempotent and owner-scoped. Watched/Read may promote an existing unfinished entry, but imports must not demote entries or overwrite existing ratings, reviews, logged dates, Archive Notes, tags, or custom-list memberships.
+- Parse raw Letterboxd and Goodreads exports locally in the browser; only validated, bounded normalized batches may reach the authenticated import Route Handler. Never guess ambiguous movie matches.
+- Keep migration requests resumable and tolerant of brief provider or database interruptions: use smaller Letterboxd batches, retry only transient request failures, and resume after the last server-confirmed batch.
+- Prefer Goodreads `Exclusive Shelf` over the broader `Bookshelves` column, retain ISBNs for matching, and enrich imported books server-side through Open Library with Google Books fallback. Preserve the Goodreads identity and only backfill missing provider metadata on an existing book.
 - A movie or TV show may belong to a user-created movie list only while it belongs to the same user and has `watched` status. Preserve the API validation and database triggers that enforce this; moving either title back to `watchlist` must remove its custom-list memberships.
 - A book may belong to a user-created list only while it belongs to the same user and has `read` status. Preserve the equivalent API validation and database triggers; moving a book back to `want_to_read` must remove its custom-list memberships.
 - Preserve owner-scoped movie-list CRUD. Deleting a custom list must delete only its memberships, not the watched movies it contained; movie deletion remains a separate confirmed action.
@@ -109,6 +114,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep the extension as a separate package when that milestone begins.
 
 ## Current UI Foundation
+
+- Preserve the mobile-responsive layer across every public and authenticated surface. Keep the established desktop geometry from `sm`/`md` upward while phones use compact ledger columns, full-viewport scrollable modals, wrapped controls, 44px touch targets, and visible image-rail metadata when hover is unavailable.
 
 - The movies page implements the four approved Figma states through query parameters: `status=watchlist|watched|lists` and `view=list|images`.
 - Reuse the movie ledger row, text-toggle, and horizontal poster-rail patterns when connecting real data or mirroring the experience for books.

@@ -66,13 +66,13 @@ export function GoogleAccountLink({ enabled }: { enabled: boolean }) {
       <p className="mt-3 text-sm leading-6 text-[#686868]">
         Connect Google once, then use it to sign in without entering your Almanac password.
       </p>
-      <div className="mt-6 flex items-center gap-4 text-sm">
+      <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
         <span className="text-[#686868]">Google</span>
         {state === "linked" ? (
           <span>Connected</span>
         ) : (
           <button
-            className="ledger-focus font-medium disabled:cursor-wait disabled:text-[#8a8a8a]"
+            className="ledger-focus min-h-11 font-medium disabled:cursor-wait disabled:text-[#8a8a8a] sm:min-h-0"
             type="button"
             disabled={state === "loading" || state === "linking"}
             onClick={connectGoogle}

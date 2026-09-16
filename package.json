@@ -17,6 +17,7 @@
     "test:book-invariants": "node scripts/verify-book-list-invariants.mjs",
     "test:book-flow": "node scripts/verify-book-flow.mjs",
     "test:archive-tags": "node scripts/verify-archive-tags.mjs",
+    "test:imports": "node --no-warnings --experimental-strip-types scripts/verify-imports.mjs",
     "test:validation": "node --no-warnings --experimental-strip-types scripts/verify-validation.mjs"
   },
   "dependencies": {
@@ -28,9 +29,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
+    "fflate": "^0.8.3",
     "gsap": "^3.15.0",
     "lucide-react": "^1.33.0",
     "next": "16.3.2",
+    "papaparse": "^5.7.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-markdown": "^10.1.0",
@@ -44,6 +47,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",

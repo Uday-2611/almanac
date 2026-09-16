@@ -3,7 +3,7 @@ export function MediaInfoSkeleton({ label }: { label: string }) {
     <article
       aria-label={label}
       aria-live="polite"
-      className="relative grid max-h-[calc(100dvh-2rem)] w-full grid-cols-1 overflow-hidden gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr]"
+      className="relative grid max-h-[100dvh] w-full grid-cols-1 overflow-y-auto gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-hidden"
       role="status"
     >
       <span className="aspect-[2/3] w-full animate-pulse bg-[#dededb] md:h-full md:aspect-auto" />

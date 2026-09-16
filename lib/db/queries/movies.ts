@@ -79,6 +79,36 @@ export async function createMovieForUser(userId: string, movie: TmdbTitle, statu
   return { movie: existing, created: false };
 }
 
+export async function importMovieForUser(userId: string, movie: TmdbTitle, status: MovieStatus) {
+  const existing = await getMovieByTmdbId(userId, movie.tmdbId, movie.mediaType);
+  if (existing) {
+    if (status === "watched" && existing.status === "watchlist") {
+      await getDatabase().update(movies).set({ status: "watched", updatedAt: new Date() })
+        .where(and(eq(movies.id, existing.id), eq(movies.userId, userId)));
+      return "promoted" as const;
+    }
+    return "unchanged" as const;
+  }
+
+  const [created] = await getDatabase().insert(movies).values({
+    userId,
+    tmdbId: movie.tmdbId,
+    mediaType: movie.mediaType,
+    title: movie.title,
+    creator: movie.creator,
+    overview: movie.overview || null,
+    posterUrl: movie.posterUrl,
+    backdropUrl: movie.backdropUrl,
+    releaseDate: movie.releaseDate,
+    runtimeMinutes: movie.runtimeMinutes,
+    cast: movie.cast,
+    status,
+    loggedDate: null,
+  }).onConflictDoNothing({ target: [movies.userId, movies.mediaType, movies.tmdbId] }).returning({ id: movies.id });
+
+  return created ? "created" as const : "unchanged" as const;
+}
+
 export async function updateMovieForUser(
   userId: string,
   movieId: string,

@@ -120,7 +120,7 @@ export function MovieEntryControls({
   return (
     <div className="pb-2 pr-1 text-[#111111]">
       <header className="pb-7 pr-11">
-        <h1 id="media-info-title" className="text-[3rem] font-semibold leading-[0.94] tracking-[-0.05em] text-[#111111] sm:text-[3.65rem]">
+        <h1 id="media-info-title" className="break-words text-[clamp(2rem,11vw,3rem)] font-semibold leading-[0.94] tracking-[-0.05em] text-[#111111] sm:text-[3.65rem]">
           {title}
         </h1>
         <p className="mt-3 text-sm font-medium tracking-[-0.01em] text-black/75">
@@ -132,7 +132,7 @@ export function MovieEntryControls({
         <>
           <section className="py-5" aria-labelledby="rating-heading">
             <h2 id="rating-heading" className="sr-only">Your rating</h2>
-            <div className="flex items-center gap-1 text-[1.7rem] leading-none" aria-label={`Your rating: ${rating ?? "not rated"}`}>
+            <div className="flex flex-wrap items-center gap-1 text-[1.7rem] leading-none" aria-label={`Your rating: ${rating ?? "not rated"}`}>
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
@@ -141,13 +141,13 @@ export function MovieEntryControls({
                   aria-pressed={rating === value}
                   disabled={isPending}
                   onClick={() => mutate({ rating: value }, "Saving rating")}
-                  className={`movie-info-focus transition-[color,transform] duration-200 active:scale-90 disabled:opacity-50 ${value <= (rating ?? 0) ? "text-[#111111]" : "text-black/20 hover:text-black/50"}`}
+                  className={`movie-info-focus grid size-10 place-items-center transition-[color,transform] duration-200 active:scale-90 disabled:opacity-50 sm:size-auto ${value <= (rating ?? 0) ? "text-[#111111]" : "text-black/20 hover:text-black/50"}`}
                 >
                   ★
                 </button>
               ))}
             </div>
-            <label className="mt-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-black/50">
+            <label className="mt-3 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-black/50">
               <span>Watched</span>
               <span aria-hidden="true">/</span>
               <input aria-label="Date watched" type="date" max={today} defaultValue={loggedDate ?? ""} disabled={isPending} onChange={(event) => mutate({ loggedDate: event.currentTarget.value || null }, "Saving watched date")} className="movie-info-focus min-w-0 bg-transparent font-mono text-[11px] tracking-normal text-black/70 [color-scheme:light] disabled:opacity-50" />
@@ -183,7 +183,7 @@ export function MovieEntryControls({
 
           <section aria-labelledby="cast-heading" className="py-5">
             <h2 id="cast-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Cast</h2>
-            <ul className="columns-2 gap-x-6 text-xs leading-6 text-black/70">
+            <ul className="columns-1 gap-x-6 text-xs leading-6 text-black/70 sm:columns-2">
               {cast.map((person) => <li key={person} className="break-inside-avoid truncate">{person}</li>)}
             </ul>
           </section>

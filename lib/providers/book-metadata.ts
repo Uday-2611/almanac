@@ -18,7 +18,7 @@ const CACHE_TTL_MS = 10 * 60 * 1_000;
 const MAX_CACHE_ENTRIES = 100;
 
 export type BookMetadataRequest = {
-  provider: BookProvider;
+  provider: Exclude<BookProvider, "goodreads">;
   providerId: string;
   titleHint?: string;
   authorHints?: string[];
