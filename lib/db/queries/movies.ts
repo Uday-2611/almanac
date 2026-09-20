@@ -51,6 +51,24 @@ export async function getMovieByTmdbId(userId: string, tmdbId: number, mediaType
   return movie ?? null;
 }
 
+export async function listMovieSearchStatusesForUser(
+  userId: string,
+  results: { tmdbId: number; mediaType: TmdbMediaType }[],
+) {
+  const tmdbIds = [...new Set(results.map((result) => result.tmdbId))];
+  if (!tmdbIds.length) return [];
+
+  return getDatabase()
+    .select({
+      id: movies.id,
+      mediaType: movies.mediaType,
+      status: movies.status,
+      tmdbId: movies.tmdbId,
+    })
+    .from(movies)
+    .where(and(eq(movies.userId, userId), inArray(movies.tmdbId, tmdbIds)));
+}
+
 export async function createMovieForUser(userId: string, movie: TmdbTitle, status: MovieStatus) {
   const [created] = await getDatabase()
     .insert(movies)

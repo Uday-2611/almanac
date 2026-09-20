@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
+import { listMovieSearchStatusesForUser } from "@/lib/db/queries/movies";
 import { searchTmdbTitles, TmdbConfigurationError } from "@/lib/providers/tmdb";
 
 export async function GET(request: Request) {
@@ -9,7 +10,22 @@ export async function GET(request: Request) {
   if (query.length < 2) return Response.json({ results: [] });
 
   try {
-    return Response.json({ results: await searchTmdbTitles(query) });
+    const results = await searchTmdbTitles(query);
+    const savedTitles = await listMovieSearchStatusesForUser(user.id, results);
+
+    return Response.json({
+      results: results.map((result) => {
+        const saved = savedTitles.find((movie) => (
+          movie.tmdbId === result.tmdbId && movie.mediaType === result.mediaType
+        ));
+
+        return {
+          ...result,
+          savedEntryId: saved?.id ?? null,
+          savedStatus: saved?.status ?? null,
+        };
+      }),
+    });
   } catch (error) {
     if (error instanceof TmdbConfigurationError) {
       return Response.json({ error: "TMDB_API_READ_TOKEN is not configured." }, { status: 503 });

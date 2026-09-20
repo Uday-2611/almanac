@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
-import { createMovieForUser, listMoviesForUser } from "@/lib/db/queries/movies";
+import { createMovieForUser, listMoviesForUser, updateMovieForUser } from "@/lib/db/queries/movies";
 import { getTmdbTitle, TmdbConfigurationError } from "@/lib/providers/tmdb";
 import { createMovieSchema } from "@/lib/validation";
 
@@ -25,6 +25,18 @@ export async function POST(request: Request) {
       await getTmdbTitle(parsed.data.tmdbId, parsed.data.mediaType),
       parsed.data.status,
     );
+
+    if (parsed.data.status === "watched") {
+      const movie = await updateMovieForUser(user.id, result.movie.id, {
+        status: "watched",
+        rating: parsed.data.rating,
+        review: parsed.data.review,
+        loggedDate: parsed.data.loggedDate,
+      });
+      if (!movie) throw new Error("The watched title could not be saved.");
+      return Response.json({ movie, created: result.created }, { status: result.created ? 201 : 200 });
+    }
+
     return Response.json(result, { status: result.created ? 201 : 200 });
   } catch (error) {
     if (error instanceof TmdbConfigurationError) {

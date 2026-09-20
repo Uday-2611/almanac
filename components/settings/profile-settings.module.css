@@ -1,0 +1,389 @@
+.profileHeader {
+  display: grid;
+  grid-template-columns: clamp(7.5rem, 14vw, 11rem) minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  padding-bottom: clamp(3.5rem, 8vw, 7rem);
+}
+
+.orb {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at var(--orb-light-x) var(--orb-light-y),
+      var(--orb-light) 0%,
+      var(--orb-mid) 34%,
+      transparent 69%
+    ),
+    radial-gradient(
+      circle at var(--orb-shadow-x) var(--orb-shadow-y),
+      var(--orb-deep) 0%,
+      var(--orb-base) 54%,
+      var(--orb-mid) 100%
+    );
+}
+
+.orb::before,
+.orb::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.orb::before {
+  inset: -16%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at var(--orb-light-x) var(--orb-light-y),
+    rgb(255 255 255 / 28%) 0%,
+    transparent 48%
+  );
+  filter: blur(clamp(0.8rem, 2vw, 1.75rem));
+}
+
+.orb::after {
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+  background-size: 11rem 11rem;
+  mix-blend-mode: soft-light;
+  opacity: 0.24;
+}
+
+.profileIntroduction > p,
+.sectionIntroduction > p {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #777777;
+}
+
+.profileIntroduction h1 {
+  margin-top: 0.7rem;
+  overflow-wrap: anywhere;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.profileIntroduction > span {
+  display: block;
+  margin-top: 0.9rem;
+  font-size: 0.875rem;
+  color: #686868;
+}
+
+.section {
+  border-top: 1px solid #e8e8e8;
+  padding-block: clamp(2rem, 5vw, 4rem);
+}
+
+.sectionIntroduction {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.32fr) minmax(0, 0.68fr);
+  gap: 2rem;
+  margin-bottom: 2.25rem;
+}
+
+.sectionIntroduction h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.sectionIntroduction span {
+  display: block;
+  max-width: 32rem;
+  margin-top: 0.55rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: #686868;
+}
+
+.detailRows,
+.accountRows {
+  margin-left: min(32%, 23rem);
+}
+
+.detailRow,
+.accountRow {
+  min-height: 4.75rem;
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid #ededed;
+}
+
+.detailRow {
+  grid-template-columns: minmax(6rem, 0.35fr) minmax(0, 1fr) auto;
+}
+
+.detailRow:last-child,
+.accountRow:last-of-type {
+  border-bottom: 1px solid #ededed;
+}
+
+.detailLabel {
+  font-size: 0.75rem;
+  color: #686868;
+}
+
+.detailValue {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+}
+
+.textAction,
+.editActions button {
+  min-height: 2.75rem;
+  border-radius: 4px;
+  padding-inline: 0.45rem;
+  font-size: 0.8125rem;
+  color: #686868;
+  transition: color 160ms ease-in-out, background-color 160ms ease-in-out, transform 100ms ease-out;
+}
+
+.textAction:hover:not(:disabled),
+.editActions button:hover:not(:disabled) {
+  color: #111111;
+  background: #f3f3f1;
+}
+
+.textAction:focus-visible,
+.editActions button:focus-visible,
+.deleteButton:focus-visible {
+  outline: none;
+  background: #e8e8e4;
+  color: #111111;
+}
+
+.textAction:active:not(:disabled),
+.editActions button:active:not(:disabled),
+.deleteButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.textAction:disabled,
+.editActions button:disabled,
+.deleteButton:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.editForm {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.65rem;
+}
+
+.editForm input,
+.deleteFields input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 4px;
+  background: #f3f3f1;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.875rem;
+  transition: background-color 160ms ease-in-out;
+}
+
+.editForm input:focus-visible,
+.deleteFields input:focus-visible {
+  outline: none;
+  background: #e9e9e5;
+}
+
+.editActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.profileStatus {
+  min-height: 1.5rem;
+  margin: 0.85rem 0 0 min(32%, 23rem);
+  font-size: 0.75rem;
+  color: #686868;
+}
+
+.accountRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding-block: 1rem;
+}
+
+.accountRow h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.accountRow p,
+.deleteForm > p {
+  max-width: 34rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #686868;
+}
+
+.dangerRow h3,
+.dangerAction {
+  color: #8a2d2d;
+}
+
+.dangerAction:hover:not(:disabled) {
+  color: #731f1f;
+  background: #f8eeee;
+}
+
+.deleteForm {
+  padding: 1.5rem 0 0;
+}
+
+.deleteFields {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.deleteFields label > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.6875rem;
+  color: #686868;
+}
+
+.deleteButton {
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  border-radius: 4px;
+  background: #8a2d2d;
+  padding: 0.7rem 0.9rem;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color 160ms ease-in-out, transform 100ms ease-out;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #731f1f;
+}
+
+.deleteButton:disabled {
+  background: #c9c2c2;
+}
+
+.error {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #8a2d2d;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .profileHeader {
+    grid-template-columns: 5.75rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .profileIntroduction h1 {
+    font-size: clamp(1.85rem, 10vw, 3rem);
+  }
+
+  .sectionIntroduction {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .detailRows,
+  .accountRows,
+  .profileStatus {
+    margin-left: 0;
+  }
+
+  .detailRow {
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  }
+
+  .editForm {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+
+  .editActions {
+    justify-content: flex-end;
+  }
+
+  .deleteFields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .profileHeader {
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+  }
+
+  .profileIntroduction > span {
+    font-size: 0.75rem;
+  }
+
+  .detailRow,
+  .accountRow {
+    min-height: 4.5rem;
+  }
+
+  .detailRow {
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem 0.75rem;
+    padding-block: 0.9rem;
+  }
+
+  .detailLabel {
+    grid-column: 1 / -1;
+  }
+
+  .accountRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .accountRow .textAction {
+    justify-self: start;
+    margin-left: -0.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textAction,
+  .editActions button,
+  .deleteButton,
+  .editForm input,
+  .deleteFields input {
+    transition-duration: 0.01ms;
+  }
+}

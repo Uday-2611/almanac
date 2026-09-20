@@ -41,10 +41,17 @@ export default async function MoviesPage({ searchParams }: PageProps<"/movies">)
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const tagOptions = status === "lists" ? [] : await listMovieTagOptionsForUser(user.id, status);
-  const activeTagId = idSchema.safeParse(requestedTag).success && tagOptions.some((tag) => tag.id === requestedTag) ? requestedTag : undefined;
-  const listRecords = status === "lists" ? await listMovieListsForUser(user.id) : [];
-  const movieRecords = status === "lists" ? [] : await listMoviesForUser(user.id, status, activeTagId);
+  const databaseStatus = status === "watchlist" ? "watchlist" : "watched";
+  const requestedTagId = idSchema.safeParse(requestedTag).success ? requestedTag : undefined;
+  const [tagOptions, listRecords, requestedMovieRecords] = await Promise.all([
+    status === "lists" ? Promise.resolve([]) : listMovieTagOptionsForUser(user.id, databaseStatus),
+    status === "lists" ? listMovieListsForUser(user.id) : Promise.resolve([]),
+    status === "lists" ? Promise.resolve([]) : listMoviesForUser(user.id, databaseStatus, requestedTagId),
+  ]);
+  const activeTagId = requestedTagId && tagOptions.some((tag) => tag.id === requestedTagId) ? requestedTagId : undefined;
+  const movieRecords = status !== "lists" && requestedTagId && !activeTagId
+    ? await listMoviesForUser(user.id, databaseStatus)
+    : requestedMovieRecords;
   const movieIds = status === "lists" ? listRecords.flatMap((list) => list.movies.map((movie) => movie.id)) : movieRecords.map((movie) => movie.id);
   const tagsByMovie = await listTagsForMoviesForUser(user.id, movieIds);
   const lists = listRecords.map((list) => ({

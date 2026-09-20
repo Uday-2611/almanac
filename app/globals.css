@@ -182,6 +182,16 @@ input[type="search"]::-webkit-search-cancel-button {
   animation: search-added-pop 1.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+@keyframes ledger-route-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(310%); }
+}
+
+.ledger-route-progress-bar {
+  animation: ledger-route-progress 900ms ease-in-out infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -195,6 +205,11 @@ input[type="search"]::-webkit-search-cancel-button {
   .search-added-confirmation {
     animation: none !important;
     opacity: 1;
+    transform: none;
+  }
+
+  .ledger-route-progress-bar {
+    animation: none !important;
     transform: none;
   }
 }

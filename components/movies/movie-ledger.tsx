@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
+import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { AnimatedMoviePoster } from "@/components/movies/animated-movie-poster";
 import { MovieListDisclosure } from "@/components/movies/movie-list-disclosure";
 import { MoviePosterRail } from "@/components/movies/movie-poster-rail";
@@ -37,35 +41,49 @@ function TextToggle({
   label,
   options,
   active,
+  onChange,
 }: {
   label: string;
   options: { label: string; href: ReturnType<typeof hrefFor>; value: string }[];
   active: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <nav aria-label={label} className="flex min-h-10 items-center whitespace-nowrap sm:min-h-0">
       {options.map((option, index) => (
         <span key={option.value} className="flex items-center">
           {index > 0 ? <span aria-hidden="true" className="mx-1 text-[#111111]">/</span> : null}
-          <Link
-            href={option.href}
-            aria-current={option.value === active ? "page" : undefined}
-            className={option.value === active ? "ledger-focus text-[#111111]" : "ledger-focus text-[#686868] hover:text-[#111111]"}
-          >
-            {option.label}
-          </Link>
+          {onChange ? (
+            <button
+              type="button"
+              aria-pressed={option.value === active}
+              className={option.value === active ? "ledger-focus text-[#111111]" : "ledger-focus text-[#686868] hover:text-[#111111]"}
+              onClick={() => onChange(option.value)}
+            >
+              {option.label}
+            </button>
+          ) : (
+            <PendingNavigationLink
+              href={option.href}
+              active={option.value === active}
+              pendingLabel={`Loading ${option.label}`}
+            >
+              {option.label}
+            </PendingNavigationLink>
+          )}
         </span>
       ))}
     </nav>
   );
 }
 
-function MovieToolbar({ status, view, tag }: { status: MovieStatus; view: MovieView; tag?: string }) {
+function MovieToolbar({ status, view, tag, onViewChange }: { status: MovieStatus; view: MovieView; tag?: string; onViewChange: (view: MovieView) => void }) {
   return (
     <div className="absolute left-4 right-4 top-16 z-10 flex flex-col items-start gap-1 text-[13px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:flex-row sm:items-stretch sm:justify-end sm:gap-2 sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
       <TextToggle
         label="Movie and TV display"
         active={view}
+        onChange={(value) => onViewChange(value as MovieView)}
         options={[
           { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
           { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
@@ -86,7 +104,7 @@ function MovieToolbar({ status, view, tag }: { status: MovieStatus; view: MovieV
 
 function AddLink({ lists, view }: { lists?: boolean; view: MovieView }) {
   if (!lists) {
-    return <SearchTrigger label="Add New +" scope="movie" className="inline-flex text-sm sm:text-base" />;
+    return <SearchTrigger label="Search" scope="movie" className="inline-flex text-sm sm:text-base" />;
   }
 
   return (
@@ -178,19 +196,29 @@ export function MovieLedger({
   activeTagId?: string;
   tagOptions: TagFilterOption[];
 }) {
+  const searchParams = useSearchParams();
+  const queryView = searchParams.get("view");
+  const activeView: MovieView = queryView === "images" || queryView === "list" ? queryView : view;
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+
+  function changeView(nextView: MovieView) {
+    if (nextView === activeView) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", nextView);
+    window.history.pushState(null, "", `?${params.toString()}`);
+  }
 
   return (
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Movies and TV shows</h1>
-      <MovieToolbar status={status} view={view} tag={activeTagId} />
-      <AddLink lists={status === "lists"} view={view} />
-      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view }} tags={tagOptions} /> : null}
+      <MovieToolbar status={status} view={activeView} tag={activeTagId} onViewChange={changeView} />
+      <AddLink lists={status === "lists"} view={activeView} />
+      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateMovieListForm /> : null}
       {status === "lists" ? (
-        lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
+        lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
       ) : movies.length ? (
-        view === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
+        activeView === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
       ) : (
         <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No ${status === "watchlist" ? "watchlist" : "watched"} titles use the tag “${activeTagName}”.` : status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies or TV shows as watched yet."} /></div>
       )}

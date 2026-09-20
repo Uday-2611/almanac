@@ -16,7 +16,19 @@ export const createMovieSchema = z.object({
   tmdbId: z.number().int().positive(),
   mediaType: z.enum(["movie", "tv"]).default("movie"),
   status: z.enum(["watchlist", "watched"]).default("watchlist"),
-}).strict();
+  rating: z.number().int().min(1).max(5).nullable().optional(),
+  review: z.string().max(MAX_REVIEW_LENGTH, `Reviews cannot exceed ${MAX_REVIEW_LENGTH.toLocaleString("en-US")} characters.`).nullable().optional(),
+  loggedDate: completionDateSchema.nullable().optional(),
+}).strict().superRefine((value, context) => {
+  if (value.status === "watched") return;
+  if (value.rating !== undefined || value.review !== undefined || value.loggedDate !== undefined) {
+    context.addIssue({
+      code: "custom",
+      message: "Watched details can only be saved to the Watched collection.",
+      path: ["status"],
+    });
+  }
+});
 
 export const updateMovieSchema = z.object({
   status: z.enum(["watchlist", "watched"]).optional(),

@@ -41,10 +41,16 @@ export default async function BooksPage({ searchParams }: PageProps<"/books">) {
   if (!user) return null;
 
   const databaseStatus = status === "want-to-read" ? "want_to_read" : "read";
-  const tagOptions = status === "lists" ? [] : await listBookTagOptionsForUser(user.id, databaseStatus);
-  const activeTagId = idSchema.safeParse(requestedTag).success && tagOptions.some((tag) => tag.id === requestedTag) ? requestedTag : undefined;
-  const listRecords = status === "lists" ? await listBookListsForUser(user.id) : [];
-  const bookRecords = status === "lists" ? [] : await listBooksForUser(user.id, databaseStatus, activeTagId);
+  const requestedTagId = idSchema.safeParse(requestedTag).success ? requestedTag : undefined;
+  const [tagOptions, listRecords, requestedBookRecords] = await Promise.all([
+    status === "lists" ? Promise.resolve([]) : listBookTagOptionsForUser(user.id, databaseStatus),
+    status === "lists" ? listBookListsForUser(user.id) : Promise.resolve([]),
+    status === "lists" ? Promise.resolve([]) : listBooksForUser(user.id, databaseStatus, requestedTagId),
+  ]);
+  const activeTagId = requestedTagId && tagOptions.some((tag) => tag.id === requestedTagId) ? requestedTagId : undefined;
+  const bookRecords = status !== "lists" && requestedTagId && !activeTagId
+    ? await listBooksForUser(user.id, databaseStatus)
+    : requestedBookRecords;
   const bookIds = status === "lists" ? listRecords.flatMap((list) => list.books.map((book) => book.id)) : bookRecords.map((book) => book.id);
   const tagsByBook = await listTagsForBooksForUser(user.id, bookIds);
   const lists = listRecords.map((list) => ({

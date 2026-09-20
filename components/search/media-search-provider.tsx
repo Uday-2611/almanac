@@ -16,6 +16,7 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { MovieWatchedDialog, type MovieWatchedDetails } from "@/components/search/movie-watched-dialog"
 import { SearchMediaPreview, type SearchMediaPreviewData } from "@/components/search/search-media-preview"
 import { SearchResultSkeleton } from "@/components/states/interaction-skeleton"
 import type { SearchScope } from "@/lib/search/catalog"
@@ -35,6 +36,8 @@ type SearchResult = {
   provider?: string
   mediaType?: TmdbMediaType
   authors?: string[]
+  savedEntryId?: string | null
+  savedStatus?: MovieStatus | BookStatus | null
 }
 type BookSearchResult = {
   provider: string
@@ -71,6 +74,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   const [previewData, setPreviewData] = useState<SearchMediaPreviewData | null>(null)
   const [previewError, setPreviewError] = useState("")
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
+  const [previewResult, setPreviewResult] = useState<SearchResult | null>(null)
+  const [movieReviewTarget, setMovieReviewTarget] = useState<SearchResult | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const searchCacheRef = useRef(new Map<string, CachedSearch>())
   const previewCacheRef = useRef(new Map<string, SearchMediaPreviewData>())
@@ -140,7 +145,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
             if (!response.ok) return { results: [], error: data?.error ?? "Movie search is unavailable." }
 
             return {
-              results: (data?.results ?? []).map((movie: { tmdbId: number; mediaType: TmdbMediaType; title: string; year: string; posterUrl: string | null }) => ({
+              results: (data?.results ?? []).map((movie: { tmdbId: number; mediaType: TmdbMediaType; title: string; year: string; posterUrl: string | null; savedEntryId: string | null; savedStatus: MovieStatus | null }) => ({
                 id: String(movie.tmdbId),
                 kind: "movie" as const,
                 title: movie.title,
@@ -148,6 +153,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                 year: movie.year,
                 artwork: movie.posterUrl,
                 mediaType: movie.mediaType,
+                savedEntryId: movie.savedEntryId,
+                savedStatus: movie.savedStatus,
               })).slice(0, scope === "all" ? 4 : 8),
             }
           } catch (error) {
@@ -202,6 +209,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     setResultKey("")
     setSearchError("")
     setAddedStatuses({})
+    setMovieReviewTarget(null)
+    setPreviewResult(null)
     hasMutatedRef.current = false
     setOpen(true)
   }
@@ -213,6 +222,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
       previewIntentTimersRef.current.clear()
       setQuery("")
       setPreviewOpen(false)
+      setMovieReviewTarget(null)
+      setPreviewResult(null)
       activePreviewIdentityRef.current = null
       if (hasMutatedRef.current) {
         hasMutatedRef.current = false
@@ -227,6 +238,20 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
 
   function addActionKey(identity: string, status: MovieStatus | BookStatus) {
     return `${identity}:${status}`
+  }
+
+  function currentStatus(result: SearchResult) {
+    return addedStatuses[resultIdentity(result)] ?? result.savedStatus ?? null
+  }
+
+  function collectionStatusLabel(result: SearchResult | null) {
+    if (!result) return "Not saved"
+    const status = currentStatus(result)
+    if (status === "watchlist") return "Watchlist"
+    if (status === "watched") return "Watched"
+    if (status === "want_to_read") return "Want to Read"
+    if (status === "read") return "Read"
+    return "Not saved"
   }
 
   function setAddPending(key: string, pending: boolean) {
@@ -314,6 +339,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     cancelPreviewPrefetch(result)
     const identity = resultIdentity(result)
     activePreviewIdentityRef.current = identity
+    setPreviewResult(result)
     setPreviewLabel(`${result.title} details`)
     setPreviewOpen(true)
     setPreviewError("")
@@ -335,33 +361,41 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function addMovie(tmdbId: number, mediaType: TmdbMediaType, status: MovieStatus) {
+  async function addMovie(result: SearchResult, status: MovieStatus, watchedDetails?: MovieWatchedDetails) {
+    const tmdbId = Number(result.id)
+    const mediaType = result.mediaType ?? "movie"
     const entryNoun = mediaType === "tv" ? "show" : "movie"
-    const identity = `movie:tmdb:${mediaType}:${tmdbId}`
+    const identity = resultIdentity(result)
     const actionKey = addActionKey(identity, status)
-    if (pendingAdds[actionKey]) return
+    if (pendingAdds[actionKey]) return null
     setSearchError("")
     setAddPending(actionKey, true)
-    void (async () => {
-      try {
-        const response = await fetch("/api/movies", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tmdbId, mediaType, status }),
-        })
-        const data = await response.json().catch(() => null)
-        if (!response.ok) return setSearchError(data?.error ?? `The ${entryNoun} could not be added.`)
-
-        hasMutatedRef.current = true
-        const savedStatus = data.movie.status as MovieStatus
-        setAddedStatuses((current) => ({ ...current, [identity]: savedStatus }))
-        showAddedConfirmation(addActionKey(identity, savedStatus))
-      } catch {
-        setSearchError(`The ${entryNoun} could not be added.`)
-      } finally {
-        setAddPending(actionKey, false)
+    try {
+      const response = await fetch("/api/movies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tmdbId, mediaType, status, ...watchedDetails }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        const message = data?.error ?? `The ${entryNoun} could not be added.`
+        setSearchError(message)
+        return message
       }
-    })()
+
+      hasMutatedRef.current = true
+      searchCacheRef.current.clear()
+      const savedStatus = data.movie.status as MovieStatus
+      setAddedStatuses((current) => ({ ...current, [identity]: savedStatus }))
+      showAddedConfirmation(addActionKey(identity, savedStatus))
+      return null
+    } catch {
+      const message = `The ${entryNoun} could not be added. Check your connection and try again.`
+      setSearchError(message)
+      return message
+    } finally {
+      setAddPending(actionKey, false)
+    }
   }
 
   function addBook(result: SearchResult, status: BookStatus) {
@@ -401,6 +435,30 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
   }
 
   const searchLabel = scope === "movie" ? "Search movies and TV shows" : scope === "book" ? "Search books" : "Search movies, TV shows, and books"
+  const previewIdentity = previewResult ? resultIdentity(previewResult) : ""
+  const previewSavedStatus = previewResult ? currentStatus(previewResult) : null
+  const previewPrimaryStatus = previewResult?.kind === "movie" ? "watchlist" : "want_to_read"
+  const previewSecondaryStatus = previewResult?.kind === "movie" ? "watched" : "read"
+  const previewPrimaryKey = addActionKey(previewIdentity, previewPrimaryStatus)
+  const previewSecondaryKey = addActionKey(previewIdentity, previewSecondaryStatus)
+  const previewActions = previewResult ? (
+    <SearchResultActions
+      addedConfirmations={addedConfirmations}
+      pendingAdds={pendingAdds}
+      primaryKey={previewPrimaryKey}
+      result={previewResult}
+      savedStatus={previewSavedStatus}
+      secondaryKey={previewSecondaryKey}
+      onPrimary={() => {
+        if (previewResult.kind === "movie") void addMovie(previewResult, "watchlist")
+        else addBook(previewResult, "want_to_read")
+      }}
+      onSecondary={() => {
+        if (previewResult.kind === "movie") setMovieReviewTarget(previewResult)
+        else addBook(previewResult, "read")
+      }}
+    />
+  ) : undefined
 
   return (
     <SearchContext.Provider value={{ openSearch }}>
@@ -427,12 +485,11 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                     <ul className="space-y-1">
                       {results.map((result) => {
                         const identity = resultIdentity(result)
-                        const addedStatus = addedStatuses[identity]
+                        const savedStatus = currentStatus(result)
                         const primaryStatus = result.kind === "movie" ? "watchlist" : "want_to_read"
                         const secondaryStatus = result.kind === "movie" ? "watched" : "read"
                         const primaryKey = addActionKey(identity, primaryStatus)
                         const secondaryKey = addActionKey(identity, secondaryStatus)
-                        const itemIsAdding = Boolean(pendingAdds[primaryKey] || pendingAdds[secondaryKey])
 
                         return (
                           <li key={identity} className="overflow-visible rounded-[4px] bg-white">
@@ -455,17 +512,24 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                                   <span className="block truncate text-[16px] leading-5 text-[#b5b5b5]">{result.credit} <span aria-hidden="true">|</span> {result.year}</span>
                                 </span>
                               </button>
-                              {result.kind === "movie" ? (
-                                <span className="flex flex-wrap justify-end gap-x-4 gap-y-2 px-1 pb-1 pt-3 text-sm sm:flex-nowrap sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
-                                  <SearchAddAction added={addedStatus === "watchlist"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Watchlist" onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watchlist")}>Add to watchlist</SearchAddAction>
-                                  <SearchAddAction added={addedStatus === "watched"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Watched" muted onClick={() => addMovie(Number(result.id), result.mediaType ?? "movie", "watched")}>Watched</SearchAddAction>
-                                </span>
-                              ) : (
-                                <span className="flex flex-wrap justify-end gap-x-4 gap-y-2 px-1 pb-1 pt-3 text-sm sm:flex-nowrap sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
-                                  <SearchAddAction added={addedStatus === "want_to_read"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Want to read" onClick={() => addBook(result, "want_to_read")}>Add to reading list</SearchAddAction>
-                                  <SearchAddAction added={addedStatus === "read"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(addedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Read" muted onClick={() => addBook(result, "read")}>Read</SearchAddAction>
-                                </span>
-                              )}
+                              <span className="flex flex-wrap justify-end gap-x-4 gap-y-2 px-1 pb-1 pt-3 text-sm sm:flex-nowrap sm:px-0 sm:pb-0 sm:pr-0.5 sm:pt-0 sm:text-base">
+                                <SearchResultActions
+                                  addedConfirmations={addedConfirmations}
+                                  pendingAdds={pendingAdds}
+                                  primaryKey={primaryKey}
+                                  result={result}
+                                  savedStatus={savedStatus}
+                                  secondaryKey={secondaryKey}
+                                  onPrimary={() => {
+                                    if (result.kind === "movie") void addMovie(result, "watchlist")
+                                    else addBook(result, "want_to_read")
+                                  }}
+                                  onSecondary={() => {
+                                    if (result.kind === "movie") setMovieReviewTarget(result)
+                                    else addBook(result, "read")
+                                  }}
+                                />
+                              </span>
                             </div>
                           </li>
                         )
@@ -487,6 +551,8 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
         </DialogPortal>
       </Dialog>
       <SearchMediaPreview
+        actions={previewActions}
+        collectionStatus={previewResult?.kind === "movie" ? collectionStatusLabel(previewResult) : null}
         data={previewData}
         error={previewError}
         label={previewLabel}
@@ -494,10 +560,79 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
         onClose={() => {
           activePreviewIdentityRef.current = null
           setPreviewOpen(false)
+          setPreviewResult(null)
         }}
         open={previewOpen}
       />
+      {movieReviewTarget ? (
+        <MovieWatchedDialog
+          key={resultIdentity(movieReviewTarget)}
+          fromWatchlist={currentStatus(movieReviewTarget) === "watchlist"}
+          onClose={() => setMovieReviewTarget(null)}
+          onSave={(details) => addMovie(movieReviewTarget, "watched", details)}
+          title={movieReviewTarget.title}
+        />
+      ) : null}
     </SearchContext.Provider>
+  )
+}
+
+function SearchResultActions({
+  addedConfirmations,
+  onPrimary,
+  onSecondary,
+  pendingAdds,
+  primaryKey,
+  result,
+  savedStatus,
+  secondaryKey,
+}: {
+  addedConfirmations: Record<string, boolean>
+  onPrimary: () => void
+  onSecondary: () => void
+  pendingAdds: Record<string, boolean>
+  primaryKey: string
+  result: SearchResult
+  savedStatus: MovieStatus | BookStatus | null
+  secondaryKey: string
+}) {
+  const itemIsAdding = Boolean(pendingAdds[primaryKey] || pendingAdds[secondaryKey])
+
+  if (result.kind === "movie") {
+    return (
+      <>
+        {savedStatus !== "watched" ? (
+          <SearchAddAction
+            added={savedStatus === "watchlist"}
+            confirming={Boolean(addedConfirmations[primaryKey])}
+            disabled={itemIsAdding || savedStatus === "watchlist"}
+            loading={Boolean(pendingAdds[primaryKey])}
+            loadingLabel="Adding to Watchlist"
+            onClick={onPrimary}
+          >
+            {savedStatus === "watchlist" ? "In watchlist" : "Add to watchlist"}
+          </SearchAddAction>
+        ) : null}
+        <SearchAddAction
+          added={savedStatus === "watched"}
+          confirming={Boolean(addedConfirmations[secondaryKey])}
+          disabled={itemIsAdding || savedStatus === "watched"}
+          loading={Boolean(pendingAdds[secondaryKey])}
+          loadingLabel="Saving to Watched"
+          muted={savedStatus !== "watched"}
+          onClick={onSecondary}
+        >
+          Watched
+        </SearchAddAction>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <SearchAddAction added={savedStatus === "want_to_read"} confirming={Boolean(addedConfirmations[primaryKey])} disabled={itemIsAdding || Boolean(savedStatus)} loading={Boolean(pendingAdds[primaryKey])} loadingLabel="Adding to Want to read" onClick={onPrimary}>Add to reading list</SearchAddAction>
+      <SearchAddAction added={savedStatus === "read"} confirming={Boolean(addedConfirmations[secondaryKey])} disabled={itemIsAdding || Boolean(savedStatus)} loading={Boolean(pendingAdds[secondaryKey])} loadingLabel="Adding to Read" muted onClick={onSecondary}>Read</SearchAddAction>
+    </>
   )
 }
 

@@ -35,6 +35,11 @@ function createAuth() {
       minPasswordLength: 8,
       maxPasswordLength: 128,
     },
+    user: {
+      deleteUser: {
+        enabled: true,
+      },
+    },
     account: {
       accountLinking: {
         enabled: true,

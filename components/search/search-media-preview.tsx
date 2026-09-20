@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { X } from "lucide-react";
+import type { ReactNode } from "react";
 
 import {
   Dialog,
@@ -26,7 +27,9 @@ export type SearchMediaPreviewData = {
   year: string;
 };
 
-export function SearchMediaPreview({ data, error, label, loading, onClose, open }: {
+export function SearchMediaPreview({ actions, collectionStatus, data, error, label, loading, onClose, open }: {
+  actions?: ReactNode;
+  collectionStatus: string | null;
   data: SearchMediaPreviewData | null;
   error: string;
   label: string;
@@ -51,7 +54,7 @@ export function SearchMediaPreview({ data, error, label, loading, onClose, open 
                 <p>{error}</p>
                 <DialogClose className="ledger-focus mt-5 underline underline-offset-4">Return to search</DialogClose>
               </div>
-            ) : data ? <PreviewPanel data={data} /> : null}
+            ) : data ? <PreviewPanel actions={actions} collectionStatus={collectionStatus} data={data} /> : null}
           </DialogPopup>
         </DialogViewport>
       </DialogPortal>
@@ -59,7 +62,11 @@ export function SearchMediaPreview({ data, error, label, loading, onClose, open 
   );
 }
 
-function PreviewPanel({ data }: { data: SearchMediaPreviewData }) {
+function PreviewPanel({ actions, collectionStatus, data }: {
+  actions?: ReactNode;
+  collectionStatus: string | null;
+  data: SearchMediaPreviewData;
+}) {
   const isScreenTitle = data.kind === "movie" || data.kind === "tv";
   const peopleLabel = isScreenTitle ? "Cast" : "Contributors";
 
@@ -72,6 +79,12 @@ function PreviewPanel({ data }: { data: SearchMediaPreviewData }) {
         <header className="pb-7 pr-11">
           <h2 className="break-words text-[clamp(2rem,11vw,2.7rem)] font-semibold leading-[0.94] tracking-[-0.05em] sm:text-[3.25rem]">{data.title}</h2>
           <p className="mt-3 text-sm text-[#686868]">{data.creator} <span aria-hidden="true" className="px-1 text-[#aaa]">|</span> {data.year}</p>
+          {collectionStatus ? (
+            <p className="mt-4 text-[11px] uppercase tracking-[0.12em] text-black/45">
+              Archive <span aria-hidden="true" className="px-1 text-black/25">/</span> <span className="text-[#111111]">{collectionStatus}</span>
+            </p>
+          ) : null}
+          {actions ? <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">{actions}</div> : null}
         </header>
         <section className="py-5">
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.12em] text-[#686868]">Overview</h3>

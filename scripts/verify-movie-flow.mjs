@@ -9,6 +9,7 @@ if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
 if (!process.env.TMDB_API_READ_TOKEN && !process.env.TMDB_API_KEY) throw new Error("TMDB credentials are required.");
 
 const baseUrl = process.env.MOVIE_FLOW_BASE_URL ?? "http://localhost:3000";
+const requestOrigin = process.env.MOVIE_FLOW_ORIGIN ?? baseUrl;
 const email = `movie-flow-${randomUUID()}@example.invalid`;
 const password = `Movie-flow-${randomUUID()}`;
 const sql = neon(process.env.DATABASE_URL);
@@ -24,7 +25,7 @@ async function jsonRequest(path, init = {}) {
 try {
   const signup = await jsonRequest("/api/auth/sign-up/email", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    headers: { "Content-Type": "application/json", Origin: requestOrigin },
     body: JSON.stringify({ email, name: "Movie Flow Test", password }),
   });
   userId = signup.data?.user?.id ?? null;
@@ -34,7 +35,7 @@ try {
     ? signup.response.headers.getSetCookie()
     : [signup.response.headers.get("set-cookie")].filter(Boolean);
   const cookie = setCookies.map((value) => value.split(";", 1)[0]).join("; ");
-  const headers = { "Content-Type": "application/json", Cookie: cookie, Origin: baseUrl };
+  const headers = { "Content-Type": "application/json", Cookie: cookie, Origin: requestOrigin };
 
   const search = await jsonRequest("/api/movies/search?q=The%20Office", { headers });
   const results = search.data?.results ?? [];
@@ -52,25 +53,44 @@ try {
   const created = await jsonRequest("/api/movies", {
     method: "POST",
     headers,
-    body: JSON.stringify({ tmdbId: tvResult.tmdbId, mediaType: "tv", status: "watched" }),
+    body: JSON.stringify({ tmdbId: tvResult.tmdbId, mediaType: "tv", status: "watchlist" }),
   });
   const entryId = created.data?.movie?.id;
-  if (!entryId || created.data.movie.mediaType !== "tv") throw new Error("TV entry was not persisted with its media type.");
+  if (!entryId || created.data.movie.mediaType !== "tv" || created.data.movie.status !== "watchlist") {
+    throw new Error("TV entry was not persisted in Watchlist with its media type.");
+  }
+
+  const watchlistSearch = await jsonRequest("/api/movies/search?q=The%20Office", { headers });
+  const savedWatchlistResult = watchlistSearch.data?.results?.find((result) => (
+    result.tmdbId === tvResult.tmdbId && result.mediaType === "tv"
+  ));
+  if (savedWatchlistResult?.savedStatus !== "watchlist" || savedWatchlistResult.savedEntryId !== entryId) {
+    throw new Error("Movie search did not report the saved Watchlist state.");
+  }
 
   const duplicate = await jsonRequest("/api/movies", {
     method: "POST",
     headers,
-    body: JSON.stringify({ tmdbId: tvResult.tmdbId, mediaType: "tv", status: "watchlist" }),
+    body: JSON.stringify({
+      tmdbId: tvResult.tmdbId,
+      mediaType: "tv",
+      status: "watched",
+      rating: 5,
+      review: "**Verified** TV flow.",
+      loggedDate: "2026-09-11",
+    }),
   });
-  if (duplicate.data.created !== false || duplicate.data.movie.id !== entryId || duplicate.data.movie.status !== "watched") {
-    throw new Error("Re-adding a TV show was not idempotent or changed its status.");
+  if (duplicate.data.created !== false || duplicate.data.movie.id !== entryId || duplicate.data.movie.status !== "watched" || duplicate.data.movie.rating !== 5) {
+    throw new Error("The search review flow did not promote the existing TV show to Watched.");
   }
 
-  await jsonRequest(`/api/movies/${entryId}`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ rating: 5, review: "**Verified** TV flow.", loggedDate: "2026-09-11" }),
-  });
+  const watchedSearch = await jsonRequest("/api/movies/search?q=The%20Office", { headers });
+  const savedWatchedResult = watchedSearch.data?.results?.find((result) => (
+    result.tmdbId === tvResult.tmdbId && result.mediaType === "tv"
+  ));
+  if (savedWatchedResult?.savedStatus !== "watched" || savedWatchedResult.savedEntryId !== entryId) {
+    throw new Error("Movie search did not report the promoted Watched state.");
+  }
 
   const saved = await jsonRequest(`/api/movies/${entryId}`, { headers });
   if (saved.data.movie.mediaType !== "tv" || saved.data.movie.rating !== 5) {

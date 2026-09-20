@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { BookListDisclosure } from "@/components/books/book-list-disclosure";
 import { BookCoverRail } from "@/components/books/book-cover-rail";
 import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
+import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { EmptyState } from "@/components/states/empty-state";
 import { TagFilter, type TagFilterOption } from "@/components/media/tag-filter";
@@ -31,33 +35,45 @@ function hrefFor(status: BookStatus, view: BookView, tag?: string) {
   return { pathname: "/books", query: { status, view, ...(tag ? { tag } : {}) } };
 }
 
-function TextToggle({ label, active, options }: {
+function TextToggle({ label, active, options, onChange }: {
   label: string;
   active: string;
   options: { label: string; value: string; href: ReturnType<typeof hrefFor> }[];
+  onChange?: (value: string) => void;
 }) {
   return (
     <nav aria-label={label} className="flex min-h-10 items-center whitespace-nowrap sm:min-h-0">
       {options.map((option, index) => (
         <span key={option.value} className="flex items-center">
           {index > 0 ? <span aria-hidden="true" className="mx-1 text-[#111111]">/</span> : null}
-          <Link
-            href={option.href}
-            aria-current={option.value === active ? "page" : undefined}
-            className={option.value === active ? "ledger-focus text-[#111111]" : "ledger-focus text-[#686868] hover:text-[#111111]"}
-          >
-            {option.label}
-          </Link>
+          {onChange ? (
+            <button
+              type="button"
+              aria-pressed={option.value === active}
+              className={option.value === active ? "ledger-focus text-[#111111]" : "ledger-focus text-[#686868] hover:text-[#111111]"}
+              onClick={() => onChange(option.value)}
+            >
+              {option.label}
+            </button>
+          ) : (
+            <PendingNavigationLink
+              href={option.href}
+              active={option.value === active}
+              pendingLabel={`Loading ${option.label}`}
+            >
+              {option.label}
+            </PendingNavigationLink>
+          )}
         </span>
       ))}
     </nav>
   );
 }
 
-function BookToolbar({ status, view, tag }: { status: BookStatus; view: BookView; tag?: string }) {
+function BookToolbar({ status, view, tag, onViewChange }: { status: BookStatus; view: BookView; tag?: string; onViewChange: (view: BookView) => void }) {
   return (
     <div className="absolute left-4 right-4 top-16 z-10 flex flex-col items-start gap-1 text-[13px] leading-none sm:left-5 sm:right-5 sm:top-5 sm:flex-row sm:items-stretch sm:justify-end sm:gap-2 sm:text-base md:gap-[clamp(3rem,15vw,12.25rem)]">
-      <TextToggle label="Book display" active={view} options={[
+      <TextToggle label="Book display" active={view} onChange={(value) => onViewChange(value as BookView)} options={[
         { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
         { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
       ]} />
@@ -71,7 +87,7 @@ function BookToolbar({ status, view, tag }: { status: BookStatus; view: BookView
 }
 
 function AddLink({ lists, view }: { lists: boolean; view: BookView }) {
-  if (!lists) return <SearchTrigger label="Add New +" scope="book" className="inline-flex text-sm sm:text-base" />;
+  if (!lists) return <SearchTrigger label="Search" scope="book" className="inline-flex text-sm sm:text-base" />;
 
   return (
     <Link href={{ pathname: "/books", query: { status: "lists", view, new: "list" } }} className="ledger-focus inline-flex items-center gap-1 text-sm sm:text-base">
@@ -128,19 +144,29 @@ export function BookLedger({ status, view, books, lists, showCreateList, activeT
   activeTagId?: string;
   tagOptions: TagFilterOption[];
 }) {
+  const searchParams = useSearchParams();
+  const queryView = searchParams.get("view");
+  const activeView: BookView = queryView === "images" || queryView === "list" ? queryView : view;
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+
+  function changeView(nextView: BookView) {
+    if (nextView === activeView) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", nextView);
+    window.history.pushState(null, "", `?${params.toString()}`);
+  }
 
   return (
     <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
       <h1 className="sr-only">Books</h1>
-      <BookToolbar status={status} view={view} tag={activeTagId} />
-      <AddLink lists={status === "lists"} view={view} />
-      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view }} tags={tagOptions} /> : null}
+      <BookToolbar status={status} view={activeView} tag={activeTagId} onViewChange={changeView} />
+      <AddLink lists={status === "lists"} view={activeView} />
+      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateBookListForm /> : null}
       {status === "lists" ? (
-        lists.length ? <ListsView lists={lists} view={view} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
+        lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
       ) : books.length ? (
-        view === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
+        activeView === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
       ) : (
         <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No books in ${status === "want-to-read" ? "Want to Read" : "Read"} use the tag “${activeTagName}”.` : status === "want-to-read" ? "Your Want to Read list is empty." : "You have not marked any books as read yet."} /></div>
       )}

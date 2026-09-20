@@ -4,6 +4,7 @@ import { type FormEvent, startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth/client";
+import styles from "./auth-shell.module.css";
 
 type AuthMode = "sign-in" | "sign-up";
 type PendingMethod = "email" | "google" | null;
@@ -18,6 +19,17 @@ const authErrorMessages: Record<string, string> = {
 
 function authErrorMessage(code: string | undefined, fallback?: string) {
   return (code && authErrorMessages[code]) || fallback || "Authentication failed. Please try again.";
+}
+
+function GoogleIcon() {
+  return (
+    <svg className={styles.googleIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.4Z" />
+      <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.37l-3.24-2.54c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.13H3.06v2.62A10 10 0 0 0 12 22Z" />
+      <path fill="#FBBC05" d="M6.41 13.92A6.02 6.02 0 0 1 6.1 12c0-.67.11-1.32.31-1.92V7.46H3.06A10 10 0 0 0 2 12c0 1.61.38 3.14 1.06 4.54l3.35-2.62Z" />
+      <path fill="#EA4335" d="M12 5.95c1.47 0 2.79.51 3.83 1.5l2.87-2.88A9.63 9.63 0 0 0 12 2a10 10 0 0 0-8.94 5.46l3.35 2.62C7.2 7.71 9.4 5.95 12 5.95Z" />
+    </svg>
+  );
 }
 
 export function AuthForm({
@@ -91,22 +103,24 @@ export function AuthForm({
   const pending = pendingMethod !== null;
 
   return (
-    <section className="w-full max-w-sm" aria-labelledby="auth-title">
-      <p className="almanac-wordmark mb-14 text-lg font-medium tracking-[-0.025em]">Almanac</p>
-      <h1 id="auth-title" className="text-3xl font-medium tracking-[-0.04em]">
-        {mode === "sign-in" ? "Welcome back" : "Create your ledger"}
-      </h1>
-      <p className="mt-2 text-sm text-[#686868]">
-        {mode === "sign-in" ? "Sign in to continue to your private collection." : "One account for your movies and books."}
-      </p>
+    <section className={styles.formSection} aria-labelledby="auth-title">
+      <div className={styles.formHeader}>
+        <p>{mode === "sign-in" ? "Your archive is waiting" : "Begin your archive"}</p>
+        <h1 id="auth-title">{mode === "sign-in" ? "Welcome back" : "Create an account"}</h1>
+        <span>
+          {mode === "sign-in"
+            ? "Sign in to continue to your private collection."
+            : "One quiet place for the films and books you keep."}
+        </span>
+      </div>
 
-      <form className="mt-12 space-y-7" onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {mode === "sign-up" ? (
-          <label className="block text-sm">
-            <span className="mb-2 block text-[#686868]">Name</span>
+          <label className={styles.field}>
+            <span className={styles.visuallyHidden}>Name</span>
             <input
-              className="ledger-focus w-full border-0 border-b border-[#cfcfcf] bg-transparent px-0 py-2"
               name="name"
+              placeholder="Name"
               autoComplete="name"
               required
               minLength={2}
@@ -116,12 +130,12 @@ export function AuthForm({
           </label>
         ) : null}
 
-        <label className="block text-sm">
-          <span className="mb-2 block text-[#686868]">Email</span>
+        <label className={styles.field}>
+          <span className={styles.visuallyHidden}>Email</span>
           <input
-            className="ledger-focus w-full border-0 border-b border-[#cfcfcf] bg-transparent px-0 py-2"
             name="email"
             type="email"
+            placeholder="Email"
             autoComplete="email"
             required
             maxLength={320}
@@ -129,12 +143,12 @@ export function AuthForm({
           />
         </label>
 
-        <label className="block text-sm">
-          <span className="mb-2 block text-[#686868]">Password</span>
+        <label className={styles.field}>
+          <span className={styles.visuallyHidden}>Password</span>
           <input
-            className="ledger-focus w-full border-0 border-b border-[#cfcfcf] bg-transparent px-0 py-2"
             name="password"
             type="password"
+            placeholder="Password"
             autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
             required
             minLength={8}
@@ -143,37 +157,31 @@ export function AuthForm({
           />
         </label>
 
-        {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
+        {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-        <button
-          className="ledger-focus min-h-11 text-sm font-medium disabled:cursor-wait disabled:text-[#8a8a8a] sm:min-h-0"
-          type="submit"
-          disabled={pending}
-        >
-          {pendingMethod === "email" ? "Please wait..." : mode === "sign-in" ? "Sign in +" : "Create account +"}
+        <button className={styles.submitButton} type="submit" disabled={pending}>
+          {pendingMethod === "email" ? "Please wait..." : mode === "sign-in" ? "Sign in" : "Create account"}
+          <span aria-hidden="true">→</span>
         </button>
       </form>
 
       {googleEnabled ? (
-        <div className="mt-9">
-          <div className="mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-black/35">
-            <span className="h-px flex-1 bg-black/10" />
-            <span>or</span>
-            <span className="h-px flex-1 bg-black/10" />
-          </div>
+        <div className={styles.googleSection}>
+          <div className={styles.divider}><span>or</span></div>
           <button
-            className="ledger-focus w-full bg-black/[0.045] px-4 py-3 text-left text-sm font-medium transition-colors duration-150 hover:bg-black/[0.08] disabled:cursor-wait disabled:text-[#8a8a8a]"
+            className={styles.googleButton}
             type="button"
             disabled={pending}
             onClick={handleGoogleSignIn}
           >
-            {pendingMethod === "google" ? "Opening Google..." : "Continue with Google"}
+            <GoogleIcon />
+            <span>{pendingMethod === "google" ? "Opening Google..." : "Continue with Google"}</span>
           </button>
         </div>
       ) : null}
 
       <button
-        className="ledger-focus mt-10 min-h-11 text-left text-sm text-[#686868] hover:text-[#111111] sm:min-h-0"
+        className={styles.modeSwitch}
         type="button"
         disabled={pending}
         onClick={() => {
@@ -183,6 +191,8 @@ export function AuthForm({
       >
         {mode === "sign-in" ? "New here? Create an account" : "Already have an account? Sign in"}
       </button>
+
+      <p className={styles.privacyNote}>Private by default. Your archive is visible only to you.</p>
     </section>
   );
 }
