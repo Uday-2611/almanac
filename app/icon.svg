@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Almanac">
+  <rect width="64" height="64" rx="4" fill="#111111"/>
+  <path fill="#ffffff" d="M165 8L165 0L3 0L3 8Q46 8 61 17Q76 26 86 57L297 725L313 725L531 8L596 8L596 0L388 0L388 8L461 8Q458 24 451 48L396 231L152 231L95 54Q91 39 91 29Q91 8 133 8ZM154 239L394 239L277 630Z" transform="translate(11.05 57.5) scale(0.07034 -0.07034)"/>
+</svg>

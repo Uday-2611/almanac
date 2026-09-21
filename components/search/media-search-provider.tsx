@@ -622,7 +622,7 @@ function SearchResultActions({
           muted={savedStatus !== "watched"}
           onClick={onSecondary}
         >
-          Watched
+          {savedStatus === "watched" ? "Watched" : "Watch"}
         </SearchAddAction>
       </>
     )
