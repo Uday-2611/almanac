@@ -41,7 +41,7 @@ export function SearchMediaPreview({ actions, collectionStatus, data, error, lab
     <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
       <DialogPortal>
         <DialogBackdrop className="fixed inset-0 z-[60] bg-white/72 backdrop-blur-[14px] transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <DialogViewport className="fixed inset-0 z-[70] overflow-y-auto p-0 sm:p-6">
+        <DialogViewport data-lenis-prevent className="fixed inset-0 z-[70] overflow-y-auto p-0 sm:p-6">
           <DialogPopup className="relative mx-auto flex min-h-full w-full max-w-[916px] items-center outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0">
             <DialogTitle className="sr-only">{label}</DialogTitle>
             <DialogDescription className="sr-only">Provider information preview. Close to return to the unchanged search results.</DialogDescription>

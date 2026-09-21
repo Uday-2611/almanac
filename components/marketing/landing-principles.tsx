@@ -43,13 +43,12 @@ const principles = [
   },
 ] as const;
 
-const archiveMarks = Array.from({ length: 25 }, (_, index) => index);
-
 export function LandingPrinciples() {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isInView, setIsInView] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocusWithin, setHasFocusWithin] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -75,14 +74,14 @@ export function LandingPrinciples() {
   }, []);
 
   useEffect(() => {
-    if (!isInView || isPaused || reduceMotion) return;
+    if (!isInView || isHovered || hasFocusWithin || reduceMotion) return;
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % principles.length);
     }, 3200);
 
     return () => window.clearInterval(timer);
-  }, [isInView, isPaused, reduceMotion]);
+  }, [isInView, isHovered, hasFocusWithin, reduceMotion]);
 
   const activePrinciple = principles[activeIndex];
 
@@ -90,15 +89,21 @@ export function LandingPrinciples() {
     <section
       className={styles.principlesSection}
       aria-labelledby="principles-title"
-      onBlur={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setHasFocusWithin(false);
+      }}
+      onFocus={() => setHasFocusWithin(true)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       ref={sectionRef}
     >
-      <div className={styles.principleIndex} data-reveal>
-        <h2 id="principles-title">Almanac principles</h2>
-        <div className={styles.principleTerms}>
+      <header className={styles.principlesHeader} data-reveal>
+        <span>Almanac principles</span>
+        <h2 id="principles-title">The way we keep things matters.</h2>
+      </header>
+
+      <div className={styles.principlesBody}>
+        <div className={styles.principleTerms} aria-label="Explore Almanac principles" data-reveal role="group">
           {principles.map((principle, index) => (
             <button
               aria-pressed={activeIndex === index}
@@ -107,31 +112,24 @@ export function LandingPrinciples() {
               onClick={() => setActiveIndex(index)}
               type="button"
             >
-              <i aria-hidden="true" />
+              <span aria-hidden="true" className={styles.principleTermNumber}>{String(index + 1).padStart(2, "0")}</span>
               <span>{principle.label}</span>
             </button>
           ))}
         </div>
-      </div>
 
-      <div className={styles.principleDetail}>
-        <figure
-          aria-label={`${activePrinciple.label} ${activePrinciple.fieldText}`}
-          className={styles.principlePlate}
-          data-principle={activePrinciple.key}
-          data-reveal
-        >
-          <span className={styles.principleNumber}>{String(activeIndex + 1).padStart(2, "0")}</span>
-          <strong className={styles.principleFieldText} key={activePrinciple.key}>
+        <div className={styles.principleDetail} data-reveal>
+          <div className={styles.principleMeta}>
+            <span>{String(activeIndex + 1).padStart(2, "0")} / {String(principles.length).padStart(2, "0")}</span>
+            <span>{activePrinciple.label}</span>
+          </div>
+          <strong className={styles.principleFieldText} key={`${activePrinciple.key}-statement`}>
             {activePrinciple.fieldText}
           </strong>
-          <div className={styles.archiveMarks} aria-hidden="true">
-            {archiveMarks.map((mark) => <i key={mark} />)}
-          </div>
-        </figure>
-        <p className={styles.principleDescription} data-reveal key={activePrinciple.key}>
-          {activePrinciple.description}
-        </p>
+          <p className={styles.principleDescription} key={`${activePrinciple.key}-description`}>
+            {activePrinciple.description}
+          </p>
+        </div>
       </div>
     </section>
   );

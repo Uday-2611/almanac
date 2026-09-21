@@ -104,6 +104,7 @@ export function BookCoverRail({ books }: { books: BookCover[] }) {
       ref={railRef}
       aria-label="Books. Scroll horizontally to browse."
       data-book-cover-rail
+      data-lenis-prevent-wheel
       className="overflow-x-auto overscroll-x-contain [scrollbar-color:#252525_transparent] [scrollbar-width:thin]"
       role="region"
       tabIndex={0}

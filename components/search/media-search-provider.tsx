@@ -466,7 +466,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogPortal>
           <DialogBackdrop className="fixed inset-0 z-40 bg-white/65 backdrop-blur-[12px] transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-          <DialogViewport className="fixed inset-0 z-50 overflow-y-auto px-2 py-3 sm:px-5 sm:py-[14vh]">
+          <DialogViewport data-lenis-prevent className="fixed inset-0 z-50 overflow-y-auto px-2 py-3 sm:px-5 sm:py-[14vh]">
             <DialogPopup initialFocus={inputRef} className="relative mx-auto w-full max-w-[57rem] outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0">
               <DialogTitle className="sr-only">{searchLabel}</DialogTitle>
               <DialogDescription className="sr-only">Search by title, then add a movie, TV show, or book to your collection.</DialogDescription>

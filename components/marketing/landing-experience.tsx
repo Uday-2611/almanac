@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./landing-experience.module.css";
+import { CopyContactEmail } from "./copy-contact-email";
 import { LandingPrinciples } from "./landing-principles";
 import { LandingRevealObserver } from "./landing-reveal-observer";
 
@@ -13,10 +14,10 @@ const differences = [
 ] as const;
 
 const socialDirectory = [
-  { label: "GitHub", href: "https://github.com/Uday-2611" },
-  { label: "Instagram" },
-  { label: "Letterboxd" },
-  { label: "Goodreads" },
+  { label: "Instagram", href: "https://www.instagram.com/uday.agarwal26/" },
+  { label: "Goodreads", href: "https://www.goodreads.com/user/show/174831125-uday-agarwal" },
+  { label: "Letterboxd", href: "https://letterboxd.com/Uday2611/" },
+  { label: "Twitter", href: "https://x.com/AgarwalUday26" },
 ] as const;
 
 const heroTiles = [
@@ -194,6 +195,58 @@ export function LandingExperience() {
           </div>
         </section>
 
+        <section className={styles.previewSection} aria-labelledby="preview-title">
+          <header className={styles.previewHeader} data-reveal>
+            <span>Inside Almanac</span>
+            <div>
+              <h2 id="preview-title">Your archive, at any size.</h2>
+              <p>Browse by image or return to the quiet clarity of a list. The collection stays yours on every screen.</p>
+            </div>
+          </header>
+
+          <div className={styles.previewSpread}>
+            <figure className={styles.previewDesktop} data-reveal>
+              <Image
+                alt="Almanac desktop collection showing a horizontal rail of saved film and series posters"
+                height={937}
+                sizes="(max-width: 700px) 100vw, 72vw"
+                src="/images/Screenshot 2026-09-21 194357.png"
+                width={1920}
+              />
+              <figcaption><span>Desktop</span><span>Image view</span></figcaption>
+            </figure>
+            <figure className={styles.previewMobile} data-reveal>
+              <Image
+                alt="Almanac mobile collection showing saved titles, dates, creators, and text filters in list view"
+                height={2223}
+                sizes="(max-width: 700px) 68vw, 22vw"
+                src="/images/almanac-mobile.jpg"
+                width={1170}
+              />
+              <figcaption><span>Mobile</span><span>List view</span></figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className={styles.editorialSection} aria-labelledby="editorial-title">
+          <header className={styles.editorialHeader} data-reveal>
+            <span>Works that stay</span>
+            <h2 id="editorial-title">The image stays with you, too.</h2>
+            <p>Posters, covers, and scenes become part of how we remember what we watched and read.</p>
+          </header>
+          <div className={styles.editorialGallery}>
+            <figure className={`${styles.editorialImage} ${styles.editorialPoster}`} data-reveal>
+              <Image alt="La La Land film poster at a dark theatre" fill sizes="(max-width: 700px) 48vw, 22vw" src="/images/cosmos_1768234398.jpeg" />
+            </figure>
+            <figure className={`${styles.editorialImage} ${styles.editorialStill}`} data-reveal>
+              <Image alt="Three people gathered at a table, seen through a large window" fill sizes="(max-width: 700px) 100vw, 57vw" src="/images/cosmos_1037838399.jpeg" />
+            </figure>
+            <figure className={`${styles.editorialImage} ${styles.editorialBook}`} data-reveal>
+              <Image alt="Cover of A Breath of Life by Clarice Lispector" fill sizes="(max-width: 700px) 48vw, 21vw" src="/images/cosmos_688297974.jpeg" />
+            </figure>
+          </div>
+        </section>
+
         <LandingPrinciples />
 
         <section className={styles.differenceSection} aria-labelledby="difference-title">
@@ -224,43 +277,37 @@ export function LandingExperience() {
       </div>
 
       <footer className={styles.footer}>
-        <div className={styles.footerLead}>
-          <span className={styles.footerLabel}>Contact</span>
-          <p>Questions, thoughts, or a note about Almanac.</p>
-          <a className={styles.contactLink} href="mailto:udayagarwal234@gmail.com?subject=Almanac%20%E2%80%94%20hello">
-            Contact us <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-
-        <div className={styles.footerDirectory}>
-          <div>
-            <span className={styles.footerLabel}>Socials</span>
-            {socialDirectory.map((social) => (
-              "href" in social ? (
-                <a href={social.href} key={social.label} rel="noreferrer" target="_blank">
-                  {social.label} <span aria-hidden="true">↗</span>
-                </a>
-              ) : (
-                <span className={styles.socialPlaceholder} key={social.label}>
-                  {social.label}<small>Profile link pending</small>
-                </span>
-              )
-            ))}
+        <div className={styles.footerFrame}>
+          <div className={styles.footerMain}>
+            <div className={styles.footerBrand}>
+              <span className={`${styles.footerWordmark} almanac-wordmark`}>Almanac</span>
+              <p>A private place for the films, series, and books that stay with you.</p>
+              <div className={styles.footerSocials} aria-label="Social directory">
+                {socialDirectory.map((social) => (
+                  <a href={social.href} key={social.label} rel="noreferrer" target="_blank">
+                    {social.label}<span className={styles.externalArrow} aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div className={styles.footerLinks}>
+              <h2>Explore</h2>
+              <Link href="/login">Sign in</Link>
+              <a href="https://github.com/Uday-2611/almanac" rel="noreferrer" target="_blank">
+                Project source <span className={styles.externalArrow} aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <div className={styles.footerContact}>
+              <h2>Contact</h2>
+              <p>Questions, thoughts, or a note about Almanac.</p>
+              <CopyContactEmail />
+            </div>
           </div>
-          <div>
-            <span className={styles.footerLabel}>Almanac</span>
-            <Link href="/login">Sign in</Link>
-            <a href="https://github.com/Uday-2611/almanac" rel="noreferrer" target="_blank">
-              Project source <span aria-hidden="true">↗</span>
-            </a>
-            <a href="mailto:udayagarwal234@gmail.com">Email</a>
+          <div className={styles.footerColophon}>
+            <span>Films · Series · Books</span>
+            <span>Private by design</span>
+            <span>© 2026 Almanac</span>
           </div>
-        </div>
-
-        <div className={styles.footerColophon}>
-          <span>Films · Series · Books</span>
-          <span>Private by design</span>
-          <span>© 2026 Almanac</span>
         </div>
       </footer>
     </main>

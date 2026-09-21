@@ -58,6 +58,7 @@ export function MediaModal({ children, label, tone = "dark" }: { children: React
     <dialog
       ref={dialogRef}
       aria-label={label}
+      data-lenis-prevent
       className={`fixed inset-0 m-0 h-full max-h-none w-full max-w-none p-0 backdrop:backdrop-blur-md sm:p-6 ${tone === "dark" ? "bg-black/45 backdrop:bg-black/70" : "bg-white/35 backdrop:bg-white/65"}`}
       onCancel={(event) => {
         event.preventDefault();

@@ -59,7 +59,7 @@ export function MovieWatchedDialog({
     <Dialog open onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
       <DialogPortal>
         <DialogBackdrop className="fixed inset-0 z-[80] bg-white/72 backdrop-blur-[14px] transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <DialogViewport className="fixed inset-0 z-[90] overflow-y-auto p-2 sm:p-6">
+        <DialogViewport data-lenis-prevent className="fixed inset-0 z-[90] overflow-y-auto p-2 sm:p-6">
           <DialogPopup className="relative mx-auto my-auto w-full max-w-[42rem] rounded-[4px] bg-white px-5 py-6 text-[#111111] outline-none transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:px-8 sm:py-8">
             <DialogClose aria-label="Close watched review" className="ledger-focus absolute right-2 top-2 grid size-11 place-items-center text-[#686868] hover:bg-black/[0.055] hover:text-[#111111] active:scale-95 sm:size-9">
               <X aria-hidden="true" className="size-[18px]" strokeWidth={1.5} />
