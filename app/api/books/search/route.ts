@@ -6,12 +6,11 @@ export async function GET(request: Request) {
   const user = await getCurrentUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+  const url = new URL(request.url);
+  const query = url.searchParams.get("q")?.trim() ?? "";
   if (query.length < 2) return Response.json({ results: [] });
-  const requestedProvider = new URL(request.url).searchParams.get("provider");
-  const googleBooksRequest = searchGoogleBooks(query)
-    .then((books) => ({ books, error: null as unknown }))
-    .catch((error: unknown) => ({ books: null, error }));
+  if (query.length > 160) return Response.json({ error: "Search terms must be 160 characters or fewer." }, { status: 400 });
+  const requestedProvider = url.searchParams.get("provider");
 
   if (requestedProvider !== "google_books") {
     try {
@@ -32,10 +31,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { books, error } = await googleBooksRequest;
-    if (error) throw error;
+    const books = await searchGoogleBooks(query);
     return Response.json({
-      results: (books ?? []).map((book) => ({
+      results: books.map((book) => ({
         provider: "google_books" as const,
         providerId: book.googleBooksVolumeId,
         title: book.title,

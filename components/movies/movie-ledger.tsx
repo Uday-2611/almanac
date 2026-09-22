@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
+import { CollectionHeading } from "@/components/ledger/collection-heading";
 import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { AnimatedMoviePoster } from "@/components/movies/animated-movie-poster";
 import { MovieListDisclosure } from "@/components/movies/movie-list-disclosure";
@@ -22,6 +23,8 @@ export type Movie = {
   creator: string;
   mediaType: "movie" | "tv";
   date: string;
+  group: string;
+  sortDate: string;
   posterUrl: string | null;
   tags: string[];
 };
@@ -116,10 +119,11 @@ function AddLink({ lists, view }: { lists?: boolean; view: MovieView }) {
 }
 
 function toLedgerItems(movies: Movie[]): AnimatedLedgerItem[] {
-  return movies.map((movie) => ({
+  return [...movies].sort((a, b) => b.sortDate.localeCompare(a.sortDate)).map((movie) => ({
     id: movie.id,
     href: `/movies/${movie.id}`,
     date: movie.date,
+    group: movie.group,
     title: movie.title,
     creator: movie.creator,
     tags: movie.tags,
@@ -215,12 +219,13 @@ export function MovieLedger({
       <AddLink lists={status === "lists"} view={activeView} />
       {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateMovieListForm /> : null}
+      <CollectionHeading label={status === "lists" ? "My Lists" : status === "watchlist" ? "Watchlist" : "Watched"} count={status === "lists" ? lists.length : movies.length} noun={status === "lists" ? "list" : "title"} />
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
       ) : movies.length ? (
         activeView === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
       ) : (
-        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No ${status === "watchlist" ? "watchlist" : "watched"} titles use the tag “${activeTagName}”.` : status === "watchlist" ? "Your watchlist is empty." : "You have not marked any movies or TV shows as watched yet."} /></div>
+        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No ${status === "watchlist" ? "watchlist" : "watched"} titles use the tag “${activeTagName}”. Choose All above to see the full collection.` : status === "watchlist" ? "Your watchlist is empty. Search for a movie or show to save it here." : "No watched titles yet. Search for a movie or show to begin your record."} /></div>
       )}
     </main>
   );

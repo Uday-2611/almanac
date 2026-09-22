@@ -9,6 +9,18 @@ import type { TmdbMediaType, TmdbTitle } from "@/lib/providers/tmdb";
 export type MovieStatus = "watchlist" | "watched";
 export type MovieRecord = typeof movies.$inferSelect;
 export type MovieListRecord = typeof movieLists.$inferSelect & { movies: MovieRecord[] };
+export type MovieCollectionRecord = Pick<MovieRecord, "id" | "title" | "creator" | "mediaType" | "loggedDate" | "createdAt" | "posterUrl">;
+export type MovieCollectionListRecord = Pick<typeof movieLists.$inferSelect, "id" | "name" | "createdAt"> & { movies: MovieCollectionRecord[] };
+
+const movieCollectionColumns = {
+  id: movies.id,
+  title: movies.title,
+  creator: movies.creator,
+  mediaType: movies.mediaType,
+  loggedDate: movies.loggedDate,
+  createdAt: movies.createdAt,
+  posterUrl: movies.posterUrl,
+};
 
 export class MovieListEligibilityError extends Error {}
 
@@ -27,6 +39,21 @@ export async function listMoviesForUser(userId: string, status: MovieStatus, tag
   return database
     .select()
     .from(movies)
+    .where(and(eq(movies.userId, userId), eq(movies.status, status), tagFilter))
+    .orderBy(desc(movies.loggedDate), desc(movies.createdAt));
+}
+
+export async function listMovieCollectionForUser(userId: string, status: MovieStatus, tagId?: string) {
+  const database = getDatabase();
+  const tagFilter = tagId
+    ? exists(
+        database.select({ id: movieTags.movieId }).from(movieTags)
+          .innerJoin(tags, eq(movieTags.tagId, tags.id))
+          .where(and(eq(movieTags.movieId, movies.id), eq(movieTags.tagId, tagId), eq(tags.userId, userId))),
+      )
+    : undefined;
+
+  return database.select(movieCollectionColumns).from(movies)
     .where(and(eq(movies.userId, userId), eq(movies.status, status), tagFilter))
     .orderBy(desc(movies.loggedDate), desc(movies.createdAt));
 }
@@ -198,10 +225,34 @@ export async function listMovieListsForUser(userId: string): Promise<MovieListRe
     .where(and(inArray(movieListItems.listId, lists.map((list) => list.id)), eq(movies.userId, userId)))
     .orderBy(desc(movieListItems.createdAt));
 
-  return lists.map((list) => ({
-    ...list,
-    movies: items.filter((item) => item.listId === list.id).map((item) => item.movie),
-  }));
+  const moviesByList = new Map<string, MovieRecord[]>();
+  for (const item of items) {
+    const group = moviesByList.get(item.listId) ?? [];
+    group.push(item.movie);
+    moviesByList.set(item.listId, group);
+  }
+
+  return lists.map((list) => ({ ...list, movies: moviesByList.get(list.id) ?? [] }));
+}
+
+export async function listMovieCollectionListsForUser(userId: string): Promise<MovieCollectionListRecord[]> {
+  const database = getDatabase();
+  const lists = await database.select({ id: movieLists.id, name: movieLists.name, createdAt: movieLists.createdAt })
+    .from(movieLists).where(eq(movieLists.userId, userId)).orderBy(desc(movieLists.createdAt));
+  if (!lists.length) return [];
+
+  const items = await database.select({ listId: movieListItems.listId, movie: movieCollectionColumns })
+    .from(movieListItems).innerJoin(movies, eq(movieListItems.movieId, movies.id))
+    .where(and(inArray(movieListItems.listId, lists.map((list) => list.id)), eq(movies.userId, userId)))
+    .orderBy(desc(movieListItems.createdAt));
+  const moviesByList = new Map<string, MovieCollectionRecord[]>();
+  for (const item of items) {
+    const group = moviesByList.get(item.listId) ?? [];
+    group.push(item.movie);
+    moviesByList.set(item.listId, group);
+  }
+
+  return lists.map((list) => ({ ...list, movies: moviesByList.get(list.id) ?? [] }));
 }
 
 export async function listMovieListOptionsForUser(userId: string) {

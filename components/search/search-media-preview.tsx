@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -15,6 +14,7 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog";
 import { MediaInfoSkeleton } from "@/components/states/media-info-skeleton";
+import { ResilientArtwork } from "@/components/media/resilient-artwork";
 
 export type SearchMediaPreviewData = {
   artwork: string | null;
@@ -73,7 +73,7 @@ function PreviewPanel({ actions, collectionStatus, data }: {
   return (
     <article className="relative grid max-h-[100dvh] w-full grid-cols-1 overflow-y-auto gap-1.5 sm:max-h-[calc(100dvh-3rem)] md:h-[546px] md:grid-cols-[364px_1fr] md:overflow-visible">
       <div className="relative aspect-[2/3] w-full bg-[#dededb] md:h-full md:aspect-auto">
-        {data.artwork ? <Image src={data.artwork} alt={`${data.title} ${isScreenTitle ? "poster" : "cover"}`} fill sizes="(min-width: 768px) 364px, 100vw" className={isScreenTitle ? "object-cover" : "object-contain"} preload /> : null}
+        <ResilientArtwork src={data.artwork} alt={`${data.title} ${isScreenTitle ? "poster" : "cover"}`} sizes="(min-width: 768px) 364px, 100vw" className={isScreenTitle ? "object-cover" : "object-contain"} title={data.title} fallbackClassName="text-[#111111]" preload />
       </div>
       <div className="min-w-0 bg-white/55 p-5 text-[#111111] backdrop-blur-xl sm:p-6 md:h-full md:overflow-y-auto md:px-6 md:py-7">
         <header className="pb-7 pr-11">

@@ -115,6 +115,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Current UI Foundation
 
+- Collection pages must use lean owner-scoped projections instead of loading review, overview, cast/contributor, and Archive Note bodies for every row. Keep custom-list grouping linear as collections grow.
+- Remote movie and book artwork must fall back to readable text when its URL is missing, unsupported by image optimization, or fails to load. Public and authenticated route errors must use Next.js `retry()` so a failed server read is actually re-fetched.
+- Keep the patched Next.js and matching ESLint config versions aligned. Do not use `npm audit fix --force` to downgrade Drizzle Kit for its remaining dev-loader advisory.
+
+- Movie and Book collections show a quiet status heading with the current item count near the first entry. List rows are ordered by their recorded date and grouped under muted year labels; preserve the generous top space and plain-text toggles.
+- Horizontal poster and cover rails show subtle edge cues only when more artwork is off-screen. Keep direct wheel and touch tracking. Book covers retain their source aspect ratio inside a 2:3 frame; missing or failed artwork uses a readable typographic fallback.
+- Movie and Book journals follow one editing order: title and creator, rating/date, overview, review, Archive Note, credits, then custom lists. Keep save progress visible, and treat empty or filtered collections and long titles as deliberate readable states.
+
+- Hide visible scrollbar chrome on desktop and mobile, including the scrollable movie/book information panes and horizontal rails. Keep wheel, touch, keyboard, and Lenis scrolling functional.
+
 - Lenis smooths root document scrolling across routes. Respect reduced motion and keep independent modal scrolling and the Movies/Books horizontal artwork rails native and directly responsive to input.
 
 - Alternate the landing page's white sections with neutral gray-white (`#f5f5f5`), without a cream or yellow cast. Keep the footer surround neutral gray as well.

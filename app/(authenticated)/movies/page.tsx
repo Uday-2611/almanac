@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { MovieLedger, type MovieStatus, type MovieView } from "@/components/movies/movie-ledger";
 import { getCurrentUser } from "@/lib/auth/session";
-import { listMovieListsForUser, listMoviesForUser, type MovieRecord } from "@/lib/db/queries/movies";
+import { listMovieCollectionForUser, listMovieCollectionListsForUser, type MovieCollectionRecord } from "@/lib/db/queries/movies";
 import { listMovieTagOptionsForUser, listTagsForMoviesForUser, type TagRecord } from "@/lib/db/queries/tags";
 import { idSchema } from "@/lib/validation";
 
@@ -18,13 +18,23 @@ function formatDate(value: string | Date | null) {
   return new Intl.DateTimeFormat("en", { month: "long", day: "numeric", year: "numeric" }).format(date);
 }
 
-function presentMovie(movie: MovieRecord, tags: TagRecord[] = []) {
+function entryYear(value: string | Date | null) {
+  if (!value) return "Undated";
+  const year = typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? Number(value.slice(0, 4))
+    : new Date(value).getUTCFullYear();
+  return Number.isFinite(year) ? String(year) : "Undated";
+}
+
+function presentMovie(movie: MovieCollectionRecord, tags: TagRecord[] = []) {
   return {
     id: movie.id,
     title: movie.title,
     creator: movie.creator ?? (movie.mediaType === "tv" ? "Creator unavailable" : "Director unavailable"),
     mediaType: movie.mediaType,
     date: formatDate(movie.loggedDate ?? movie.createdAt),
+    group: entryYear(movie.loggedDate ?? movie.createdAt),
+    sortDate: movie.loggedDate ?? movie.createdAt.toISOString(),
     posterUrl: movie.posterUrl,
     tags: tags.map((tag) => tag.name),
   };
@@ -45,12 +55,12 @@ export default async function MoviesPage({ searchParams }: PageProps<"/movies">)
   const requestedTagId = idSchema.safeParse(requestedTag).success ? requestedTag : undefined;
   const [tagOptions, listRecords, requestedMovieRecords] = await Promise.all([
     status === "lists" ? Promise.resolve([]) : listMovieTagOptionsForUser(user.id, databaseStatus),
-    status === "lists" ? listMovieListsForUser(user.id) : Promise.resolve([]),
-    status === "lists" ? Promise.resolve([]) : listMoviesForUser(user.id, databaseStatus, requestedTagId),
+    status === "lists" ? listMovieCollectionListsForUser(user.id) : Promise.resolve([]),
+    status === "lists" ? Promise.resolve([]) : listMovieCollectionForUser(user.id, databaseStatus, requestedTagId),
   ]);
   const activeTagId = requestedTagId && tagOptions.some((tag) => tag.id === requestedTagId) ? requestedTagId : undefined;
   const movieRecords = status !== "lists" && requestedTagId && !activeTagId
-    ? await listMoviesForUser(user.id, databaseStatus)
+    ? await listMovieCollectionForUser(user.id, databaseStatus)
     : requestedMovieRecords;
   const movieIds = status === "lists" ? listRecords.flatMap((list) => list.movies.map((movie) => movie.id)) : movieRecords.map((movie) => movie.id);
   const tagsByMovie = await listTagsForMoviesForUser(user.id, movieIds);

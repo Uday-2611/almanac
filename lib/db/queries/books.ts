@@ -9,6 +9,17 @@ export type BookStatus = "want_to_read" | "read";
 export type BookProvider = "open_library" | "google_books" | "goodreads";
 export type BookRecord = typeof books.$inferSelect;
 export type BookListRecord = typeof bookLists.$inferSelect & { books: BookRecord[] };
+export type BookCollectionRecord = Pick<BookRecord, "id" | "title" | "authors" | "loggedDate" | "createdAt" | "coverUrl">;
+export type BookCollectionListRecord = Pick<typeof bookLists.$inferSelect, "id" | "name" | "createdAt"> & { books: BookCollectionRecord[] };
+
+const bookCollectionColumns = {
+  id: books.id,
+  title: books.title,
+  authors: books.authors,
+  loggedDate: books.loggedDate,
+  createdAt: books.createdAt,
+  coverUrl: books.coverUrl,
+};
 export type BookProviderMetadata = {
   provider: BookProvider;
   providerId: string;
@@ -34,6 +45,21 @@ export async function listBooksForUser(userId: string, status: BookStatus, tagId
     : undefined;
 
   return database.select().from(books)
+    .where(and(eq(books.userId, userId), eq(books.status, status), tagFilter))
+    .orderBy(desc(books.loggedDate), desc(books.createdAt));
+}
+
+export async function listBookCollectionForUser(userId: string, status: BookStatus, tagId?: string) {
+  const database = getDatabase();
+  const tagFilter = tagId
+    ? exists(
+        database.select({ id: bookTags.bookId }).from(bookTags)
+          .innerJoin(tags, eq(bookTags.tagId, tags.id))
+          .where(and(eq(bookTags.bookId, books.id), eq(bookTags.tagId, tagId), eq(tags.userId, userId))),
+      )
+    : undefined;
+
+  return database.select(bookCollectionColumns).from(books)
     .where(and(eq(books.userId, userId), eq(books.status, status), tagFilter))
     .orderBy(desc(books.loggedDate), desc(books.createdAt));
 }
@@ -187,10 +213,34 @@ export async function listBookListsForUser(userId: string): Promise<BookListReco
     .where(and(inArray(bookListItems.listId, lists.map((list) => list.id)), eq(books.userId, userId)))
     .orderBy(desc(bookListItems.createdAt));
 
-  return lists.map((list) => ({
-    ...list,
-    books: items.filter((item) => item.listId === list.id).map((item) => item.book),
-  }));
+  const booksByList = new Map<string, BookRecord[]>();
+  for (const item of items) {
+    const group = booksByList.get(item.listId) ?? [];
+    group.push(item.book);
+    booksByList.set(item.listId, group);
+  }
+
+  return lists.map((list) => ({ ...list, books: booksByList.get(list.id) ?? [] }));
+}
+
+export async function listBookCollectionListsForUser(userId: string): Promise<BookCollectionListRecord[]> {
+  const database = getDatabase();
+  const lists = await database.select({ id: bookLists.id, name: bookLists.name, createdAt: bookLists.createdAt })
+    .from(bookLists).where(eq(bookLists.userId, userId)).orderBy(desc(bookLists.createdAt));
+  if (!lists.length) return [];
+
+  const items = await database.select({ listId: bookListItems.listId, book: bookCollectionColumns })
+    .from(bookListItems).innerJoin(books, eq(bookListItems.bookId, books.id))
+    .where(and(inArray(bookListItems.listId, lists.map((list) => list.id)), eq(books.userId, userId)))
+    .orderBy(desc(bookListItems.createdAt));
+  const booksByList = new Map<string, BookCollectionRecord[]>();
+  for (const item of items) {
+    const group = booksByList.get(item.listId) ?? [];
+    group.push(item.book);
+    booksByList.set(item.listId, group);
+  }
+
+  return lists.map((list) => ({ ...list, books: booksByList.get(list.id) ?? [] }));
 }
 
 export async function listBookListOptionsForUser(userId: string) {

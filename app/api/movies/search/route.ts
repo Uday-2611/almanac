@@ -8,6 +8,7 @@ export async function GET(request: Request) {
 
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 2) return Response.json({ results: [] });
+  if (query.length > 160) return Response.json({ error: "Search terms must be 160 characters or fewer." }, { status: 400 });
 
   try {
     const results = await searchTmdbTitles(query);

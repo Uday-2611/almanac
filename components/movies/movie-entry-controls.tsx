@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 import { CreateMovieListForm } from "@/components/movies/create-movie-list-form";
 import { InteractionSkeleton } from "@/components/states/interaction-skeleton";
-import { TagList } from "@/components/media/tag-list";
+import { JournalArchiveNote } from "@/components/media/journal-archive-note";
 import { responseErrorMessage } from "@/lib/http/client-errors";
 
 type ListOption = { id: string; name: string };
@@ -120,7 +120,7 @@ export function MovieEntryControls({
   return (
     <div className="pb-2 pr-1 text-[#111111]">
       <header className="pb-7 pr-11">
-        <h1 id="media-info-title" className="break-words text-[clamp(2rem,11vw,3rem)] font-semibold leading-[0.94] tracking-[-0.05em] text-[#111111] sm:text-[3.65rem]">
+        <h1 id="media-info-title" className="break-words [overflow-wrap:anywhere] text-[clamp(2rem,11vw,3rem)] font-semibold leading-[0.94] tracking-[-0.05em] text-[#111111] sm:text-[3.65rem]">
           {title}
         </h1>
         <p className="mt-3 text-sm font-medium tracking-[-0.01em] text-black/75">
@@ -181,6 +181,8 @@ export function MovieEntryControls({
             )}
           </section>
 
+          <JournalArchiveNote href={`/movies/${movieId}/archive-note`} tags={tags} />
+
           <section aria-labelledby="cast-heading" className="py-5">
             <h2 id="cast-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Cast</h2>
             <ul className="columns-1 gap-x-6 text-xs leading-6 text-black/70 sm:columns-2">
@@ -216,15 +218,7 @@ export function MovieEntryControls({
         </div>
       )}
 
-      <section aria-labelledby="movie-tags-heading" className="py-5">
-        <h2 id="movie-tags-heading" className="mb-2 text-[11px] uppercase tracking-[0.12em] text-black/45">Tags</h2>
-        <p className="mb-4 text-sm text-black/70"><TagList tags={tags} /></p>
-        <a href={`/movies/${movieId}/archive-note`} className="group movie-info-focus inline-flex items-center bg-black/[0.07] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,transform] duration-200 hover:bg-black/[0.12] active:scale-[0.98]">
-          Open archive note
-          <span aria-hidden="true" className="ml-8 transition-transform duration-200 group-hover:translate-x-1">→</span>
-        </a>
-        <p className="mt-2 max-w-sm text-xs leading-5 text-black/45">Write a longer note and manage reusable tags.</p>
-      </section>
+      {status === "watchlist" ? <JournalArchiveNote href={`/movies/${movieId}/archive-note`} tags={tags} /> : null}
 
       {isPending ? <InteractionSkeleton label={pendingLabel} /> : null}
       {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}

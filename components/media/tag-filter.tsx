@@ -20,7 +20,7 @@ export function TagFilter({
   }
 
   return (
-    <nav aria-label="Filter by tag" className="mt-5 flex max-w-full items-center gap-2 overflow-x-auto pb-1 text-xs text-[#686868] [scrollbar-width:thin] sm:text-sm">
+    <nav aria-label="Filter by tag" className="mt-5 flex max-w-full items-center gap-2 overflow-x-auto pb-1 text-xs text-[#686868] sm:text-sm">
       <span className="flex-none text-black/45">Tags</span>
       <Link href={href()} aria-current={!activeTagId ? "page" : undefined} className={`ledger-focus flex-none px-1 ${!activeTagId ? "font-semibold text-[#111111]" : "hover:text-[#111111]"}`}>
         All

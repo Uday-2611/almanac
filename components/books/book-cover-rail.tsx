@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
-import { useSmoothHorizontalWheel } from "@/components/ledger/use-smooth-horizontal-wheel";
+import { MediaRail } from "@/components/ledger/media-rail";
+import { ResilientArtwork } from "@/components/media/resilient-artwork";
 
 gsap.registerPlugin(useGSAP);
 
@@ -36,7 +36,7 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
     if (!hasHover) return;
 
     gsap.to(artwork, {
-      backgroundColor: isActive ? "#333333" : "#252525",
+      backgroundColor: isActive ? "#e4e4e0" : "#efefec",
       duration: reducedMotion ? 0 : 0.18,
       ease: "power3.out",
       overwrite: "auto",
@@ -77,17 +77,11 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
         }}
         onPointerLeave={(event) => animate(event.currentTarget, false)}
       >
-        <span data-book-cover-artwork className="relative block aspect-[2/3] w-[152px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform] sm:w-[200px]">
-          {book.coverUrl ? (
-            <Image src={book.coverUrl} alt={`${book.title} book cover`} fill sizes="(min-width: 640px) 200px, 152px" className="object-cover" />
-          ) : (
-            <span className="absolute inset-0 flex items-center justify-center px-5 text-center text-sm font-medium leading-5 text-white/80">
-              {book.title}
-            </span>
-          )}
+        <span data-book-cover-artwork className="relative block aspect-[2/3] w-[152px] overflow-hidden rounded-[4px] bg-[#efefec] will-change-[filter,opacity,transform] sm:w-[200px]">
+          <ResilientArtwork src={book.coverUrl?.replace(/-M\.jpg(?=\?|$)/, "-L.jpg") ?? null} alt={`${book.title} book cover`} sizes="(min-width: 640px) 200px, 152px" className="object-contain" title={book.title} fallbackClassName="text-[#111111]" />
         </span>
         <span data-book-cover-metadata className="mt-3 block will-change-[transform,opacity]">
-          <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{book.title}</span>
+          <span className="block min-h-12 line-clamp-2 break-words text-base font-semibold leading-6 tracking-[-0.018em] text-[#111111] [overflow-wrap:anywhere]">{book.title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{book.author}</span>
           {book.tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{book.tags.join(" / ")}</span> : null}
         </span>
@@ -97,21 +91,11 @@ function AnimatedBookCover({ book }: { book: BookCover }) {
 }
 
 export function BookCoverRail({ books }: { books: BookCover[] }) {
-  const railRef = useSmoothHorizontalWheel<HTMLDivElement>();
-
   return (
-    <div
-      ref={railRef}
-      aria-label="Books. Scroll horizontally to browse."
-      data-book-cover-rail
-      data-lenis-prevent-wheel
-      className="overflow-x-auto overscroll-x-contain [scrollbar-color:#252525_transparent] [scrollbar-width:thin]"
-      role="region"
-      tabIndex={0}
-    >
+    <MediaRail kind="book">
       <ul className="mt-[6px] flex w-max gap-1 px-3 pb-3">
         {books.map((book) => <AnimatedBookCover key={book.id} book={book} />)}
       </ul>
-    </div>
+    </MediaRail>
   );
 }

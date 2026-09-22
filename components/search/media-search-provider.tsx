@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import { ResilientArtwork } from "@/components/media/resilient-artwork"
 import { useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
 import { X } from "lucide-react"
@@ -471,7 +471,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
               <DialogTitle className="sr-only">{searchLabel}</DialogTitle>
               <DialogDescription className="sr-only">Search by title, then add a movie, TV show, or book to your collection.</DialogDescription>
               <div className="relative">
-                <Input ref={inputRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={scope === "movie" ? "Search movies and TV shows" : scope === "book" ? "Search for your favorite books" : searchLabel} aria-label={searchLabel} autoComplete="off" className="h-[58px] rounded-[4px] border-0 bg-white px-[18px] pr-14 text-base tracking-[-0.01em] shadow-none placeholder:text-[#8a8a8a] focus-visible:bg-white sm:text-[17px]" />
+                <Input ref={inputRef} type="search" value={query} maxLength={160} onChange={(event) => setQuery(event.target.value)} placeholder={scope === "movie" ? "Search movies and TV shows" : scope === "book" ? "Search for your favorite books" : searchLabel} aria-label={searchLabel} autoComplete="off" className="h-[58px] rounded-[4px] border-0 bg-white px-[18px] pr-14 text-base tracking-[-0.01em] shadow-none placeholder:text-[#8a8a8a] focus-visible:bg-white sm:text-[17px]" />
                 <DialogClose aria-label="Close search" className="ledger-focus absolute right-2 top-1/2 grid size-10 -translate-y-1/2 place-items-center text-[#111111] hover:bg-black/[0.05] active:scale-95">
                   <X aria-hidden="true" className="size-5" strokeWidth={2} />
                 </DialogClose>
@@ -505,7 +505,7 @@ export function MediaSearchProvider({ children }: { children: ReactNode }) {
                                 aria-label={`View ${result.title} information`}
                               >
                                 <span className="relative block h-[70px] w-[45px] overflow-hidden rounded-[4px] bg-[#242424]">
-                                  {result.artwork ? <Image src={result.artwork} alt="" fill sizes="45px" className="object-cover" /> : null}
+                                  <ResilientArtwork src={result.artwork} alt="" sizes="45px" className="object-cover" title={result.title} fallbackClassName="text-white/70" compact />
                                 </span>
                                 <span className="min-w-0">
                                   <span className="block truncate text-[18px] font-semibold leading-5 tracking-[-0.018em] text-[#111111]">{result.title}</span>

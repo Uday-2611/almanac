@@ -7,6 +7,7 @@ import { BookListDisclosure } from "@/components/books/book-list-disclosure";
 import { BookCoverRail } from "@/components/books/book-cover-rail";
 import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
+import { CollectionHeading } from "@/components/ledger/collection-heading";
 import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { EmptyState } from "@/components/states/empty-state";
@@ -20,6 +21,8 @@ export type Book = {
   title: string;
   author: string;
   date: string;
+  group: string;
+  sortDate: string;
   coverUrl: string | null;
   tags: string[];
 };
@@ -97,10 +100,11 @@ function AddLink({ lists, view }: { lists: boolean; view: BookView }) {
 }
 
 function toLedgerItems(books: Book[]): AnimatedLedgerItem[] {
-  return books.map((book) => ({
+  return [...books].sort((a, b) => b.sortDate.localeCompare(a.sortDate)).map((book) => ({
     id: book.id,
     href: `/books/${book.id}`,
     date: book.date,
+    group: book.group,
     title: book.title,
     creator: book.author,
     tags: book.tags,
@@ -163,12 +167,13 @@ export function BookLedger({ status, view, books, lists, showCreateList, activeT
       <AddLink lists={status === "lists"} view={activeView} />
       {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateBookListForm /> : null}
+      <CollectionHeading label={status === "lists" ? "My Lists" : status === "want-to-read" ? "Want to Read" : "Read"} count={status === "lists" ? lists.length : books.length} noun={status === "lists" ? "list" : "book"} />
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
       ) : books.length ? (
         activeView === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
       ) : (
-        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No books in ${status === "want-to-read" ? "Want to Read" : "Read"} use the tag “${activeTagName}”.` : status === "want-to-read" ? "Your Want to Read list is empty." : "You have not marked any books as read yet."} /></div>
+        <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No books in ${status === "want-to-read" ? "Want to Read" : "Read"} use the tag “${activeTagName}”. Choose All above to see the full collection.` : status === "want-to-read" ? "Your Want to Read list is empty. Search for a book to save it here." : "No read books yet. Search for a book to begin your record."} /></div>
       )}
     </main>
   );

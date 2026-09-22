@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import { ResilientArtwork } from "@/components/media/resilient-artwork";
 
 gsap.registerPlugin(useGSAP);
 
@@ -88,10 +88,10 @@ export function AnimatedMoviePoster({
         onPointerLeave={(event) => animate(event.currentTarget, false)}
       >
         <span data-poster-artwork className="relative block aspect-[2/3] w-[152px] overflow-hidden rounded-[4px] bg-[#252525] will-change-[filter,opacity,transform] sm:w-[200px]">
-          {posterUrl ? <Image src={posterUrl} alt="" fill sizes="(min-width: 640px) 200px, 152px" className="object-cover" /> : null}
+          <ResilientArtwork src={posterUrl} alt="" sizes="(min-width: 640px) 200px, 152px" className="object-cover" title={title} fallbackClassName="text-white/80" />
         </span>
         <span data-poster-metadata className="mt-3 block will-change-[transform,opacity]">
-          <span className="block truncate text-base font-semibold tracking-[-0.018em] text-[#111111]">{title}</span>
+          <span className="block min-h-12 line-clamp-2 break-words text-base font-semibold leading-6 tracking-[-0.018em] text-[#111111] [overflow-wrap:anywhere]">{title}</span>
           <span className="mt-0.5 block truncate text-sm text-[#686868]">{creator}</span>
           {tags?.length ? <span className="mt-0.5 block truncate text-xs text-black/45">{tags.join(" / ")}</span> : null}
         </span>

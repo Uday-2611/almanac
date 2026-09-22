@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGSAP } from "@gsap/react";
@@ -12,6 +12,7 @@ export type AnimatedLedgerItem = {
   id: string;
   href: string;
   date: string;
+  group: string;
   title: string;
   creator: string;
   tags?: string[];
@@ -46,8 +47,14 @@ export function AnimatedLedgerList({
 
   return (
     <ul ref={listRef} className={`text-sm sm:text-base ${className}`}>
-      {items.map((item) => (
-        <li key={item.id}>
+      {items.map((item, index) => (
+        <Fragment key={item.id}>
+          {item.group !== items[index - 1]?.group ? (
+            <li className="pt-8 first:pt-2" aria-label={`${item.group} entries`}>
+              <p className="pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[#686868]">{item.group}</p>
+            </li>
+          ) : null}
+          <li>
           <Link
             href={item.href}
             data-ledger-row
@@ -65,14 +72,15 @@ export function AnimatedLedgerList({
           >
             <time className="pr-1 text-xs leading-5 text-[#686868] sm:pr-0 sm:text-base sm:leading-normal">{item.date}</time>
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[1.08em] font-semibold tracking-[-0.018em] text-[#111111]">{item.title}</span>
-              <span className="text-[#686868]">
+              <span className="break-words [overflow-wrap:anywhere] text-[1.08em] font-semibold tracking-[-0.018em] text-[#111111]">{item.title}</span>
+              <span className="break-words text-[#686868]">
                 {item.creator}
                 {item.tags?.length ? <span className="text-black/45"> <span aria-hidden="true">·</span> {item.tags.join(" / ")}</span> : null}
               </span>
             </span>
           </Link>
-        </li>
+          </li>
+        </Fragment>
       ))}
     </ul>
   );

@@ -1,7 +1,7 @@
 export function InteractionSkeleton({ label = "Saving changes" }: { label?: string }) {
   return (
     <div role="status" className="flex items-center gap-2 py-1" aria-live="polite">
-      <span className="sr-only">{label}</span>
+      <span className="text-xs text-[#686868]">{label}…</span>
       <span className="h-2 w-16 animate-pulse bg-[#dedede]" />
       <span className="h-2 w-8 animate-pulse bg-[#eeeeee] [animation-delay:120ms]" />
     </div>

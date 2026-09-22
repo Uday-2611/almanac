@@ -2,6 +2,6 @@
 
 import { RouteError } from "@/components/states/route-error";
 
-export default function MoviesError({ reset }: { reset: () => void }) {
-  return <RouteError message="The movie ledger could not be loaded." reset={reset} />;
+export default function MoviesError({ retry }: { retry: () => void }) {
+  return <RouteError message="The movie ledger could not be loaded." retry={retry} />;
 }

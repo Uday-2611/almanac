@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { BookLedger, type BookStatus, type BookView } from "@/components/books/book-ledger";
 import { getCurrentUser } from "@/lib/auth/session";
-import { listBookListsForUser, listBooksForUser, type BookRecord } from "@/lib/db/queries/books";
+import { listBookCollectionForUser, listBookCollectionListsForUser, type BookCollectionRecord } from "@/lib/db/queries/books";
 import { listBookTagOptionsForUser, listTagsForBooksForUser, type TagRecord } from "@/lib/db/queries/tags";
 import { idSchema } from "@/lib/validation";
 
@@ -18,12 +18,22 @@ function formatDate(value: string | Date | null) {
   return new Intl.DateTimeFormat("en", { month: "long", day: "numeric", year: "numeric" }).format(date);
 }
 
-function presentBook(book: BookRecord, tags: TagRecord[] = []) {
+function entryYear(value: string | Date | null) {
+  if (!value) return "Undated";
+  const year = typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? Number(value.slice(0, 4))
+    : new Date(value).getUTCFullYear();
+  return Number.isFinite(year) ? String(year) : "Undated";
+}
+
+function presentBook(book: BookCollectionRecord, tags: TagRecord[] = []) {
   return {
     id: book.id,
     title: book.title,
     author: book.authors.join(", ") || "Author unavailable",
     date: formatDate(book.loggedDate ?? book.createdAt),
+    group: entryYear(book.loggedDate ?? book.createdAt),
+    sortDate: book.loggedDate ?? book.createdAt.toISOString(),
     coverUrl: book.coverUrl,
     tags: tags.map((tag) => tag.name),
   };
@@ -44,12 +54,12 @@ export default async function BooksPage({ searchParams }: PageProps<"/books">) {
   const requestedTagId = idSchema.safeParse(requestedTag).success ? requestedTag : undefined;
   const [tagOptions, listRecords, requestedBookRecords] = await Promise.all([
     status === "lists" ? Promise.resolve([]) : listBookTagOptionsForUser(user.id, databaseStatus),
-    status === "lists" ? listBookListsForUser(user.id) : Promise.resolve([]),
-    status === "lists" ? Promise.resolve([]) : listBooksForUser(user.id, databaseStatus, requestedTagId),
+    status === "lists" ? listBookCollectionListsForUser(user.id) : Promise.resolve([]),
+    status === "lists" ? Promise.resolve([]) : listBookCollectionForUser(user.id, databaseStatus, requestedTagId),
   ]);
   const activeTagId = requestedTagId && tagOptions.some((tag) => tag.id === requestedTagId) ? requestedTagId : undefined;
   const bookRecords = status !== "lists" && requestedTagId && !activeTagId
-    ? await listBooksForUser(user.id, databaseStatus)
+    ? await listBookCollectionForUser(user.id, databaseStatus)
     : requestedBookRecords;
   const bookIds = status === "lists" ? listRecords.flatMap((list) => list.books.map((book) => book.id)) : bookRecords.map((book) => book.id);
   const tagsByBook = await listTagsForBooksForUser(user.id, bookIds);
