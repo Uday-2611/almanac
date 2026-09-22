@@ -80,7 +80,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   const { error } = await searchParams;
   const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
-  const afterEmailSignIn = error === "account_not_linked" ? "/settings/accounts" : "/movies";
+  const afterEmailSignIn = error === "account_not_linked" ? "/settings" : "/movies";
   const oauthError = error
     ? oauthErrorMessages[error] ?? "Google sign-in could not be completed. Please try again."
     : null;

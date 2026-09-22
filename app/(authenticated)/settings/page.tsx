@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "My profile" };
 export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
   return (
     <main className="min-h-screen px-5 pb-20 pt-32 sm:px-8 sm:pt-40 lg:px-12">
@@ -17,6 +18,7 @@ export default async function SettingsPage() {
         id={user.id}
         initialName={user.name ?? "Almanac reader"}
         initialEmail={user.email}
+        googleEnabled={googleEnabled}
       >
         <section className="border-t border-[#e8e8e8] py-8 sm:py-16" aria-labelledby="migration-heading">
           <div className="mb-10 grid gap-3 sm:grid-cols-[minmax(7rem,0.32fr)_minmax(0,0.68fr)] sm:gap-8">

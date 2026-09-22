@@ -22,6 +22,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - The longer-term direction for tags is a knowledge-graph style system, so the schema should preserve reusable tag identities and connections.
 - The stack direction for implementation is Next.js App Router + Postgres + server-side API routes.
 - Authentication uses Better Auth with email/password and Google OAuth. Google credentials remain server-only, the Google option is shown only when both credentials are configured, and existing password accounts connect Google explicitly from authenticated Settings before using Google sign-in.
+- My profile places the Google connection control directly below the editable Email row; the old connected-accounts route redirects there, including after email sign-in recovery from an unlinked Google attempt.
 - Neon is the managed Postgres provider and Drizzle ORM owns the application schema and migrations.
 
 ## Architecture decisions

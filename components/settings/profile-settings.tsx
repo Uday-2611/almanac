@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth/client";
+import { GoogleAccountLink } from "@/components/settings/google-account-link";
 
 import styles from "./profile-settings.module.css";
 
@@ -47,10 +48,11 @@ function createOrbStyle(id: string): OrbStyle {
   };
 }
 
-export function ProfileSettings({ id, initialName, initialEmail, children }: {
+export function ProfileSettings({ id, initialName, initialEmail, googleEnabled, children }: {
   id: string;
   initialName: string;
   initialEmail: string;
+  googleEnabled: boolean;
   children?: ReactNode;
 }) {
   const router = useRouter();
@@ -224,6 +226,7 @@ export function ProfileSettings({ id, initialName, initialEmail, children }: {
               )}
             </div>
           ))}
+          <GoogleAccountLink enabled={googleEnabled} />
         </div>
         <div className={styles.profileStatus} aria-live="polite">
           {profileError ? <p className={styles.error} role="alert">{profileError}</p> : null}

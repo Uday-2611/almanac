@@ -139,6 +139,11 @@
   font-size: 0.875rem;
 }
 
+.googleLinkError {
+  grid-column: 2 / -1;
+  margin: 0 0 0.75rem;
+}
+
 .textAction,
 .editActions button {
   min-height: 2.75rem;
@@ -332,6 +337,10 @@
   .editForm {
     grid-column: 1 / -1;
     grid-template-columns: 1fr;
+  }
+
+  .googleLinkError {
+    grid-column: 1 / -1;
   }
 
   .editActions {
