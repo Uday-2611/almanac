@@ -66,6 +66,7 @@ export function TextsJournal({ activeFolderId, activeMonth, allNotes, currentHre
   const [renameName, setRenameName] = useState("");
   const [pending, setPending] = useState(false);
   const [folderError, setFolderError] = useState("");
+  const activeFolder = activeFolderId ? folders.find((folder) => folder.id === activeFolderId) : undefined;
   const groupedNotes = groupTextNotesByMonth(notes);
   const filteredNotes = useMemo(() => {
     const query = noteSearch.trim().toLocaleLowerCase("en-US");
@@ -145,6 +146,14 @@ export function TextsJournal({ activeFolderId, activeMonth, allNotes, currentHre
           <Link href="/texts?view=folders" className={`ledger-focus min-h-11 px-1 py-3 sm:min-h-0 sm:py-2 ${showFolders ? "font-semibold text-[#111111]" : "text-[#686868] hover:text-[#111111]"}`}>All folders</Link>
         </nav>
 
+        {activeFolder ? (
+          <section className="mt-8 border-b border-black/10 pb-7" aria-labelledby="active-text-folder-heading">
+            <Link href="/texts?view=folders" className="ledger-focus inline-flex min-h-11 items-center py-2 text-xs text-[#686868] hover:text-[#111111] sm:min-h-0">← Back to all folders</Link>
+            <h2 id="active-text-folder-heading" className="mt-4 break-words text-[clamp(1.75rem,5vw,3rem)] font-semibold leading-none tracking-[-0.045em]">{activeFolder.name}</h2>
+            <p className="mt-3 text-sm text-[#686868]">{notes.length} {notes.length === 1 ? "note" : "notes"}</p>
+          </section>
+        ) : null}
+
         {folderError && !createOpen && !editingFolder && !deletingFolder ? <p role="alert" className="mt-3 text-sm text-red-700">{folderError}</p> : null}
 
         {showFolders ? (
@@ -159,7 +168,7 @@ export function TextsJournal({ activeFolderId, activeMonth, allNotes, currentHre
             })}</ol> : <p className="mt-10 max-w-md text-sm leading-6 text-[#686868]">No folders yet. Create one to organize notes without making separate copies.</p>}
           </section>
         ) : <>
-          {months.length ? <div className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#686868]"><span className="mr-1 uppercase tracking-[0.14em]">Months</span>{months.map((month, index) => <span key={month} className="flex items-center gap-2">{index > 0 ? <span aria-hidden="true" className="text-black/25">/</span> : null}<Link href={`/texts?month=${month}`} className={`ledger-focus px-1 py-2 hover:text-[#111111] ${activeMonth === month ? "font-semibold text-[#111111]" : ""}`}>{formatJournalMonth(month)}</Link></span>)}</div> : null}
+          {!activeFolder && months.length ? <div className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#686868]"><span className="mr-1 uppercase tracking-[0.14em]">Months</span>{months.map((month, index) => <span key={month} className="flex items-center gap-2">{index > 0 ? <span aria-hidden="true" className="text-black/25">/</span> : null}<Link href={`/texts?month=${month}`} className={`ledger-focus px-1 py-2 hover:text-[#111111] ${activeMonth === month ? "font-semibold text-[#111111]" : ""}`}>{formatJournalMonth(month)}</Link></span>)}</div> : null}
           <section aria-label="Journal notes" className="mt-12">
             {groupedNotes.length ? groupedNotes.map((group) => <section key={group.key} className="mb-12"><h2 className="border-b border-black/10 pb-3 text-xs font-medium uppercase tracking-[0.14em] text-[#686868]">{formatJournalMonth(group.key)}</h2><ol>{group.notes.map((note) => <li key={note.id} className="border-b border-black/10"><Link href={{ pathname: `/texts/${note.id}`, query: { returnTo: currentHref } }} className="ledger-focus grid min-h-[92px] grid-cols-[5.25rem_1fr] gap-4 py-5 sm:grid-cols-[8rem_1fr] sm:gap-8"><span className="text-sm text-[#686868]">{formatDay(note.journalDate)}</span><span className="min-w-0"><strong className="block break-words font-semibold tracking-[-0.015em]">{note.title || "Untitled note"}</strong><span className="mt-1.5 block text-sm text-[#686868]">{note.folders.length ? note.folders.map((folder) => folder.name).join(" / ") : "Unfiled"}</span></span></Link></li>)}</ol></section>) : <p className="max-w-md text-sm leading-6 text-[#686868]">{activeFolderId || activeMonth ? "No notes in this view. Choose All notes or write a new note here." : "Nothing here yet. Write a note to begin your journal."}</p>}
           </section>
