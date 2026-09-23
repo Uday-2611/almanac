@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 type PendingNavigationLinkProps = {
   active: boolean;
   children: ReactNode;
+  className?: string;
   href: LinkProps["href"];
   pendingLabel: string;
 };
@@ -29,12 +30,12 @@ function PendingNavigationState({ children, label }: { children: ReactNode; labe
   );
 }
 
-export function PendingNavigationLink({ active, children, href, pendingLabel }: PendingNavigationLinkProps) {
+export function PendingNavigationLink({ active, children, className = "", href, pendingLabel }: PendingNavigationLinkProps) {
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`ledger-focus ${active ? "text-[#111111]" : "text-[#686868] hover:text-[#111111]"}`}
+      className={`ledger-focus ${className} ${active ? "text-[#111111]" : "text-[#686868] hover:text-[#111111]"}`}
     >
       <PendingNavigationState label={pendingLabel}>{children}</PendingNavigationState>
     </Link>

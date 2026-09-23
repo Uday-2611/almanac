@@ -9,6 +9,7 @@ import {
   Dialog, DialogBackdrop, DialogClose, DialogDescription, DialogPopup,
   DialogPortal, DialogTitle, DialogViewport,
 } from "@/components/ui/dialog";
+import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { responseErrorMessage } from "@/lib/http/client-errors";
 import { textDraftStorageKey, type TextDraftSnapshot } from "@/lib/texts/autosave";
 import { formatJournalMonth, groupTextNotesByMonth } from "@/lib/texts/grouping";
@@ -141,14 +142,28 @@ export function TextsJournal({ activeFolderId, activeMonth, allNotes, currentHre
         </header>
 
         <nav aria-label="Text journal views" className="mt-7 flex flex-wrap items-center gap-x-2 text-sm">
-          <Link href="/texts" className={`ledger-focus min-h-11 px-1 py-3 sm:min-h-0 sm:py-2 ${!showFolders && !activeFolderId && !activeMonth ? "font-semibold text-[#111111]" : "text-[#686868] hover:text-[#111111]"}`}>All notes</Link>
+          <PendingNavigationLink
+            href="/texts"
+            active={!showFolders && !activeFolderId && !activeMonth}
+            pendingLabel="Loading all notes"
+            className={`min-h-11 px-1 py-3 sm:min-h-0 sm:py-2 ${!showFolders && !activeFolderId && !activeMonth ? "font-semibold" : ""}`}
+          >
+            All notes
+          </PendingNavigationLink>
           <span aria-hidden="true" className="text-black/25">/</span>
-          <Link href="/texts?view=folders" className={`ledger-focus min-h-11 px-1 py-3 sm:min-h-0 sm:py-2 ${showFolders ? "font-semibold text-[#111111]" : "text-[#686868] hover:text-[#111111]"}`}>All folders</Link>
+          <PendingNavigationLink
+            href="/texts?view=folders"
+            active={showFolders || Boolean(activeFolderId)}
+            pendingLabel="Loading all folders"
+            className={`min-h-11 px-1 py-3 sm:min-h-0 sm:py-2 ${showFolders || activeFolderId ? "font-semibold" : ""}`}
+          >
+            All folders
+          </PendingNavigationLink>
         </nav>
 
         {activeFolder ? (
           <section className="mt-8 border-b border-black/10 pb-7" aria-labelledby="active-text-folder-heading">
-            <Link href="/texts?view=folders" className="ledger-focus inline-flex min-h-11 items-center py-2 text-xs text-[#686868] hover:text-[#111111] sm:min-h-0">← Back to all folders</Link>
+            <PendingNavigationLink href="/texts?view=folders" active={false} pendingLabel="Returning to all folders" className="inline-flex min-h-11 items-center py-2 text-xs sm:min-h-0">← Back to all folders</PendingNavigationLink>
             <h2 id="active-text-folder-heading" className="mt-4 break-words text-[clamp(1.75rem,5vw,3rem)] font-semibold leading-none tracking-[-0.045em]">{activeFolder.name}</h2>
             <p className="mt-3 text-sm text-[#686868]">{notes.length} {notes.length === 1 ? "note" : "notes"}</p>
           </section>

@@ -80,6 +80,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance. Validation, error handling, and the responsive mobile pass are complete; measured production performance remains.
 - Phase 7 (complete): Add one-time Letterboxd and Goodreads collection migration in Settings with local export parsing, preview counts, authenticated batch writes, conservative TMDB matching, Goodreads source identities, duplicate-safe status promotion, and unmatched-title reporting.
 - Phase 8 (complete): Replace the Texts placeholder with a private journal: compact `All notes / All folders` browsing, named folder views with a direct return path, searchable multi-note folder creation, per-folder rename/delete controls, multi-folder note assignment in Write mode, sanitized Markdown preview, account-derived bylines, deletion confirmation, revision-ordered debounced autosave, navigation and best-effort lifecycle flushes, and versioned local draft recovery.
+- Texts writing uses a single document scroll surface: the body editor grows with its Markdown content instead of scrolling independently, preserving predictable touch scrolling and return-to-top behavior on phones.
+- `All notes`, `All folders`, and the opened-folder return path use the shared pending-navigation feedback so slow server reads acknowledge the click immediately without blanking or blocking the current ledger.
 
 ## Validation checklist
 - Verify visitors without a session see the landing page and authenticated visitors opening `/` are redirected to `/movies`.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ReviewMarkdown } from "@/components/media/review-markdown";
 import {
@@ -75,6 +75,7 @@ export function TextNoteEditor({ folders, initialNote, isNew, noteId, returnTo, 
   const confirmedFingerprintRef = useRef(initialNote ? textDraftFingerprint(initialDraft) : "");
   const savePromiseRef = useRef<Promise<boolean> | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const storageKey = textDraftStorageKey(userId, noteId);
 
   const hasUnsavedChanges = useCallback(() => (
@@ -205,6 +206,13 @@ export function TextNoteEditor({ folders, initialNote, isNew, noteId, returnTo, 
     };
   }, [hasUnsavedChanges, noteId]);
 
+  useLayoutEffect(() => {
+    const textarea = bodyTextareaRef.current;
+    if (!textarea || mode !== "write") return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [draft.body, mode]);
+
   function recoverDraft() {
     if (!recoveryDraft) return;
     draftRef.current = recoveryDraft;
@@ -304,7 +312,7 @@ export function TextNoteEditor({ folders, initialNote, isNew, noteId, returnTo, 
           {mode === "write" ? (
             <label className="mt-10 block">
               <span className="sr-only">Note body</span>
-              <textarea autoFocus={!initialNote} rows={24} maxLength={100_000} value={draft.body} onChange={(event) => applyChange({ body: event.currentTarget.value })} placeholder="Write your note…" className="min-h-[52dvh] w-full resize-y bg-transparent text-base leading-8 outline-none placeholder:text-black/25 focus-visible:bg-black/[0.02]" />
+              <textarea ref={bodyTextareaRef} autoFocus={!initialNote} rows={1} maxLength={100_000} value={draft.body} onChange={(event) => applyChange({ body: event.currentTarget.value })} placeholder="Write your note…" className="min-h-[52dvh] w-full touch-pan-y resize-none overflow-y-hidden bg-transparent text-base leading-8 outline-none placeholder:text-black/25 focus-visible:bg-black/[0.02]" />
             </label>
           ) : (
             <div className="mt-10 min-h-[52dvh] text-base">
