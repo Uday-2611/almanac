@@ -1,6 +1,6 @@
 # Almanac
 
-Almanac is a private, personal archive for movies, TV shows, and books. It brings watchlists, reading lists, completed entries, reviews, and notes into one quiet place to record what you want to experience and what stayed with you afterward. Each account has its own archive; the product has no public profiles, feeds, or social features.
+Almanac is a private, personal archive for movies, TV shows, books, and standalone journal notes. It brings watchlists, reading lists, completed entries, reviews, Archive Notes, and freeform writing into one quiet place. Each account has its own archive; the product has no public profiles, feeds, or social features.
 
 The interface is intentionally closer to an editorial ledger than a dashboard. Collections can be browsed as text lists or artwork rails, with responsive layouts and restrained interaction feedback on desktop and mobile.
 
@@ -10,11 +10,12 @@ The interface is intentionally closer to an editorial ledger than a dashboard. C
 - Search for books, save them to Want to Read, and move them to Read. Open Library is the primary source, with Google Books as a fallback.
 - Maintain one editable entry per title, including its status, rating, completion date, and review. Reviews support a limited, sanitized Markdown format.
 - Write a private Archive Note for a movie, show, or book. Reusable account-scoped tags can be attached to notes and used to filter collections.
+- Keep standalone Markdown-capable notes in Texts, browse them by month or optional folders, and rely on debounced autosave with visible status and local draft recovery. Texts notes remain separate from media Archive Notes.
 - Create personal movie and book lists. Only titles already in Watched or Read can be added to their respective custom lists; changing a title back to an unfinished status removes those memberships.
 - Import Letterboxd Watched/Watchlist and Goodreads Read/Want to Read exports on demand. Raw files are parsed in the browser, and bounded, normalized batches are sent to the authenticated import endpoint. This is a migration tool, not ongoing synchronization.
 - Sign in with email and password, with optional Google sign-in when OAuth credentials are configured. Manage profile details and account actions from My profile.
 
-The Colors and Texts routes currently show authenticated "Coming soon" pages. They are not part of the working media archive yet.
+The Colors route currently shows an authenticated "Coming soon" page. Texts is a working private journal.
 
 ## Technology
 
@@ -69,6 +70,8 @@ The Drizzle schema is in `lib/db/schema.ts`, with generated migrations in `drizz
 | `npm run test:movie-invariants` / `npm run test:book-invariants` | Check owner and custom-list database invariants. |
 | `npm run test:movie-flow` / `npm run test:book-flow` | Exercise database-backed media flows. |
 | `npm run test:archive-tags` | Check Archive Note and tag behavior. |
+| `npm run test:text-autosave` | Check Texts validation, month grouping, autosave ordering, and local recovery rules. |
+| `npm run test:texts` | Check database-backed Texts owner and folder membership invariants. |
 
 Database-backed verification scripts require a configured database and may create temporary test records. The movie and book flow scripts also require a running application at `http://localhost:3000` by default. Check their requirements before running them against a shared database.
 

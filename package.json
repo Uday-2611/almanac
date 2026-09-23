@@ -17,6 +17,8 @@
     "test:book-invariants": "node scripts/verify-book-list-invariants.mjs",
     "test:book-flow": "node scripts/verify-book-flow.mjs",
     "test:archive-tags": "node scripts/verify-archive-tags.mjs",
+    "test:texts": "node scripts/verify-texts.mjs",
+    "test:text-autosave": "node --no-warnings --experimental-strip-types scripts/verify-text-autosave.mjs",
     "test:imports": "node --no-warnings --experimental-strip-types scripts/verify-imports.mjs",
     "test:validation": "node --no-warnings --experimental-strip-types scripts/verify-validation.mjs"
   },

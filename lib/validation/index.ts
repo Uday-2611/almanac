@@ -4,6 +4,9 @@ export const MAX_REVIEW_LENGTH = 20_000;
 export const MAX_ARCHIVE_NOTE_LENGTH = 100_000;
 export const MAX_LIST_NAME_LENGTH = 100;
 export const MAX_TAG_NAME_LENGTH = 64;
+export const MAX_TEXT_TITLE_LENGTH = 300;
+export const MAX_TEXT_BODY_LENGTH = 100_000;
+export const MAX_TEXT_FOLDER_NAME_LENGTH = 100;
 
 export const idSchema = z.uuid();
 
@@ -109,6 +112,32 @@ export const archiveNoteSchema = z.object({
 
 export const createTagSchema = z.object({
   name: z.string().trim().min(1, "Enter a tag name.").max(MAX_TAG_NAME_LENGTH, "Tag names cannot exceed 64 characters."),
+}).strict();
+
+const journalDateSchema = z.iso.date().refine(
+  (value) => Number(value.slice(0, 4)) >= 1000,
+  "Enter a valid journal date.",
+);
+
+export const saveTextNoteSchema = z.object({
+  title: z.string().max(MAX_TEXT_TITLE_LENGTH, "Titles cannot exceed 300 characters.").nullable(),
+  body: z.string().max(MAX_TEXT_BODY_LENGTH, "Notes cannot exceed 100,000 characters."),
+  journalDate: journalDateSchema,
+  folderIds: z.array(idSchema).max(100, "A note cannot belong to more than 100 folders."),
+  revision: z.number().int().min(0).max(2_147_483_647),
+}).strict().transform((value) => ({
+  ...value,
+  title: value.title?.trim() || null,
+  folderIds: [...new Set(value.folderIds)],
+}));
+
+export const createTextFolderSchema = z.object({
+  name: z.string().trim().min(1, "Enter a folder name.").max(MAX_TEXT_FOLDER_NAME_LENGTH, "Folder names cannot exceed 100 characters."),
+  noteIds: z.array(idSchema).max(1_000, "A folder cannot be created with more than 1,000 notes at once.").default([]),
+}).strict().transform((value) => ({ ...value, noteIds: [...new Set(value.noteIds)] }));
+
+export const updateTextFolderSchema = z.object({
+  name: z.string().trim().min(1, "Enter a folder name.").max(MAX_TEXT_FOLDER_NAME_LENGTH, "Folder names cannot exceed 100 characters."),
 }).strict();
 
 export function validationErrorMessage(error: z.ZodError, fallback: string) {

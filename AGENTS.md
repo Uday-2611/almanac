@@ -27,7 +27,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Product Guardrails
 
 - Build a private, single-user-per-account logging tool.
-- Current MVP focus: movies, TV shows, and books. TV shows live inside the Movies section rather than a separate product route.
+- Current product focus: movies, TV shows, books, and private standalone Texts notes. TV shows live inside the Movies section rather than a separate product route.
 - Do not add any social features: no public profiles, sharing, comments, follows, likes, feeds, or collaboration.
 - Prefer fast entry flows and quiet browsing over decorative UI or engagement mechanics.
 - Keep external API calls server-side through Route Handlers. Do not call TMDB or books APIs directly from client components.
@@ -110,6 +110,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Preserve owner-scoped movie-list CRUD. Deleting a custom list must delete only its memberships, not the watched movies it contained; movie deletion remains a separate confirmed action.
 - Render reviews through the sanitized markdown component. Do not enable raw HTML in user-authored review content.
 - Persist one Archive Note directly on each singular movie or book entry. Keep Archive Note reads and writes owner-scoped, preserve explicit saving and unsaved-exit protection, and do not expose note content through public or provider routes.
+- Keep standalone Texts notes separate from movie and book Archive Notes. Texts use client-generated UUIDs for idempotent creation, monotonic client revisions for stale-write rejection, debounced autosave with navigation flushes, and account-and-note-scoped local draft recovery. Do not claim that a request at browser close is guaranteed to finish.
+- Texts folders are optional many-to-many organization. Enforce same-owner note/folder memberships through composite database foreign keys as well as authenticated API checks; deleting a folder must cascade only its memberships, never its notes.
+- Keep Texts top-level navigation compact: show only `All notes / All folders`. The All folders ledger owns folder creation, per-row rename, and confirmed deletion; folder creation may attach multiple owner-scoped notes through a searchable picker. In the note editor, folder membership and note deletion are Write-mode actions and must not appear in Preview.
 - Preserve reusable account-scoped tag identities and case-insensitive normalized-name uniqueness. Attaching or removing a tag must verify ownership of the entry and tag, and the database ownership triggers must continue to reject cross-account movie-tag or book-tag relationships. Detaching a tag must not delete the reusable tag identity.
 - Keep the extension as a separate package when that milestone begins.
 
@@ -135,7 +138,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - The Almanac icon uses the exact capital `A` outline from the self-hosted Boska Regular font, in white on a flat `#111111` square with 4px corners. `app/icon.svg` is the favicon source; keep the mark free of gradients, shadows, and extra symbols.
 
-- Keep `/colors` and `/texts` as minimal authenticated editorial "Coming soon" pages until those sections are planned and implemented. Their navigation links should resolve without suggesting that logging features already exist.
+- Keep `/colors` as a minimal authenticated editorial "Coming soon" page until that section is planned and implemented.
+- Keep `/colors` as a minimal authenticated editorial "Coming soon" page. `/texts` is a working private journal with month and folder browsing, Markdown preview, automatic saving, local recovery, and mobile-first writing controls.
+
+- Texts lists group notes by editable journal month, newest first, while retaining separate created and updated audit timestamps. Empty titles render as `Untitled note`; the visible byline always comes from the current account profile rather than note data.
 
 - The public landing page is a navbar-free, light editorial archive. Its hero is the explicit visual exception to the white canvas: a near-full-viewport, tightly separated 3×3 archival image mosaic inspired by the supplied Studio Aton reference, with the oversized self-hosted Boska `Almanac` wordmark, one-line private-archive description, edition metadata, and entry action integrated over the lower image row. The mosaic, six-step process grid, and three-image feature spread now use the supplied cinematic stills, posters, sculpture, architecture, and archival artwork rather than the former generated still-life placeholder, with crops assigned to each slot's geometry. Geist Sans remains the family for every other landing-page label, heading, description, and control. On phones the hero reduces to a deliberate two-column mosaic without horizontal overflow. The process grid collapses to a single readable sequence. The feature explanation remains one open editorial spread rather than cards. Follow it with an open editorial principles index: Privacy, Simplicity, Continuity, Connection, Ownership, and Longevity rotate automatically while visible, updating the active ledger row, position, short statement, and explanation together. Each term remains a real button for direct selection; rotation pauses on hover or focus and becomes static under reduced motion. Keep this section monochrome, cardless, and aligned with the adjacent editorial headers and hairline rules. Preserve the private-first product difference, closing entry path, and Contact us footer with its social directory. Keep interface chrome monochrome and reserve muted burgundy, blue-gray, forest, mauve, and ochre tinting for the cultural imagery. Use 4px corners, no shadows, and only brief reveal, hover, and press feedback with reduced-motion equivalents; do not add a navbar or autonomous looping hero motion.
 

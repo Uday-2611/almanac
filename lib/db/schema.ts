@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -243,4 +244,63 @@ export const userPreferences = pgTable(
     ...timestamps,
   },
   (table) => [uniqueIndex("preferences_user_section_idx").on(table.userId, table.section)],
+);
+
+export const textNotes = pgTable(
+  "text_notes",
+  {
+    id: uuid("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    title: text("title"),
+    body: text("body").default("").notNull(),
+    journalDate: date("journal_date", { mode: "string" }).notNull(),
+    clientRevision: integer("client_revision").default(0).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("text_notes_id_user_idx").on(table.id, table.userId),
+    index("text_notes_user_journal_date_idx").on(table.userId, table.journalDate),
+    check("text_notes_revision_nonnegative", sql`${table.clientRevision} >= 0`),
+  ],
+);
+
+export const textFolders = pgTable(
+  "text_folders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("text_folders_id_user_idx").on(table.id, table.userId),
+    uniqueIndex("text_folders_user_normalized_name_idx").on(table.userId, table.normalizedName),
+    index("text_folders_user_id_idx").on(table.userId),
+  ],
+);
+
+export const textNoteFolders = pgTable(
+  "text_note_folders",
+  {
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    noteId: uuid("note_id").notNull(),
+    folderId: uuid("folder_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.noteId, table.folderId] }),
+    foreignKey({
+      columns: [table.noteId, table.userId],
+      foreignColumns: [textNotes.id, textNotes.userId],
+      name: "text_note_folders_note_owner_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.folderId, table.userId],
+      foreignColumns: [textFolders.id, textFolders.userId],
+      name: "text_note_folders_folder_owner_fk",
+    }).onDelete("cascade"),
+    index("text_note_folders_user_note_idx").on(table.userId, table.noteId),
+    index("text_note_folders_user_folder_idx").on(table.userId, table.folderId),
+  ],
 );

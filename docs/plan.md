@@ -5,7 +5,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 ## Scope
 - In: MVP planning for movies and TV shows in one shared section plus books, Next.js App Router + Postgres + server-side API routes, metadata sourcing, image storage strategy, review and logging data model, visible simple tags, and a future-ready knowledge-graph foundation.
 - Out: Colors, browser extension, social features, public profiles, recommendation systems, multi-log history per title, and full knowledge-graph UX in v1.
-- Colors and Texts have minimal authenticated "Coming soon" routes while those sections remain outside the current implementation scope.
+- Colors retains a minimal authenticated "Coming soon" route. Texts is now a shipped private standalone journal and remains architecturally distinct from media Archive Notes.
 
 ## Product decisions
 - The first version includes movies, TV shows, and books. TV shows share the Movies route, search, Watchlist/Watched collections, and custom lists.
@@ -15,6 +15,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - A signed-out returning user follows the public landing and login flow; "existing user" routing applies when a valid session is present.
 - Reviews should support lightweight markdown from the start.
 - Each movie or book should be a single editable entry rather than a repeatable log history model.
+- Texts supports any number of standalone notes, including multiple notes on one journal date, with optional titles, Markdown bodies, account-derived bylines, optional many-to-many folders, and separate journal/created/updated dates.
 - Dates, review text, rating, status, and tags can be edited over time on the same entry.
 - Tags should be visible in the UI as simple labels in v1.
 - Users can migrate their existing collections through a manual, on-demand Letterboxd or Goodreads export import. This is a one-way migration aid, not a recurring synchronization feature.
@@ -39,6 +40,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Treat each title as one editable record per user in v1 rather than a diary of repeated watches or rereads.
 - Support markdown-capable review content from the start, with a lightweight format choice documented in the schema and rendering pipeline.
 - Add visible reusable tags through tables shaped like `tags` and `entry_tags`, even if the first UI only shows them as plain labels.
+- Store Texts notes, folders, and memberships in dedicated owner-scoped tables. Client-generated note UUIDs make creation idempotent; monotonic client revisions reject stale writes, and composite owner foreign keys prevent cross-account memberships at the database layer.
 - Keep room for future graph expansion by avoiding hard-coded tag strings on entries and by preserving stable IDs for tags and source entities.
 
 ## Metadata and images
@@ -77,6 +79,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Phase 5 (complete): Persist Archive Notes, add reusable cross-media tags with owner-safe attachment and removal, show tags as quiet labels, and support URL-driven tag filtering in movie and book collections.
 - Phase 6 (in progress): Polish the ledger UI, validation states, accessibility, caching behavior, editing flows, and measured production performance. Validation, error handling, and the responsive mobile pass are complete; measured production performance remains.
 - Phase 7 (complete): Add one-time Letterboxd and Goodreads collection migration in Settings with local export parsing, preview counts, authenticated batch writes, conservative TMDB matching, Goodreads source identities, duplicate-safe status promotion, and unmatched-title reporting.
+- Phase 8 (complete): Replace the Texts placeholder with a private journal: compact `All notes / All folders` browsing, searchable multi-note folder creation, per-folder rename/delete controls, multi-folder note assignment in Write mode, sanitized Markdown preview, account-derived bylines, deletion confirmation, revision-ordered debounced autosave, navigation and best-effort lifecycle flushes, and versioned local draft recovery.
 
 ## Validation checklist
 - Verify visitors without a session see the landing page and authenticated visitors opening `/` are redirected to `/movies`.
@@ -90,6 +93,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Verify tags are reusable entities, not just comma-separated strings.
 - Verify Letterboxd ZIP/CSV and Goodreads CSV imports accept only supported primary collections, remain safe to rerun, and do not overwrite existing personal fields.
 - Verify the schema still supports later graph relationships without a migration-heavy rewrite.
+- Verify Texts owner isolation at the query and database layers, folder deletion without note deletion, month grouping, strict payload validation, revision ordering, failed-save retention, and newer-local-draft recovery.
 
 ## Open questions to revisit later
 - Whether the landing page needs a separate sign-up path or one combined authentication entry point.
