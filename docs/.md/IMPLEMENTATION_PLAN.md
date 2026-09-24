@@ -19,9 +19,9 @@ Sequenced so each milestone is independently testable. Written to be handed to C
 
 ## Milestone 1 — Data Layer
 
-1. Implement Drizzle schema for `users`, `movies`, `books`, `colors`, `user_preferences` per the PRD's data model section.
+1. Implement Drizzle schema for accounts, movies, books, standalone texts, and user preferences per the active plan.
 2. Run initial migration against Neon.
-3. Write typed query helpers in `/lib/db` for: create/list/update/delete on movies and books (scoped by `user_id` on every query — no query should ever be written without a `where user_id = ...` clause), and create/list/delete for colors.
+3. Write typed query helpers in `/lib/db` for owner-scoped movie, book, and Texts reads and mutations.
 4. Add a lightweight test (or manual script) that inserts a row for one fake user and confirms a second fake user's query never returns it — this is the one thing to get provably right before building UI on top.
 
 **Done when:** you can manually insert/query rows via a script and confirm per-user isolation.
@@ -58,41 +58,15 @@ Sequenced so each milestone is independently testable. Written to be handed to C
 
 ---
 
-## Milestone 4 — Colors (web app side)
+## Milestone 4 — Texts and Polish Pass
 
-1. Build `/api/colors` routes: `POST` (create — accepts hex, source_url, source_title, optional screenshot), `GET` (list, scoped to user), `PATCH` (label/rename), `DELETE`.
-2. Build `/app/colors` page:
-   - `ListRow`-based List view (hex + source domain).
-   - Images view = grid of `ColorSwatch`.
-   - Rename and delete actions per row (simple inline affordances, no modal needed for rename).
-   - Copy-hex-to-clipboard on click.
-3. Build a personal-access-token flow in `/app/settings`: user generates a token there, which the extension will use — implement token issuance + storage (hashed) + a verification middleware for the colors API routes that accepts either the normal session or a valid bearer token.
-
-**Done when:** you can `POST` a fake color via `curl` with a generated token and see it appear correctly in both view modes on the Colors page.
-
----
-
-## Milestone 5 — Browser Extension
-
-1. Scaffold a Manifest V3 extension (Plasmo, WXT, or plain TS — pick based on how much you want React in the popup).
-2. Popup UI: "Pick a color" button → calls `new EyeDropper().open()` → on result, capture hex + `chrome.tabs.query` active tab's URL/title.
-3. Settings screen in the popup: paste the personal access token from `/settings`, store in `chrome.storage.local`.
-4. On pick: `POST` to `/api/colors` with the bearer token; on network failure, push to a local pending-queue in `chrome.storage.local` and retry on next successful pick or on an interval.
-5. Show the last 3–5 colors picked this session in the popup for immediate confirmation.
-6. Manual test: load unpacked in Chrome, pick colors from a few different real sites, confirm they land correctly on `/colors`.
-
-**Done when:** picking a color anywhere in the browser reliably produces a new row on the Colors page within a couple seconds, and a picked color survives a brief offline period via the retry queue.
-
----
-
-## Milestone 6 — Polish Pass
-
-1. Per-section view-mode memory (confirm List/Images choice persists per movies/books/colors independently, per the schema's `user_preferences` table).
-2. Keyboard-first add flow: `/` or a shortcut to open Add New from anywhere on a list page (nice-to-have, skip if time-constrained).
-3. Data export: a simple "Export my data" action in Settings that dumps the user's movies/books/colors as one JSON file.
-4. Full pass against Frontend Guidelines: audit every screen for stray shadows/cards/colored buttons that crept in during feature building — this is the point to actively remove, not add.
-5. Accessibility pass: keyboard-only walkthrough of every flow (add, mark watched, rate, rename color, toggle views), fix any non-focusable interactive elements.
-6. Mobile responsive pass — single column already helps here, but verify the top-bar toggles wrap sensibly on narrow screens.
+1. Keep standalone Texts notes private, owner-scoped, automatically saved, and recoverable from local drafts; organize them with optional folders.
+2. Per-section view-mode memory may retain the List/Image/Canvas choice independently for Movies and Books.
+3. Keyboard-first add flow: `/` or a shortcut to open Add New from anywhere on a list page (nice-to-have, skip if time-constrained).
+4. Data export: a simple "Export my data" action in Settings that dumps the user's movies, books, and Texts notes as one JSON file.
+5. Full pass against Frontend Guidelines: audit every screen for stray shadows, cards, and colored buttons.
+6. Accessibility pass: keyboard-only walkthrough of every flow (add, mark watched/read, rate, toggle views, write a note), fixing non-focusable interactive elements.
+7. Mobile responsive pass: verify the top-bar toggles wrap sensibly on narrow screens.
 
 **Done when:** the product feels finished and quiet — no loose ends, no visual noise that snuck in during feature milestones.
 

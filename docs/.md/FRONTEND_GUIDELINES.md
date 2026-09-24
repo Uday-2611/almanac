@@ -8,7 +8,7 @@ This is the visual and interaction spec, derived directly from your Figma refere
 
 The whole product is a **ledger, not a dashboard**. No cards, no shadows, no colored buttons, no badges, no icons unless functionally necessary. The page should look almost like a plain-text file that happens to be clickable. Every visual choice should ask: "does a ledger need this?" If not, cut it.
 
-**Signature element:** the repeating text row (date · title · muted subline) is the one thing this product is built from, everywhere — movies, books, and colors all render through the same row primitive. Consistency of that row *is* the design.
+**Signature element:** the repeating text row (date · title · muted subline) anchors movie and book ledgers. Consistency of that row *is* the design.
 
 ---
 
@@ -22,9 +22,8 @@ The whole product is a **ledger, not a dashboard**. No cards, no shadows, no col
 | `--ink` | `#111111` | Primary text (titles, active toggle state, wordmark) |
 | `--muted` | `#9A9A9A` | Secondary text (dates, director/author names, inactive toggle state) |
 | `--rule` | `#EAEAEA` | Hairline dividers between rows |
-| `--accent` | *derived per color entry* | Only used on the Colors page, where the "accent" of a row is the actual saved hex — never a fixed brand color |
 
-Do not introduce a brand accent color (no terracotta, no acid green, no blue links). The one place color is allowed to be loud is the Colors section itself, where the content *is* color — everywhere else stays black/white/gray. This is a deliberate constraint: a logging tool for color should not compete with the colors it stores.
+Do not introduce a brand accent color (no terracotta, no acid green, no blue links). Keep interface chrome black, white, and gray; movie and book artwork supplies its own color.
 
 ### Type
 
@@ -47,7 +46,7 @@ Do not introduce a brand accent color (no terracotta, no acid green, no blue lin
 
 ### Spacing
 
-- Base unit: 8px. Row vertical padding: 16–20px. Section top padding before the first row: 32–40px. Keep horizontal page margin consistent across all three sections (movies/books/colors) so the eye doesn't have to recalibrate switching pages.
+- Base unit: 8px. Row vertical padding: 16–20px. Section top padding before the first row: 32–40px. Keep horizontal page margin consistent across Movies and Books so the eye doesn't have to recalibrate switching pages.
 
 ### Radius / Elevation
 
@@ -72,9 +71,6 @@ Minimal, monochrome. Filled = `--ink`, empty = `--rule`/light gray outline. No c
 
 ### `DetailPanel` (movie/book detail)
 Opens on row click — recommend a slide-over panel or a dedicated route rather than a modal, since detail content (synopsis, cast, review) can be long. Same typographic rules apply: no card chrome, just a page with a clear back affordance (text link, e.g. "← Movies").
-
-### `ColorSwatch`
-Used in Colors Images view — a solid rectangle filled with the actual stored hex, hex code printed below in mono type, with the shared 4px radius.
 
 ---
 
@@ -107,4 +103,3 @@ Used in Colors Images view — a solid rectangle filled with the actual stored h
 - All text-toggle and add-new affordances must be real buttons/links and keyboard-operable. Black text must not gain a black focus border, outline, or ring; show keyboard focus with a quiet tonal background or another clear non-border treatment.
 - Contrast: `--ink` on `--bg` easily passes; verify `--muted` on `--bg` meets at least 4.5:1 for body-sized metadata text — if the exact gray above fails, darken it slightly rather than compromise on contrast for the sake of the look.
 - Poster/cover images need real `alt` text (title + type), not decorative-empty alt.
-- Color swatches need their hex value present as real text nearby, never conveyed by color alone.

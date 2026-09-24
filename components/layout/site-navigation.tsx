@@ -9,7 +9,6 @@ import { SignOutLink } from "@/components/auth/sign-out-link";
 const navigationItems = [
   { href: "/movies", label: "Movies" },
   { href: "/books", label: "Books" },
-  { href: "/colors", label: "Colors" },
   { href: "/texts", label: "Texts" },
   { href: "/settings", label: "My profile" },
 ] as const;

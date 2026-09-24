@@ -4,8 +4,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 
 ## Scope
 - In: MVP planning for movies and TV shows in one shared section plus books, Next.js App Router + Postgres + server-side API routes, metadata sourcing, image storage strategy, review and logging data model, visible simple tags, and a future-ready knowledge-graph foundation.
-- Out: Colors, browser extension, social features, public profiles, recommendation systems, multi-log history per title, and full knowledge-graph UX in v1.
-- Colors retains a minimal authenticated "Coming soon" route. Texts is now a shipped private standalone journal and remains architecturally distinct from media Archive Notes.
+- Out: Colors and its former browser-extension concept, social features, public profiles, recommendation systems, multi-log history per title, and full knowledge-graph UX in v1.
+- The Colors navigation item and `/colors` placeholder route have been removed. Texts is a shipped private standalone journal and remains architecturally distinct from media Archive Notes.
 
 ## Product decisions
 - The first version includes movies, TV shows, and books. TV shows share the Movies route, search, Watchlist/Watched collections, and custom lists.
@@ -135,7 +135,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` share a clean white, borderless long-form writing surface. Notes persist on the single editable media entry, protect unsaved browser exits and internal link navigation, and expose explicit save, success, and error states.
 - Archive Note tag editing creates or reuses account-scoped tag identities, suggests existing tags from both media types, attaches them to the current entry, and detaches them without deleting the reusable tag. Postgres ownership triggers prevent cross-account movie-tag and book-tag relationships.
 - Movie and book list and image views show attached tags as restrained text labels. Collection pages expose URL-driven `tag=<uuid>` filters scoped to the active status and account, with clear filtered empty states and filter state preserved across display-mode changes.
-- The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Colors, Texts, and My profile with monochrome hover states.
+- The authenticated navbar pairs the Almanac wordmark with a three-line menu control. Its compact rectangular menu animates open and closed, supports outside-click and Escape dismissal, and lists Movies, Books, Texts, and My profile with monochrome hover states.
 - Better Auth email/password flows, optional Google OAuth, database-backed sessions, protected product routes, and resilient sign-out are implemented. Google sign-in returns to `/movies`, reports callback failures on `/login`, and is exposed only when both server-only Google credentials are configured. Existing password users can explicitly connect Google from authenticated Settings without weakening Better Auth's local-email verification requirement.
 - Phase 6 validation hardening aligns browser and Zod limits for reviews, completion dates, list names, tags, and Archive Notes; rejects unknown mutation fields and future completion dates; reports duplicate list names consistently; restores optimistic state after failures; and recovers pending controls after network errors.
 - The Drizzle schema includes Better Auth's core tables plus user-scoped movies, books, persistent Archive Notes, reusable tags, owner-guarded join tables, and view preferences.

@@ -15,7 +15,7 @@ The interface is intentionally closer to an editorial ledger than a dashboard. C
 - Import Letterboxd Watched/Watchlist and Goodreads Read/Want to Read exports on demand. Raw files are parsed in the browser, and bounded, normalized batches are sent to the authenticated import endpoint. This is a migration tool, not ongoing synchronization.
 - Sign in with email and password, with optional Google sign-in when OAuth credentials are configured. Manage profile details and account actions from My profile.
 
-The Colors route currently shows an authenticated "Coming soon" page. Texts is a working private journal.
+Texts is a working private journal alongside Movies and Books.
 
 ## Technology
 

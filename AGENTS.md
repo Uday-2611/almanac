@@ -54,14 +54,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - no badges
   - no colored primary buttons
   - no unnecessary icons
-- Reuse one row primitive pattern across movies, books, and colors:
+- Reuse one row primitive pattern across movies and books:
   - muted left metadata column
   - bold title
   - muted subline
   - hairline divider by default; the movie list is an explicit borderless exception
 - Text toggles such as `List view / Image view / Canvas view` and `Watchlist / Watched` must render as plain text controls with `/` separators.
 - `Search` should remain a text affordance, not a filled button.
-- Use monochrome, restrained UI chrome. The only loud color should come from saved color content on the Colors section.
+- Use monochrome, restrained UI chrome. Artwork supplies the color on media pages.
 - Reserve the self-hosted Boska family exclusively for the visible `Almanac` website wordmark. Use Geist Sans for every other visible heading, title, label, control, metadata line, poster or spine caption, search result, information pane, review, and Archive Note. Do not use Boska as a general display or content face.
 - Use one subtle `4px` corner radius across interactive controls, menus, inputs, media artwork, overlays, inset surfaces, and other elements that would otherwise have sharp corners. Do not mix square corners, pills, circles, or larger radii unless the shape itself conveys essential meaning.
 - Black text controls must not gain a black border, outline, or ring when clicked or keyboard-focused. Preserve an accessible visible focus state with a quiet tonal background or comparable non-border treatment, and never remove focus feedback entirely.
@@ -115,7 +115,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep Texts top-level navigation compact: show only `All notes / All folders`. The All folders ledger owns folder creation, per-row rename, and confirmed deletion; folder creation may attach multiple owner-scoped notes through a searchable picker. An opened folder must show its name, note count, and a direct Back to all folders control. In the note editor, folder membership and note deletion are Write-mode actions and must not appear in Preview.
 - Texts view navigation must provide immediate pending feedback using the shared monochrome route-progress treatment: soften only the selected destination, keep the current content visible, and announce the destination accessibly until navigation commits.
 - Preserve reusable account-scoped tag identities and case-insensitive normalized-name uniqueness. Attaching or removing a tag must verify ownership of the entry and tag, and the database ownership triggers must continue to reject cross-account movie-tag or book-tag relationships. Detaching a tag must not delete the reusable tag identity.
-- Keep the extension as a separate package when that milestone begins.
 
 ## Current UI Foundation
 
@@ -139,8 +138,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - The Almanac icon uses the exact capital `A` outline from the self-hosted Boska Regular font, in white on a flat `#111111` square with 4px corners. `app/icon.svg` is the favicon source; keep the mark free of gradients, shadows, and extra symbols.
 
-- Keep `/colors` as a minimal authenticated editorial "Coming soon" page until that section is planned and implemented.
-- Keep `/colors` as a minimal authenticated editorial "Coming soon" page. `/texts` is a working private journal with month and folder browsing, Markdown preview, automatic saving, local recovery, and mobile-first writing controls.
+- Colors and its former `/colors` placeholder route have been removed from the product. Do not restore a Colors navigation item, route, API, data model, or browser extension without a new user request. `/texts` is a working private journal with month and folder browsing, Markdown preview, automatic saving, local recovery, and mobile-first writing controls.
 
 - Texts lists group notes by editable journal month, newest first, while retaining separate created and updated audit timestamps. Empty titles render as `Untitled note`; the visible byline always comes from the current account profile rather than note data.
 - Keep the standalone Texts editor as one document-scrolling surface on mobile and desktop. The body textarea expands to its content and must not create an independently scrolling text region.
