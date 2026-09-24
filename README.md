@@ -2,7 +2,7 @@
 
 Almanac is a private, personal archive for movies, TV shows, books, and standalone journal notes. It brings watchlists, reading lists, completed entries, reviews, Archive Notes, and freeform writing into one quiet place. Each account has its own archive; the product has no public profiles, feeds, or social features.
 
-The interface is intentionally closer to an editorial ledger than a dashboard. Collections can be browsed as text lists or artwork rails, with responsive layouts and restrained interaction feedback on desktop and mobile.
+The interface is intentionally closer to an editorial ledger than a dashboard. Collections can be browsed as text lists, artwork rails, or an endlessly pannable poster and cover canvas, with responsive layouts and restrained interaction feedback on desktop and mobile.
 
 ## What You Can Do
 

@@ -59,7 +59,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - bold title
   - muted subline
   - hairline divider by default; the movie list is an explicit borderless exception
-- Text toggles such as `List view / Images view` and `Watchlist / Watched` must render as plain text controls with `/` separators.
+- Text toggles such as `List view / Image view / Canvas view` and `Watchlist / Watched` must render as plain text controls with `/` separators.
 - `Search` should remain a text affordance, not a filled button.
 - Use monochrome, restrained UI chrome. The only loud color should come from saved color content on the Colors section.
 - Reserve the self-hosted Boska family exclusively for the visible `Almanac` website wordmark. Use Geist Sans for every other visible heading, title, label, control, metadata line, poster or spine caption, search result, information pane, review, and Archive Note. Do not use Boska as a general display or content face.
@@ -156,7 +156,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Preserve `/settings` as the My profile page. It uses an open, cardless ledger composition with one deterministic account-derived gradient orb as the profile image, inline editing for name and email, the existing local-first Letterboxd and Goodreads import tools, then clearly separated sign-out and delete-account actions. The orb is a soft, single-hue atmospheric sphere with a broad diffused light pool, opposing shadow, and restrained grain; derive its hue and light coordinates from the account ID so it is distinct per user but stable between visits without storing or uploading an image. Profile mutations must validate on the server and remain owner-scoped. Email changes clear the verified flag. Account deletion must stay behind explicit `DELETE` confirmation and Better Auth's sensitive-session/password checks, and database cascades remove the user's private archive.
 - Show the Google account connection control only on My profile, directly below the Email row in Personal details. Preserve linked, pending, and error states and hide it when server-side Google credentials are incomplete. Redirect the former `/settings/accounts` route to `/settings`.
 
-- The movies page implements the four approved Figma states through query parameters: `status=watchlist|watched|lists` and `view=list|images`.
+- Movies and Books support `view=list|images|canvas` within their existing status routes. Display-mode changes remain client-local and URL-synchronized.
+- Canvas view is an image-only, two-dimensional repeating field for the current collection. Pointer drag, wheel/trackpad, touch, and keyboard arrows move it; activating a poster or cover opens the existing intercepted detail modal. Keep a bounded number of visible tiles and suppress opening a detail after a drag. Respect the existing 2:3 artwork ratio, readable missing-artwork fallback, and reduced-motion behavior.
 - Reuse the movie ledger row, text-toggle, and horizontal poster-rail patterns when connecting real data or mirroring the experience for books.
 - Preserve the large quiet space above movie content; it is an intentional part of the approved layout, not missing content.
 - Preserve the movie and book list interaction signature: straight, silent borderless rows with GSAP hover isolation applied to the active row's date, title, and creator together.
@@ -193,4 +194,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep Boska exclusive to the Almanac wordmark. Use Geist Sans for all visible movie and book titles across ledger rows, image browsing metadata, search results, information panes, and Archive Notes, with hierarchy created through size, weight, leading, and tracking.
 - Preserve the same light, transparent, dark-type journal treatment for movie and book information panes; adapt only domain language and metadata.
 - Treat `/movies/[movieId]/archive-note` and `/books/[bookId]/archive-note` as clean, white, borderless editorial writing surfaces with persistent text and reusable tag editing.
-- Keep Archive Note tags visible as quiet slash-separated text rather than badges. Movie and book collections filter through the owner-scoped `tag=<uuid>` query parameter, preserve the filter when switching List/Images views, and only offer tags used by the active collection status.
+- Keep Archive Note tags visible as quiet slash-separated text rather than badges. Movie and book collections filter through the owner-scoped `tag=<uuid>` query parameter, preserve the filter when switching List/Image/Canvas views, and only offer tags used by the active collection status.

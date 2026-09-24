@@ -47,7 +47,7 @@ export default async function MoviesPage({ searchParams }: PageProps<"/movies">)
   const requestedTag = first(query.tag);
 
   const status: MovieStatus = requestedStatus === "watchlist" || requestedStatus === "lists" ? requestedStatus : "watched";
-  const view: MovieView = requestedView === "images" ? "images" : "list";
+  const view: MovieView = requestedView === "images" || requestedView === "canvas" ? requestedView : "list";
   const user = await getCurrentUser();
   if (!user) return null;
 

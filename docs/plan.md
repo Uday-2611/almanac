@@ -66,7 +66,7 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Collection views show a quiet status heading and item count close to the first entry, while list rows sort by recorded date and use muted year dividers. Empty and filtered-to-zero states explain the next action without adding cards.
 - Image rails indicate off-screen content with subtle edge fades and a browse cue, while wheel and touch scrolling stay directly tied to input. Book artwork preserves natural proportions, and broken or absent covers use a typographic fallback.
 - Movie and Book journals share the same editing sequence and spacing for rating/date, review, Archive Note, credits, and lists. Pending saves expose a visible text label; long titles wrap without clipping.
-- Keep `List view / Images view` and status toggles as plain text controls with slash separators.
+- Keep `List view / Image view / Canvas view` and status toggles as plain text controls with slash separators.
 - Keep `Search` as a text affordance rather than a styled button.
 - Show tags as simple textual labels in v1 without turning them into a noisy taxonomy surface.
 
@@ -116,7 +116,8 @@ Define the MVP architecture for Almanac as a private movies, TV shows, and books
 - Movie and book Image/List switches update instantly in the client and synchronize the URL through Next.js's supported native History API, avoiding redundant authentication and Neon work. Collection-status changes remain server-rendered, start independent database reads in parallel, and provide immediate pending feedback: the selected destination softens, accessible loading text is announced, and a thin monochrome progress line remains visible until navigation commits. Reduced-motion users receive the same feedback without movement.
 - The `/movies` visual foundation now mirrors the four Figma states: watched/watchlist ledger views, single-row horizontally scrolling poster views, and My Lists in both display modes.
 - Movies and TV shows share `/movies` end to end. Combined TMDB search identifies each result as movie or TV, and persisted identity uses `(media_type, tmdb_id)` so overlapping provider IDs remain distinct.
-- Movie navigation is query-driven with `status=watchlist|watched|lists` and `view=list|images`, keeping the page server-rendered and ready for database-backed data.
+- Movie and book navigation retains status queries and supports `view=list|images|canvas`; switching display mode updates browser history locally without repeating collection data reads.
+- Canvas view renders a bounded, repeating two-dimensional field of the current collection's 2:3 posters or covers, with no visible captions. Drag, touch, wheel/trackpad, and keyboard arrows pan in any direction. A click opens the existing detail modal, while a drag does not. The same mode works inside custom list disclosures, and missing artwork retains its readable fallback.
 - Movie pages now read authenticated, user-scoped records from Neon; the former movie seed catalog is no longer used for movie browsing or movie search.
 - Movie and book list browsing uses straight, borderless rows with GSAP hover isolation: the active row's date, title, and creator move outward and grow together while neighboring rows recede. The interaction is silent.
 - Movie and book image rails track wheel and touchpad input directly with no app-controlled easing or autonomous settling after input ends. Their hover/focus artwork and metadata transitions remain separate from scrolling.

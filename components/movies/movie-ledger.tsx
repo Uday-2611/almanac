@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
 import { CollectionHeading } from "@/components/ledger/collection-heading";
+import { InfiniteArtworkCanvas } from "@/components/ledger/infinite-artwork-canvas";
 import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { AnimatedMoviePoster } from "@/components/movies/animated-movie-poster";
 import { MovieListDisclosure } from "@/components/movies/movie-list-disclosure";
@@ -15,7 +16,7 @@ import { EmptyState } from "@/components/states/empty-state";
 import { TagFilter, type TagFilterOption } from "@/components/media/tag-filter";
 
 export type MovieStatus = "watchlist" | "watched" | "lists";
-export type MovieView = "images" | "list";
+export type MovieView = "images" | "list" | "canvas";
 
 export type Movie = {
   id: string;
@@ -90,6 +91,7 @@ function MovieToolbar({ status, view, tag, onViewChange }: { status: MovieStatus
         options={[
           { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
           { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
+          { label: "Canvas View", value: "canvas", href: hrefFor(status, "canvas", tag) },
         ]}
       />
       <TextToggle
@@ -162,12 +164,18 @@ function MovieImageView({ movies }: { movies: Movie[] }) {
   );
 }
 
+function MovieCanvasView({ movies, inList = false }: { movies: Movie[]; inList?: boolean }) {
+  return <InfiniteArtworkCanvas kind="movie" items={movies.map((movie) => ({ id: movie.id, title: movie.title, creator: movie.creator, imageUrl: movie.posterUrl }))} className={inList ? "mt-6 h-[min(68dvh,620px)] min-h-[360px]" : "h-[calc(100dvh-132px)] min-h-[360px] sm:h-[calc(100dvh-82px)]"} />;
+}
+
 function ListsView({ lists, view }: { lists: MovieList[]; view: MovieView }) {
   return (
     <div className="mt-[29px] space-y-[55px] px-3 sm:space-y-[56px]">
       {lists.map((list) => (
         <MovieListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
-          {view === "images" ? (
+          {view === "canvas" ? (
+            list.movies.length ? <MovieCanvasView movies={list.movies} inList /> : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched titles in this list yet.</p>
+          ) : view === "images" ? (
             list.movies.length ? <MovieImageView movies={list.movies} /> : <p className="ml-0 mt-6 text-sm text-[#686868] sm:ml-[3.75rem]">No watched titles in this list yet.</p>
           ) : (
             list.movies.length ? (
@@ -202,8 +210,9 @@ export function MovieLedger({
 }) {
   const searchParams = useSearchParams();
   const queryView = searchParams.get("view");
-  const activeView: MovieView = queryView === "images" || queryView === "list" ? queryView : view;
+  const activeView: MovieView = queryView === "images" || queryView === "list" || queryView === "canvas" ? queryView : view;
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+  const showCanvas = activeView === "canvas" && status !== "lists" && movies.length > 0;
 
   function changeView(nextView: MovieView) {
     if (nextView === activeView) return;
@@ -213,17 +222,17 @@ export function MovieLedger({
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
+    <main className={showCanvas ? "relative min-h-dvh overflow-hidden pt-[132px] sm:pt-[82px]" : "relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]"}>
       <h1 className="sr-only">Movies and TV shows</h1>
       <MovieToolbar status={status} view={activeView} tag={activeTagId} onViewChange={changeView} />
-      <AddLink lists={status === "lists"} view={activeView} />
-      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view: activeView }} tags={tagOptions} /> : null}
+      {showCanvas ? null : <AddLink lists={status === "lists"} view={activeView} />}
+      {status !== "lists" && !showCanvas ? <TagFilter activeTagId={activeTagId} pathname="/movies" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateMovieListForm /> : null}
-      <CollectionHeading label={status === "lists" ? "My Lists" : status === "watchlist" ? "Watchlist" : "Watched"} count={status === "lists" ? lists.length : movies.length} noun={status === "lists" ? "list" : "title"} />
+      {showCanvas ? null : <CollectionHeading label={status === "lists" ? "My Lists" : status === "watchlist" ? "Watchlist" : "Watched"} count={status === "lists" ? lists.length : movies.length} noun={status === "lists" ? "list" : "title"} />}
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize movies and TV shows you have watched." /></div>
       ) : movies.length ? (
-        activeView === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
+        activeView === "canvas" ? <MovieCanvasView movies={movies} /> : activeView === "images" ? <MovieImageView movies={movies} /> : <MovieListView movies={movies} />
       ) : (
         <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No ${status === "watchlist" ? "watchlist" : "watched"} titles use the tag “${activeTagName}”. Choose All above to see the full collection.` : status === "watchlist" ? "Your watchlist is empty. Search for a movie or show to save it here." : "No watched titles yet. Search for a movie or show to begin your record."} /></div>
       )}

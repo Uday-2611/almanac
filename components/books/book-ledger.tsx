@@ -8,13 +8,14 @@ import { BookCoverRail } from "@/components/books/book-cover-rail";
 import { CreateBookListForm } from "@/components/books/create-book-list-form";
 import { AnimatedLedgerList, type AnimatedLedgerItem } from "@/components/ledger/animated-ledger-list";
 import { CollectionHeading } from "@/components/ledger/collection-heading";
+import { InfiniteArtworkCanvas } from "@/components/ledger/infinite-artwork-canvas";
 import { PendingNavigationLink } from "@/components/ledger/pending-navigation-link";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { EmptyState } from "@/components/states/empty-state";
 import { TagFilter, type TagFilterOption } from "@/components/media/tag-filter";
 
 export type BookStatus = "want-to-read" | "read" | "lists";
-export type BookView = "images" | "list";
+export type BookView = "images" | "list" | "canvas";
 
 export type Book = {
   id: string;
@@ -79,6 +80,7 @@ function BookToolbar({ status, view, tag, onViewChange }: { status: BookStatus; 
       <TextToggle label="Book display" active={view} onChange={(value) => onViewChange(value as BookView)} options={[
         { label: "Image View", value: "images", href: hrefFor(status, "images", tag) },
         { label: "List View", value: "list", href: hrefFor(status, "list", tag) },
+        { label: "Canvas View", value: "canvas", href: hrefFor(status, "canvas", tag) },
       ]} />
       <TextToggle label="Book collection" active={status} options={[
         { label: "Want to Read", value: "want-to-read", href: hrefFor("want-to-read", view, tag) },
@@ -119,13 +121,19 @@ function BookImageView({ books }: { books: Book[] }) {
   return <BookCoverRail books={books} />;
 }
 
+function BookCanvasView({ books, inList = false }: { books: Book[]; inList?: boolean }) {
+  return <InfiniteArtworkCanvas kind="book" items={books.map((book) => ({ id: book.id, title: book.title, creator: book.author, imageUrl: book.coverUrl }))} className={inList ? "mt-6 h-[min(68dvh,620px)] min-h-[360px]" : "h-[calc(100dvh-132px)] min-h-[360px] sm:h-[calc(100dvh-82px)]"} />;
+}
+
 function ListsView({ lists, view }: { lists: BookList[]; view: BookView }) {
   return (
     <div className="mt-[29px] space-y-[55px] px-3 sm:space-y-[56px]">
       {lists.map((list) => (
         <BookListDisclosure key={list.id} date={list.date} id={list.id} title={list.title}>
           {list.books.length ? (
-            view === "images" ? (
+            view === "canvas" ? (
+              <BookCanvasView books={list.books} inList />
+            ) : view === "images" ? (
               <BookImageView books={list.books} />
             ) : (
               <AnimatedLedgerList items={toLedgerItems(list.books)} className="ml-0 mt-[25px] max-w-[44rem] border-l border-[#dedede] pl-5 sm:ml-[3.75rem]" />
@@ -150,8 +158,9 @@ export function BookLedger({ status, view, books, lists, showCreateList, activeT
 }) {
   const searchParams = useSearchParams();
   const queryView = searchParams.get("view");
-  const activeView: BookView = queryView === "images" || queryView === "list" ? queryView : view;
+  const activeView: BookView = queryView === "images" || queryView === "list" || queryView === "canvas" ? queryView : view;
   const activeTagName = tagOptions.find((tag) => tag.id === activeTagId)?.name;
+  const showCanvas = activeView === "canvas" && status !== "lists" && books.length > 0;
 
   function changeView(nextView: BookView) {
     if (nextView === activeView) return;
@@ -161,17 +170,17 @@ export function BookLedger({ status, view, books, lists, showCreateList, activeT
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]">
+    <main className={showCanvas ? "relative min-h-dvh overflow-hidden pt-[132px] sm:pt-[82px]" : "relative min-h-screen overflow-x-hidden px-4 pb-16 pt-[210px] sm:px-5 sm:pt-[195px]"}>
       <h1 className="sr-only">Books</h1>
       <BookToolbar status={status} view={activeView} tag={activeTagId} onViewChange={changeView} />
-      <AddLink lists={status === "lists"} view={activeView} />
-      {status !== "lists" ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view: activeView }} tags={tagOptions} /> : null}
+      {showCanvas ? null : <AddLink lists={status === "lists"} view={activeView} />}
+      {status !== "lists" && !showCanvas ? <TagFilter activeTagId={activeTagId} pathname="/books" query={{ status, view: activeView }} tags={tagOptions} /> : null}
       {showCreateList ? <CreateBookListForm /> : null}
-      <CollectionHeading label={status === "lists" ? "My Lists" : status === "want-to-read" ? "Want to Read" : "Read"} count={status === "lists" ? lists.length : books.length} noun={status === "lists" ? "list" : "book"} />
+      {showCanvas ? null : <CollectionHeading label={status === "lists" ? "My Lists" : status === "want-to-read" ? "Want to Read" : "Read"} count={status === "lists" ? lists.length : books.length} noun={status === "lists" ? "list" : "book"} />}
       {status === "lists" ? (
         lists.length ? <ListsView lists={lists} view={activeView} /> : <div className="mt-8 text-[#686868]"><EmptyState message="No lists yet. Create one to organize books you have read." /></div>
       ) : books.length ? (
-        activeView === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
+        activeView === "canvas" ? <BookCanvasView books={books} /> : activeView === "images" ? <BookImageView books={books} /> : <BookListView books={books} />
       ) : (
         <div className="mt-8 text-[#686868]"><EmptyState message={activeTagName ? `No books in ${status === "want-to-read" ? "Want to Read" : "Read"} use the tag “${activeTagName}”. Choose All above to see the full collection.` : status === "want-to-read" ? "Your Want to Read list is empty. Search for a book to save it here." : "No read books yet. Search for a book to begin your record."} /></div>
       )}

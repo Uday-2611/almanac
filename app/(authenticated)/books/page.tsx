@@ -46,7 +46,7 @@ export default async function BooksPage({ searchParams }: PageProps<"/books">) {
   const requestedTag = first(query.tag);
 
   const status: BookStatus = requestedStatus === "want-to-read" || requestedStatus === "lists" ? requestedStatus : "read";
-  const view: BookView = requestedView === "images" ? "images" : "list";
+  const view: BookView = requestedView === "images" || requestedView === "canvas" ? requestedView : "list";
   const user = await getCurrentUser();
   if (!user) return null;
 
