@@ -118,7 +118,7 @@ export function LandingPrinciples() {
           ))}
         </div>
 
-        <div className={styles.principleDetail} data-reveal>
+        <div className={styles.principleDetail} data-principle={activePrinciple.key} data-reveal>
           <div className={styles.principleMeta}>
             <span>{String(activeIndex + 1).padStart(2, "0")} / {String(principles.length).padStart(2, "0")}</span>
             <span>{activePrinciple.label}</span>

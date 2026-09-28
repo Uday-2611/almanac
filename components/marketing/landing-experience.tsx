@@ -21,15 +21,18 @@ const socialDirectory = [
 ] as const;
 
 const heroTiles = [
-  { className: styles.heroTile1, src: "/images/cosmos_1335304847.jpeg" },
-  { className: styles.heroTile2, src: "/images/cosmos_1423649926.jpeg" },
-  { className: styles.heroTile3, src: "/images/cosmos_1787164284.jpeg" },
-  { className: styles.heroTile4, src: "/images/cosmos_1281293179.jpeg" },
-  { className: styles.heroTile5, src: "/images/cosmos_1301929845.jpeg" },
-  { className: styles.heroTile6, src: "/images/cosmos_2050115722.jpeg" },
-  { className: styles.heroTile7, src: "/images/cosmos_283664499.jpeg" },
-  { className: styles.heroTile8, src: "/images/cosmos_987046112.jpeg" },
-  { className: styles.heroTile9, src: "/images/cosmos_418996863.jpeg" },
+  { className: styles.heroTile1, src: "/images/cosmos_1037838399.jpeg" },
+  { className: styles.heroTile2, src: "/images/cosmos_1539474326.jpeg" },
+  { className: styles.heroTile3, src: "/images/cosmos_282709694.jpeg" },
+  { className: styles.heroTile4, src: "/images/cosmos_1228848868.jpeg" },
+  { className: styles.heroTile5, src: "/images/cosmos_1768234398.jpeg" },
+  { className: styles.heroTile6, src: "/images/cosmos_1513610993.jpeg" },
+  { className: styles.heroTile7, src: "/images/cosmos_711496836.jpeg" },
+  { className: styles.heroTile8, src: "/images/cosmos_329592747.jpeg" },
+  { className: styles.heroTile9, src: "/images/cosmos_993880358.jpeg" },
+  { className: styles.heroTile10, src: "/images/cosmos_1712722043.jpeg" },
+  { className: styles.heroTile11, src: "/images/cosmos_88458509.jpeg" },
+  { className: styles.heroTile12, src: "/images/cosmos_452458236.jpeg" },
 ] as const;
 
 export function LandingExperience() {
@@ -49,7 +52,7 @@ export function LandingExperience() {
                 alt=""
                 fill
                 loading="eager"
-                sizes="(max-width: 640px) 50vw, 34vw"
+                sizes="(max-width: 640px) 50vw, 25vw"
                 src={tile.src}
               />
             </figure>
@@ -97,7 +100,7 @@ export function LandingExperience() {
             </article>
 
             <article className={`${styles.processImageCell} ${styles.processImageOne}`} data-reveal>
-              <Image alt="A film poster set against dense woodland" fill sizes="(max-width: 640px) 100vw, 50vw" src="/images/cosmos_1065735536.jpeg" />
+              <Image alt="A film poster set against dense woodland" fill sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 17vw" src="/images/cosmos_1065735536.jpeg" />
               <div><span>02</span><h3>Save it in seconds</h3></div>
               <strong>ONE</strong>
               <footer><span>One living entry</span><i aria-hidden="true" /></footer>
@@ -109,7 +112,7 @@ export function LandingExperience() {
             </article>
 
             <article className={`${styles.processImageCell} ${styles.processImageTwo}`} data-reveal>
-              <Image alt="A quiet cinematic poster of two figures held close" fill sizes="(max-width: 640px) 100vw, 50vw" src="/images/cosmos_576186231.jpeg" />
+              <Image alt="A quiet cinematic poster of two figures held close" fill sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 17vw" src="/images/cosmos_576186231.jpeg" />
               <div><span>04</span><h3>Add the memory</h3></div>
               <footer><span>Review · rating · date</span><i aria-hidden="true" /></footer>
             </article>
@@ -120,7 +123,7 @@ export function LandingExperience() {
             </article>
 
             <article className={`${styles.processImageCell} ${styles.processImageThree}`} data-reveal>
-              <Image alt="An archival film image with soft botanical detail" fill sizes="(max-width: 640px) 100vw, 25vw" src="/images/cosmos_1831969347.jpeg" />
+              <Image alt="An archival film image with soft botanical detail" fill sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 17vw" src="/images/cosmos_1831969347.jpeg" />
               <div><span>06</span><h3>Return years later</h3></div>
               <footer><span>Your archive stays yours</span><i aria-hidden="true" /></footer>
             </article>
@@ -130,13 +133,11 @@ export function LandingExperience() {
         <section className={styles.featureSection} aria-labelledby="features-title">
           <header className={styles.featureHeader} data-reveal>
             <span>Inside Almanac</span>
-            <div>
-              <h2 id="features-title">One quiet place for everything worth remembering.</h2>
-              <p>
-                Almanac turns scattered watchlists, reading lists, and private thoughts into
-                one considered cultural record.
-              </p>
-            </div>
+            <h2 id="features-title">One quiet place for everything worth remembering.</h2>
+            <p>
+              Almanac turns scattered watchlists, reading lists, and private thoughts into
+              one considered cultural record.
+            </p>
           </header>
 
           <div className={styles.featureGrid}>
@@ -145,13 +146,13 @@ export function LandingExperience() {
                 <Image
                   alt="A monochrome cinematic figure in motion"
                   fill
-                  sizes="(max-width: 640px) 100vw, 33vw"
+                  sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 1280px) 31vw, 410px"
                   src="/images/cosmos_1552553325.jpeg"
                 />
                 <div className={styles.logSlip}>
-                  <span>Perfect Days</span>
+                  <span>Marty Supreme</span>
                   <strong>14.09</strong>
-                  <small>Watched · 2023</small>
+                  <small>Watched · 2026</small>
                 </div>
               </figure>
               <h3>Minimal logging</h3>
@@ -163,7 +164,7 @@ export function LandingExperience() {
                 <Image
                   alt="A monochrome city landscape viewed from above"
                   fill
-                  sizes="(max-width: 640px) 100vw, 33vw"
+                  sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 1280px) 31vw, 410px"
                   src="/images/cosmos_1494056299.jpeg"
                 />
                 <div className={styles.tagIndex} aria-label="Example reusable tags">
@@ -181,7 +182,7 @@ export function LandingExperience() {
                 <Image
                   alt="A dark film poster with a figure framed by a box"
                   fill
-                  sizes="(max-width: 640px) 100vw, 33vw"
+                  sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 1280px) 31vw, 410px"
                   src="/images/cosmos_1712722043.jpeg"
                 />
                 <blockquote>
@@ -195,54 +196,18 @@ export function LandingExperience() {
           </div>
         </section>
 
-        <section className={styles.previewSection} aria-labelledby="preview-title">
-          <header className={styles.previewHeader} data-reveal>
-            <span>Inside Almanac</span>
-            <div>
-              <h2 id="preview-title">Your archive, at any size.</h2>
-              <p>Browse by image or return to the quiet clarity of a list. The collection stays yours on every screen.</p>
-            </div>
-          </header>
-
-          <div className={styles.previewSpread}>
-            <figure className={styles.previewDesktop} data-reveal>
-              <Image
-                alt="Almanac desktop collection showing a horizontal rail of saved film and series posters"
-                height={937}
-                sizes="(max-width: 700px) 100vw, 72vw"
-                src="/images/Screenshot 2026-09-21 194357.png"
-                width={1920}
-              />
-              <figcaption><span>Desktop</span><span>Image view</span></figcaption>
-            </figure>
-            <figure className={styles.previewMobile} data-reveal>
-              <Image
-                alt="Almanac mobile collection showing saved titles, dates, creators, and text filters in list view"
-                height={2223}
-                sizes="(max-width: 700px) 68vw, 22vw"
-                src="/images/almanac-mobile.jpg"
-                width={1170}
-              />
-              <figcaption><span>Mobile</span><span>List view</span></figcaption>
-            </figure>
-          </div>
-        </section>
-
         <section className={styles.editorialSection} aria-labelledby="editorial-title">
           <header className={styles.editorialHeader} data-reveal>
             <span>Works that stay</span>
             <h2 id="editorial-title">The image stays with you, too.</h2>
-            <p>Posters, covers, and scenes become part of how we remember what we watched and read.</p>
+            <p>Posters and scenes become part of how we remember what we watched and read.</p>
           </header>
           <div className={styles.editorialGallery}>
-            <figure className={`${styles.editorialImage} ${styles.editorialPoster}`} data-reveal>
-              <Image alt="La La Land film poster at a dark theatre" fill sizes="(max-width: 700px) 48vw, 22vw" src="/images/cosmos_1768234398.jpeg" />
+            <figure className={styles.editorialImage} data-reveal>
+              <Image alt="La La Land film poster at a dark theatre" fill sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 1280px) 31vw, 390px" src="/images/cosmos_1768234398.jpeg" />
             </figure>
-            <figure className={`${styles.editorialImage} ${styles.editorialStill}`} data-reveal>
-              <Image alt="Three people gathered at a table, seen through a large window" fill sizes="(max-width: 700px) 100vw, 57vw" src="/images/cosmos_1037838399.jpeg" />
-            </figure>
-            <figure className={`${styles.editorialImage} ${styles.editorialBook}`} data-reveal>
-              <Image alt="Cover of A Breath of Life by Clarice Lispector" fill sizes="(max-width: 700px) 48vw, 21vw" src="/images/cosmos_688297974.jpeg" />
+            <figure className={styles.editorialImage} data-reveal>
+              <Image alt="Three people gathered at a table, seen through a large window" fill sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 1280px) 65vw, 850px" src="/images/cosmos_1037838399.jpeg" />
             </figure>
           </div>
         </section>
@@ -250,19 +215,21 @@ export function LandingExperience() {
         <LandingPrinciples />
 
         <section className={styles.differenceSection} aria-labelledby="difference-title">
-          <div className={styles.differenceIntro} data-reveal>
-            <p>Why Almanac</p>
-            <h2 id="difference-title">A ledger,<br />not a feed.</h2>
-            <span>Most logging tools turn taste into public activity. Almanac removes the audience.</span>
-          </div>
+          <div className={styles.differenceLayout}>
+            <div className={styles.differenceIntro} data-reveal>
+              <p>Why Almanac</p>
+              <h2 id="difference-title">A ledger,<br />not a feed.</h2>
+              <span>Most logging tools turn taste into public activity. Almanac removes the audience.</span>
+            </div>
 
-          <div className={styles.differenceList} data-reveal>
-            {differences.map(([title, description]) => (
-              <article key={title}>
-                <h3>{title}</h3>
-                <p>{description}</p>
-              </article>
-            ))}
+            <div className={styles.differenceList} data-reveal>
+              {differences.map(([title, description]) => (
+                <article key={title}>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 

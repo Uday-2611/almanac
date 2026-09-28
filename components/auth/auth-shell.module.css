@@ -33,7 +33,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0;
 }
 
 .reelColumn {
@@ -94,14 +94,13 @@
   mix-blend-mode: difference;
 }
 
-.archiveHeader span,
-.archiveCopy > p {
+.archiveHeader span {
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 58%);
+  color: #ffffff;
 }
 
 .wordmark {
@@ -110,7 +109,7 @@
   align-items: center;
   padding-inline: 0.25rem;
   border-radius: 4px;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: -0.025em;
   color: #ffffff;
@@ -118,33 +117,6 @@
 
 .wordmark:focus-visible {
   background: rgb(255 255 255 / 14%);
-}
-
-.archiveCopy {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 1;
-  padding: clamp(1.75rem, 4vw, 3.5rem);
-  mix-blend-mode: difference;
-}
-
-.archiveCopy h2 {
-  max-width: 9ch;
-  margin-top: 0.8rem;
-  font-size: clamp(3rem, 5vw, 5.75rem);
-  font-weight: 500;
-  line-height: 0.9;
-  letter-spacing: -0.065em;
-}
-
-.archiveCopy > span {
-  display: block;
-  max-width: 24rem;
-  margin-top: 1.25rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 64%);
 }
 
 .formPane {
@@ -172,7 +144,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #858585;
+  color: #595959;
 }
 
 .formHeader h1 {
@@ -188,13 +160,13 @@
   margin-top: 0.9rem;
   font-size: 0.8125rem;
   line-height: 1.55;
-  color: #707070;
+  color: #626262;
 }
 
 .form {
   display: grid;
-  gap: 1.1rem;
-  margin-top: 3rem;
+  gap: 0.875rem;
+  margin-top: 2rem;
 }
 
 .field {
@@ -306,7 +278,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  color: #9a9a9a;
+  color: #686868;
   font-size: 0.625rem;
   text-transform: uppercase;
 }
@@ -346,7 +318,7 @@
   width: 100%;
   margin-top: 1.5rem;
   padding-inline: 0.5rem;
-  color: #6e6e6e;
+  color: #606060;
   font-size: 0.75rem;
 }
 
@@ -356,11 +328,11 @@
 }
 
 .privacyNote {
-  margin-top: 2.25rem;
+  margin-top: 1.75rem;
   text-align: center;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   line-height: 1.45;
-  color: #999999;
+  color: #666666;
 }
 
 @keyframes reel-descend {
@@ -389,22 +361,9 @@
     padding: 1.25rem;
   }
 
-  .archiveCopy {
-    padding: 1.5rem;
-  }
-
-  .archiveCopy h2 {
-    max-width: none;
-    margin-top: 0.5rem;
-    font-size: clamp(2.25rem, 9vw, 3.75rem);
-  }
-
-  .archiveCopy > span {
-    margin-top: 0.75rem;
-  }
-
   .formPane {
-    padding: clamp(1rem, 3svh, 2rem) clamp(1.25rem, 7vw, 4rem);
+    place-items: start center;
+    padding: clamp(1.75rem, 5svh, 3rem) clamp(1.25rem, 7vw, 4rem);
   }
 
   .form {
@@ -430,19 +389,14 @@
 }
 
 @media (max-width: 480px) {
-  .archiveHeader span,
-  .archiveCopy > span {
+  .archiveHeader span {
     display: none;
-  }
-
-  .formPane {
-    place-items: center;
   }
 }
 
 @media (max-height: 720px) and (max-width: 860px) {
   .authShell {
-    grid-template-rows: 7rem minmax(0, 1fr);
+    grid-template-rows: 5.5rem minmax(0, 1fr);
   }
 
   .archiveHeader {
@@ -453,19 +407,8 @@
     min-height: 2.25rem;
   }
 
-  .archiveCopy {
-    padding: 0.75rem 1rem;
-  }
-
-  .archiveCopy > p,
-  .archiveCopy > span,
   .privacyNote {
     display: none;
-  }
-
-  .archiveCopy h2 {
-    margin-top: 0;
-    font-size: 2rem;
   }
 
   .formPane {
@@ -537,6 +480,12 @@
   .modeSwitch {
     margin-top: 0.75rem;
   }
+}
+
+@media (max-height: 600px) and (max-width: 860px) {
+  .formHeader > span { margin-top: 0.25rem; }
+  .form { margin-top: 0.75rem; }
+  .modeSwitch { margin-top: 0.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -98,11 +98,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <span>Private archive · 2026</span>
           </div>
 
-          <div className={styles.archiveCopy}>
-            <p>Films · series · books</p>
-            <h2>Keep what stays.</h2>
-            <span>Your private record of the work you return to.</span>
-          </div>
         </aside>
 
         <div className={styles.formPane}>
