@@ -63,8 +63,9 @@ export function LandingExperience() {
             <span>Films · Series · Books</span>
           </div>
 
+          <h1 className={styles.heroWordmark} id="landing-title">Almanac</h1>
+
           <div className={styles.heroTitleBlock}>
-            <h1 id="landing-title">Almanac</h1>
             <span className={styles.heroRule} aria-hidden="true" />
             <span className={styles.heroIssue}>01</span>
           </div>

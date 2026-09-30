@@ -15,14 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const boska = localFont({
-  variable: "--font-boska-family",
+const soria = localFont({
+  variable: "--font-soria-family",
   display: "swap",
-  src: [
-    { path: "../public/fonts/boska-regular.woff2", weight: "400", style: "normal" },
-    { path: "../public/fonts/boska-medium.woff2", weight: "500", style: "normal" },
-    { path: "../public/fonts/boska-bold.woff2", weight: "700", style: "normal" },
-  ],
+  src: "../public/fonts/soria-regular.ttf",
+  weight: "400",
+  style: "normal",
 });
 
 export const metadata: Metadata = {
@@ -37,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${boska.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${soria.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><SmoothScroll />{children}</body>
     </html>

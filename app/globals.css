@@ -153,7 +153,9 @@
 
 @layer utilities {
   .almanac-wordmark {
-    font-family: var(--font-boska-family), Georgia, "Times New Roman", serif;
+    font-family: var(--font-soria-family), Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-synthesis: none;
   }
 
   .ledger-focus {

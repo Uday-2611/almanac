@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="absolute left-5 top-5 z-20 flex items-center text-sm leading-none sm:text-base">
         <Link
           href="/movies"
-          className="almanac-wordmark ledger-focus px-1 py-0.5 text-lg font-medium tracking-[-0.025em]"
+          className="almanac-wordmark ledger-focus px-1 py-0.5 text-lg tracking-[-0.025em]"
         >
           Almanac
         </Link>
